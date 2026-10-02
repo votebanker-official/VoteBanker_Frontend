@@ -1,0 +1,128 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+import 'translations/en.dart';
+import 'translations/hi.dart';
+import 'translations/kn.dart';
+import 'translations/ml.dart';
+import 'translations/ta.dart';
+import 'translations/te.dart';
+
+class AppLocalizations {
+  AppLocalizations(this.locale);
+
+  final Locale locale;
+
+  static const supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('kn'),
+    Locale('hi'),
+    Locale('te'),
+    Locale('ta'),
+    Locale('ml'),
+  ];
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  static AppLocalizations of(BuildContext context) {
+    final value = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    assert(value != null, 'AppLocalizations was not found in this context.');
+    return value!;
+  }
+
+  static const _catalog = <String, Map<String, String>>{
+    'en': enTranslations,
+    'kn': knTranslations,
+    'hi': hiTranslations,
+    'te': teTranslations,
+    'ta': taTranslations,
+    'ml': mlTranslations,
+  };
+
+  String _t(String key) {
+    final language = _catalog[locale.languageCode] ?? enTranslations;
+    return language[key] ?? enTranslations[key] ?? key;
+  }
+
+  String stepProgress(int step, int total) {
+    return _t('stepProgress')
+        .replaceAll('{step}', '$step')
+        .replaceAll('{total}', '$total');
+  }
+
+  String get appName => _t('appName');
+  String get descriptor => _t('descriptor');
+  String get principle => _t('principle');
+  String get skipForNow => _t('skipForNow');
+  String get back => _t('back');
+  String get next => _t('next');
+  String get language => _t('language');
+  String get welcomeTitle => _t('welcomeTitle');
+  String get welcomeBody => _t('welcomeBody');
+  String get continueWhatsApp => _t('continueWhatsApp');
+  String get continueMobile => _t('continueMobile');
+  String get continueEmail => _t('continueEmail');
+  String get authLater => _t('authLater');
+  String get basicProfile => _t('basicProfile');
+  String get profileDescription => _t('profileDescription');
+  String get fullName => _t('fullName');
+  String get photo => _t('photo');
+  String get designation => _t('designation');
+  String get organization => _t('organization');
+  String get country => _t('country');
+  String get stateRegion => _t('stateRegion');
+  String get constituency => _t('constituency');
+  String get publicContact => _t('publicContact');
+  String get preferredLanguage => _t('preferredLanguage');
+  String get selectLanguage => _t('selectLanguage');
+  String get saveAndContinue => _t('saveAndContinue');
+  String get addPhoto => _t('addPhoto');
+  String get changePhoto => _t('changePhoto');
+  String get optionalHint => _t('optionalHint');
+  String get photoError => _t('photoError');
+  String get domainTitle => _t('domainTitle');
+  String get domainDescription => _t('domainDescription');
+  String get searchPlaceholder => _t('searchPlaceholder');
+  String get available => _t('available');
+  String get add => _t('add');
+  String get selected => _t('selected');
+  String get whiteLabelTitle => _t('whiteLabelTitle');
+  String get whiteLabelBody => _t('whiteLabelBody');
+  String get domainEmpty => _t('domainEmpty');
+  String get domainNeedLatin => _t('domainNeedLatin');
+  String get perYear => _t('perYear');
+  String get dashboard => _t('dashboard');
+  String get dashboardSubtitle => _t('dashboardSubtitle');
+  String get cardProfile => _t('cardProfile');
+  String get cardDomain => _t('cardDomain');
+  String get cardSocial => _t('cardSocial');
+  String get cardContent => _t('cardContent');
+  String get cardVrm => _t('cardVrm');
+  String get cardVolunteers => _t('cardVolunteers');
+  String get cardEvents => _t('cardEvents');
+  String get cardIssues => _t('cardIssues');
+  String get cardTeam => _t('cardTeam');
+  String get cardAnalytics => _t('cardAnalytics');
+  String get cardMarketplace => _t('cardMarketplace');
+  String get comingLater => _t('comingLater');
+}
+
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) {
+    return AppLocalizations.supportedLocales.any(
+      (supported) => supported.languageCode == locale.languageCode,
+    );
+  }
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture(AppLocalizations(locale));
+  }
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
