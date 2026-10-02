@@ -60,7 +60,7 @@ class LoginScreen extends StatelessWidget {
             SecondaryButton(
               label: l10n.continueMobile,
               icon: Icons.sms_outlined,
-              onPressed: () => _continue(context),
+              onPressed: () => AppRouter.open(context, AppRoutes.otp),
             ),
             const SizedBox(height: 12),
             SecondaryButton(

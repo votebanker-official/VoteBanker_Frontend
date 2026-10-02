@@ -3,6 +3,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'app/app.dart';
 import 'app/theme/app_theme.dart';
+import 'core/services/auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,11 @@ Future<void> main() async {
     await AppTheme.preloadFonts().timeout(const Duration(seconds: 8));
   } catch (_) {
     // The app still opens if the font host cannot be reached.
+  }
+  try {
+    await AuthService.instance.restore();
+  } catch (_) {
+    // A broken saved session must never stop the app from opening.
   }
   runApp(const VoteBankerApp());
 }
