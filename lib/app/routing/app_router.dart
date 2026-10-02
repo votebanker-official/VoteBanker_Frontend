@@ -4,11 +4,19 @@ import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
 import '../../features/onboarding/screens/basic_profile_screen.dart';
 import '../../features/onboarding/screens/domain_search_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
+import '../../features/onboarding/screens/ready_screen.dart';
+import '../../features/onboarding/screens/social_setup_screen.dart';
+import '../../features/onboarding/screens/vrm_setup_screen.dart';
+import '../../features/onboarding/screens/website_screen.dart';
 
 abstract final class AppRoutes {
   static const login = '/';
   static const profile = '/profile';
   static const domain = '/domain';
+  static const website = '/website';
+  static const social = '/social';
+  static const vrm = '/vrm';
+  static const ready = '/ready';
   static const dashboard = '/dashboard';
 }
 
@@ -17,6 +25,10 @@ abstract final class AppRouter {
     final page = switch (settings.name) {
       AppRoutes.profile => const BasicProfileScreen(),
       AppRoutes.domain => const DomainSearchScreen(),
+      AppRoutes.website => const WebsiteScreen(),
+      AppRoutes.social => const SocialSetupScreen(),
+      AppRoutes.vrm => const VrmSetupScreen(),
+      AppRoutes.ready => const ReadyScreen(),
       AppRoutes.dashboard => const DashboardPlaceholderScreen(),
       _ => const LoginScreen(),
     };

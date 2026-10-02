@@ -8,6 +8,7 @@ import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/language_selector.dart';
+import '../../onboarding/state/onboarding_controller.dart';
 
 class DashboardPlaceholderScreen extends StatelessWidget {
   const DashboardPlaceholderScreen({super.key});
@@ -15,6 +16,8 @@ class DashboardPlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final name = OnboardingScope.of(context).draft.fullName.trim();
+    final greeting = name.isEmpty ? l10n.welcomeTitle : l10n.welcomeBack(name);
     final modules = <_Module>[
       _Module(Icons.person_outline, l10n.cardProfile),
       _Module(Icons.language, l10n.cardDomain),
@@ -24,9 +27,12 @@ class DashboardPlaceholderScreen extends StatelessWidget {
       _Module(Icons.volunteer_activism_outlined, l10n.cardVolunteers),
       _Module(Icons.event_outlined, l10n.cardEvents),
       _Module(Icons.assignment_outlined, l10n.cardIssues),
+      _Module(Icons.campaign_outlined, l10n.cardCampaign),
       _Module(Icons.group_outlined, l10n.cardTeam),
       _Module(Icons.insights_outlined, l10n.cardAnalytics),
       _Module(Icons.storefront_outlined, l10n.cardMarketplace),
+      _Module(Icons.receipt_long_outlined, l10n.cardBilling),
+      _Module(Icons.settings_outlined, l10n.cardSettings),
     ];
 
     return Scaffold(
@@ -83,10 +89,15 @@ class DashboardPlaceholderScreen extends StatelessWidget {
                             28,
                           ),
                           children: [
+                            Text(
+                              l10n.dashboard,
+                              style: AppTextStyles.principle(context),
+                            ),
+                            const SizedBox(height: 8),
                             Semantics(
                               header: true,
                               child: Text(
-                                l10n.dashboard,
+                                greeting,
                                 style: AppTextStyles.headline(context),
                               ),
                             ),

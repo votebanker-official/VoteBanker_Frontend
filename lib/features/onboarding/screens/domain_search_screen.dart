@@ -153,7 +153,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
             primaryLabel: l10n.next,
             onPrimary: () {
               _commit();
-              AppRouter.open(context, AppRoutes.dashboard);
+              AppRouter.open(context, AppRoutes.website);
             },
             skipLabel: l10n.skipForNow,
             onSkip: () {

@@ -15,4 +15,7 @@ class OnboardingDraft {
   String preferredLanguage = '';
   String domainQuery = '';
   String? selectedDomain;
+  String? websiteTemplate;
+  final Set<String> socialChannels = <String>{};
+  bool vrmRequested = false;
 }

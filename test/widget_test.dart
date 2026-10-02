@@ -119,6 +119,9 @@ void main() {
     expect(find.text('Selected'), findsOneWidget);
 
     await _tapLabel(tester, 'Next');
+    expect(find.text('Portfolio Website'), findsOneWidget);
+
+    await _tapLabel(tester, 'Skip for now');
     expect(find.text('Dashboard'), findsOneWidget);
     expect(find.text('Your VOTE BANKER workspace starts here.'), findsOneWidget);
     expect(find.text('Marketplace'), findsOneWidget);

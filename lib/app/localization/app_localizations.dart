@@ -106,6 +106,44 @@ class AppLocalizations {
   String get cardAnalytics => _t('cardAnalytics');
   String get cardMarketplace => _t('cardMarketplace');
   String get comingLater => _t('comingLater');
+  String get optionalLabel => _t('optionalLabel');
+  String get websiteTitle => _t('websiteTitle');
+  String get websiteBody => _t('websiteBody');
+  String get templatePublic => _t('templatePublic');
+  String get templatePublicBody => _t('templatePublicBody');
+  String get templateWork => _t('templateWork');
+  String get templateWorkBody => _t('templateWorkBody');
+  String get templateIssue => _t('templateIssue');
+  String get templateIssueBody => _t('templateIssueBody');
+  String get websiteOffer => _t('websiteOffer');
+  String get websiteLater => _t('websiteLater');
+  String get socialTitle => _t('socialTitle');
+  String get socialBody => _t('socialBody');
+  String get socialInstagram => _t('socialInstagram');
+  String get socialFacebook => _t('socialFacebook');
+  String get socialMeta => _t('socialMeta');
+  String get viewPlans => _t('viewPlans');
+  String get socialLater => _t('socialLater');
+  String get vrmTitle => _t('vrmTitle');
+  String get vrmBody => _t('vrmBody');
+  String get vrmPointContacts => _t('vrmPointContacts');
+  String get vrmPointTeam => _t('vrmPointTeam');
+  String get vrmPointIssues => _t('vrmPointIssues');
+  String get vrmSetup => _t('vrmSetup');
+  String get vrmLater => _t('vrmLater');
+  String get readyTitle => _t('readyTitle');
+  String get readyBody => _t('readyBody');
+  String get goToDashboard => _t('goToDashboard');
+  String get exploreFeatures => _t('exploreFeatures');
+  String get joinNetwork => _t('joinNetwork');
+  String get joinLater => _t('joinLater');
+  String get cardCampaign => _t('cardCampaign');
+  String get cardBilling => _t('cardBilling');
+  String get cardSettings => _t('cardSettings');
+
+  String welcomeBack(String name) {
+    return _t('welcomeBack').replaceAll('{name}', name);
+  }
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
