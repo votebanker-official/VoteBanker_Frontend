@@ -179,6 +179,9 @@ class AuthService {
         return 'That code is not correct. Please try again.';
       case 'code_expired':
         return 'That code has expired. Request a new one.';
+      case 'number_not_verified':
+        return 'This number is not enabled for testing yet. '
+            'Ask the VoteBanker team to add it, then try again.';
       case 'too_many_requests':
         return 'Too many attempts. Please wait a few minutes and try again.';
       default:
