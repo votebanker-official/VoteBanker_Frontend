@@ -13,12 +13,12 @@ import '../widgets/onboarding_frame.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  void _continue(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  void _emailComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.authLater)),
+      const SnackBar(
+        content: Text('Email sign-in is coming soon. Please use mobile OTP.'),
+      ),
     );
-    AppRouter.open(context, AppRoutes.profile);
   }
 
   @override
@@ -54,7 +54,11 @@ class LoginScreen extends StatelessWidget {
             PrimaryButton(
               label: l10n.continueWhatsApp,
               icon: Icons.chat_rounded,
-              onPressed: () => _continue(context),
+              onPressed: () => AppRouter.open(
+                context,
+                AppRoutes.otp,
+                arguments: 'whatsapp',
+              ),
             ),
             const SizedBox(height: 12),
             SecondaryButton(
@@ -66,7 +70,7 @@ class LoginScreen extends StatelessWidget {
             SecondaryButton(
               label: l10n.continueEmail,
               icon: Icons.mail_outline,
-              onPressed: () => _continue(context),
+              onPressed: () => _emailComingSoon(context),
             ),
             TextButton(
               onPressed: () => AppRouter.open(context, AppRoutes.profile),

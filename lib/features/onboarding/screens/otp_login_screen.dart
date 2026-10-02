@@ -12,7 +12,10 @@ import '../widgets/onboarding_frame.dart';
 enum _OtpStep { phone, code }
 
 class OtpLoginScreen extends StatefulWidget {
-  const OtpLoginScreen({super.key});
+  const OtpLoginScreen({this.channel = 'sms', super.key});
+
+  /// `sms` or `whatsapp`.
+  final String channel;
 
   @override
   State<OtpLoginScreen> createState() => _OtpLoginScreenState();
@@ -26,6 +29,9 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
   String? _phone;
   String? _error;
   bool _busy = false;
+  late String _channel = widget.channel;
+
+  String get _channelName => _channel == 'whatsapp' ? 'WhatsApp' : 'SMS';
 
   @override
   void dispose() {
@@ -46,7 +52,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
       _error = null;
     });
     try {
-      await AuthService.instance.sendOtp(phone);
+      await AuthService.instance.sendOtp(phone, channel: _channel);
       if (!mounted) return;
       setState(() {
         _phone = phone;
@@ -102,8 +108,8 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
             OnboardingHeader(
               title: l10n.continueMobile,
               description: onCodeStep
-                  ? 'We sent a 6-digit code to $_phone.'
-                  : 'Enter your mobile number. We will text you a code.',
+                  ? 'We sent a 6-digit code to $_phone on $_channelName.'
+                  : 'Enter your mobile number. We will send you a code on $_channelName.',
             ),
             const SizedBox(height: 24),
             if (!onCodeStep)
@@ -156,11 +162,17 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                 onPressed: _busy ? null : _changeNumber,
                 child: const Text('Change number'),
               ),
-            ] else
+            ] else ...[
+              if (_channel == 'whatsapp')
+                TextButton(
+                  onPressed: _busy ? null : () => setState(() => _channel = 'sms'),
+                  child: const Text('Get the code by SMS instead'),
+                ),
               TextButton(
                 onPressed: () => AppRouter.back(context, AppRoutes.login),
                 child: Text(l10n.back),
               ),
+            ],
           ],
         ),
       ),

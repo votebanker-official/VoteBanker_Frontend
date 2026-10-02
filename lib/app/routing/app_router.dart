@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../core/services/profile_service.dart';
+import '../../features/onboarding/state/onboarding_controller.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
 import '../../features/onboarding/screens/basic_profile_screen.dart';
 import '../../features/onboarding/screens/domain_search_screen.dart';
@@ -25,7 +29,9 @@ abstract final class AppRoutes {
 abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
-      AppRoutes.otp => const OtpLoginScreen(),
+      AppRoutes.otp => OtpLoginScreen(
+          channel: settings.arguments == 'whatsapp' ? 'whatsapp' : 'sms',
+        ),
       AppRoutes.profile => const BasicProfileScreen(),
       AppRoutes.domain => const DomainSearchScreen(),
       AppRoutes.website => const WebsiteScreen(),
@@ -47,8 +53,14 @@ abstract final class AppRouter {
     );
   }
 
-  static void open(BuildContext context, String route) {
-    Navigator.of(context).pushNamed(route);
+  static void open(BuildContext context, String route, {Object? arguments}) {
+    // Every onboarding step moves forward through here, so this is where the
+    // answers collected so far are saved for signed-in users.
+    final draft = OnboardingScope.maybeOf(context)?.draft;
+    if (draft != null) {
+      unawaited(ProfileService.instance.saveDraft(draft));
+    }
+    Navigator.of(context).pushNamed(route, arguments: arguments);
   }
 
   static void back(BuildContext context, String fallbackRoute) {

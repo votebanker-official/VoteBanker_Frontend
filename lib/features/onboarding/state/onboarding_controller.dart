@@ -42,6 +42,13 @@ class OnboardingScope extends InheritedWidget {
     return scope!.controller;
   }
 
+  /// Like [of] but returns null instead of asserting when no scope exists.
+  static OnboardingController? maybeOf(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<OnboardingScope>()
+        ?.controller;
+  }
+
   @override
   bool updateShouldNotify(OnboardingScope oldWidget) {
     return controller != oldWidget.controller;

@@ -83,8 +83,9 @@ class AuthService {
     );
   }
 
-  Future<void> sendOtp(String phone) async {
-    await _post('/api/auth/otp/send', {'phone': phone});
+  /// [channel] is `sms` or `whatsapp`.
+  Future<void> sendOtp(String phone, {String channel = 'sms'}) async {
+    await _post('/api/auth/otp/send', {'phone': phone, 'channel': channel});
   }
 
   Future<AuthSession> verifyOtp(String phone, String code) async {
@@ -179,6 +180,8 @@ class AuthService {
         return 'That code is not correct. Please try again.';
       case 'code_expired':
         return 'That code has expired. Request a new one.';
+      case 'channel_unavailable':
+        return 'WhatsApp codes are not available yet. Please use SMS instead.';
       case 'number_not_verified':
         return 'This number is not enabled for testing yet. '
             'Ask the VoteBanker team to add it, then try again.';
