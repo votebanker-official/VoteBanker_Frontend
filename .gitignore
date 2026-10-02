@@ -10,3 +10,12 @@ build/
 .env
 .env.*
 !.env.example
+
+# --- secrets safety net ---
+*cred*.txt
+*credentials*
+*.pem
+*.p12
+*.pfx
+secrets/
+
