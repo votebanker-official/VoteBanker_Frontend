@@ -9,29 +9,30 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF071422),
-            AppColors.background,
-            Color(0xFF04070E),
+            palette.gradientTop,
+            palette.background,
+            palette.gradientBottom,
           ],
         ),
       ),
       child: Stack(
         children: [
-          const Positioned(
+          Positioned(
             top: -140,
             right: -90,
-            child: _Glow(color: Color(0x332EC8FF), diameter: 340),
+            child: _Glow(color: palette.glowPrimary, diameter: 340),
           ),
-          const Positioned(
+          Positioned(
             bottom: -160,
             left: -110,
-            child: _Glow(color: Color(0x221ED4C1), diameter: 300),
+            child: _Glow(color: palette.glowSecondary, diameter: 300),
           ),
           Positioned.fill(child: child),
         ],

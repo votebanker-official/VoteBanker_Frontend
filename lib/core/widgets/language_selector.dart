@@ -14,6 +14,7 @@ class LanguageSelector extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final session = OnboardingScope.of(context);
     final code = Localizations.localeOf(context).languageCode;
+    final palette = context.palette;
 
     return PopupMenuButton<String>(
       tooltip: l10n.language,
@@ -29,8 +30,8 @@ class LanguageSelector extends StatelessWidget {
                 language.nativeName,
                 style: AppTextStyles.body(context).copyWith(
                   color: language.code == code
-                      ? AppColors.primary
-                      : AppColors.text,
+                      ? palette.accent
+                      : palette.text,
                   fontWeight: language.code == code
                       ? FontWeight.w700
                       : FontWeight.w500,
@@ -43,14 +44,14 @@ class LanguageSelector extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 48, maxWidth: 168),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.surfaceSecondary,
+          color: palette.surfaceSecondary,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: palette.border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.language, size: 18, color: AppColors.primary),
+            Icon(Icons.language, size: 18, color: palette.accent),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
@@ -60,7 +61,7 @@ class LanguageSelector extends StatelessWidget {
                 style: AppTextStyles.label(context).copyWith(fontSize: 13),
               ),
             ),
-            const Icon(Icons.expand_more, size: 18, color: AppColors.textMuted),
+            Icon(Icons.expand_more, size: 18, color: palette.textMuted),
           ],
         ),
       ),

@@ -14,17 +14,18 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.94),
+        color: palette.surface.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: palette.border),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x401CB4FF),
+            color: palette.cardShadow,
             blurRadius: 32,
             spreadRadius: -18,
-            offset: Offset(0, 14),
+            offset: const Offset(0, 14),
           ),
         ],
       ),

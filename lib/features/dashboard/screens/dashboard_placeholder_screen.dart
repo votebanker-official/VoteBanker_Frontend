@@ -8,6 +8,7 @@ import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/language_selector.dart';
+import '../../../core/widgets/theme_toggle.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 
 class DashboardPlaceholderScreen extends StatelessWidget {
@@ -36,7 +37,7 @@ class DashboardPlaceholderScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.palette.background,
       body: AppBackground(
         child: SafeArea(
           child: LayoutBuilder(
@@ -68,6 +69,8 @@ class DashboardPlaceholderScreen extends StatelessWidget {
                             style: AppTextStyles.wordmark(context).copyWith(fontSize: 16),
                           ),
                         ),
+                        const ThemeToggle(),
+                        const SizedBox(width: 8),
                         const LanguageSelector(),
                       ],
                     ),
@@ -127,10 +130,10 @@ class DashboardPlaceholderScreen extends StatelessWidget {
                                         width: 44,
                                         height: 44,
                                         decoration: BoxDecoration(
-                                          color: AppColors.primary.withValues(alpha: 0.12),
+                                          color: context.palette.accent.withValues(alpha: 0.12),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: Icon(module.icon, color: AppColors.primary),
+                                        child: Icon(module.icon, color: context.palette.accent),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(

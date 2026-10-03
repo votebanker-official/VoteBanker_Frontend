@@ -84,7 +84,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                   textInputAction: TextInputAction.search,
                   onChanged: _onQueryChanged,
                   onSubmitted: _onQueryChanged,
-                  prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+                  prefixIcon: Icon(Icons.search, color: context.palette.textMuted),
                 ),
               ],
             ),
@@ -118,12 +118,12 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.12),
+                    color: context.palette.secondary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.verified_outlined,
-                    color: AppColors.secondary,
+                    color: context.palette.secondary,
                   ),
                 ),
                 const SizedBox(width: 12),

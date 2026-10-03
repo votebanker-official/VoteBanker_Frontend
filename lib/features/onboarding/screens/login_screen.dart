@@ -13,12 +13,12 @@ import '../widgets/onboarding_frame.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  void _continue(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  void _emailComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.authLater)),
+      const SnackBar(
+        content: Text('Email sign-in is coming soon. Please use mobile OTP.'),
+      ),
     );
-    AppRouter.open(context, AppRoutes.profile);
   }
 
   @override
@@ -33,10 +33,10 @@ class LoginScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
+                color: context.palette.accent.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.28),
+                  color: context.palette.accent.withValues(alpha: 0.28),
                 ),
               ),
               child: Text(
@@ -54,19 +54,23 @@ class LoginScreen extends StatelessWidget {
             PrimaryButton(
               label: l10n.continueWhatsApp,
               icon: Icons.chat_rounded,
-              onPressed: () => _continue(context),
+              onPressed: () => AppRouter.open(
+                context,
+                AppRoutes.otp,
+                arguments: 'whatsapp',
+              ),
             ),
             const SizedBox(height: 12),
             SecondaryButton(
               label: l10n.continueMobile,
               icon: Icons.sms_outlined,
-              onPressed: () => _continue(context),
+              onPressed: () => AppRouter.open(context, AppRoutes.otp),
             ),
             const SizedBox(height: 12),
             SecondaryButton(
               label: l10n.continueEmail,
               icon: Icons.mail_outline,
-              onPressed: () => _continue(context),
+              onPressed: () => _emailComingSoon(context),
             ),
             TextButton(
               onPressed: () => AppRouter.open(context, AppRoutes.profile),

@@ -41,7 +41,7 @@ class AppTextField extends StatelessWidget {
             label!,
             style: AppTextStyles.label(context).copyWith(
               fontSize: 13,
-              color: AppColors.textMuted,
+              color: context.palette.textMuted,
             ),
           ),
           const SizedBox(height: 8),
@@ -56,7 +56,7 @@ class AppTextField extends StatelessWidget {
           onSubmitted: onSubmitted,
           maxLines: maxLines,
           style: AppTextStyles.body(context),
-          cursorColor: AppColors.primary,
+          cursorColor: context.palette.accent,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon,
