@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/profile_service.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
+import '../../features/merchandise/screens/merchandise_screen.dart';
 import '../../features/onboarding/screens/basic_profile_screen.dart';
 import '../../features/onboarding/screens/domain_search_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
@@ -40,6 +41,7 @@ abstract final class AppRoutes {
   static const vrm = '/vrm';
   static const ready = '/ready';
   static const dashboard = '/dashboard';
+  static const merchandise = '/merchandise';
 }
 
 abstract final class AppRouter {
@@ -63,6 +65,7 @@ abstract final class AppRouter {
       AppRoutes.vrm => const VrmSetupScreen(),
       AppRoutes.ready => const ReadyScreen(),
       AppRoutes.dashboard => const DashboardPlaceholderScreen(),
+      AppRoutes.merchandise => const MerchandiseScreen(),
       _ => const LoginScreen(),
     };
 

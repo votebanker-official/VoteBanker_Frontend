@@ -17,6 +17,7 @@ abstract final class AppTheme {
       onPrimary: Colors.white,
       secondary: p.secondary,
       onSecondary: const Color(0xFF04221E),
+      tertiary: p.campaign,
       surface: p.surface,
       onSurface: p.text,
       error: p.danger,
@@ -60,6 +61,22 @@ abstract final class AppTheme {
       dividerColor: p.border,
       splashColor: p.accent.withValues(alpha: 0.12),
       highlightColor: p.accent.withValues(alpha: 0.08),
+      cardTheme: CardTheme(
+        color: p.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(color: p.border.withValues(alpha: 0.85), width: 1),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: p.surfaceSecondary,
+        selectedColor: p.accent,
+        labelStyle: textTheme.labelMedium,
+        side: BorderSide(color: p.border),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: p.surfaceSecondary,
@@ -81,10 +98,12 @@ abstract final class AppTheme {
           backgroundColor: p.accent,
           foregroundColor: Colors.white,
           elevation: 0,
+          shadowColor: p.accent.withValues(alpha: 0.25),
+          surfaceTintColor: Colors.transparent,
           minimumSize: const Size(48, 52),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle: textTheme.labelLarge?.copyWith(
             fontSize: 15,
@@ -97,9 +116,9 @@ abstract final class AppTheme {
           foregroundColor: p.text,
           minimumSize: const Size(48, 52),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          side: BorderSide(color: p.border),
+          side: BorderSide(color: p.border, width: 1.2),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle: textTheme.labelLarge?.copyWith(
             fontSize: 15,

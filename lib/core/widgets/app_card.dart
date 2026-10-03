@@ -17,15 +17,22 @@ class AppCard extends StatelessWidget {
     final palette = context.palette;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: palette.surface.withValues(alpha: 0.94),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            palette.surface.withValues(alpha: 0.98),
+            palette.surfaceSecondary.withValues(alpha: 0.88),
+          ],
+        ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: palette.border),
+        border: Border.all(color: palette.border.withValues(alpha: 0.88), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: palette.cardShadow,
-            blurRadius: 32,
-            spreadRadius: -18,
-            offset: const Offset(0, 14),
+            color: palette.cardShadow.withValues(alpha: 0.28),
+            blurRadius: 18,
+            spreadRadius: -8,
+            offset: const Offset(0, 12),
           ),
         ],
       ),

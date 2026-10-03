@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
+import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
@@ -31,7 +32,12 @@ class DashboardPlaceholderScreen extends StatelessWidget {
       _Module(Icons.campaign_outlined, l10n.cardCampaign),
       _Module(Icons.group_outlined, l10n.cardTeam),
       _Module(Icons.insights_outlined, l10n.cardAnalytics),
-      _Module(Icons.storefront_outlined, l10n.cardMarketplace),
+      _Module(
+        Icons.storefront_outlined,
+        l10n.cardMarketplace,
+        subtitle: l10n.line('merchOpen'),
+        route: AppRoutes.merchandise,
+      ),
       _Module(Icons.receipt_long_outlined, l10n.cardBilling),
       _Module(Icons.settings_outlined, l10n.cardSettings),
     ];
@@ -122,7 +128,14 @@ class DashboardPlaceholderScreen extends StatelessWidget {
                               ),
                               itemBuilder: (context, index) {
                                 final module = modules[index];
-                                return AppCard(
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(24),
+                                    onTap: module.route == null
+                                        ? null
+                                        : () => AppRouter.open(context, module.route!),
+                                    child: AppCard(
                                   padding: const EdgeInsets.all(16),
                                   child: Row(
                                     children: [
@@ -149,7 +162,7 @@ class DashboardPlaceholderScreen extends StatelessWidget {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              l10n.comingLater,
+                                              module.subtitle ?? l10n.comingLater,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: AppTextStyles.muted(context).copyWith(
@@ -160,6 +173,8 @@ class DashboardPlaceholderScreen extends StatelessWidget {
                                         ),
                                       ),
                                     ],
+                                  ),
+                                    ),
                                   ),
                                 );
                               },
@@ -180,8 +195,10 @@ class DashboardPlaceholderScreen extends StatelessWidget {
 }
 
 class _Module {
-  const _Module(this.icon, this.title);
+  const _Module(this.icon, this.title, {this.subtitle, this.route});
 
   final IconData icon;
   final String title;
+  final String? subtitle;
+  final String? route;
 }

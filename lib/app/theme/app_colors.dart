@@ -11,6 +11,7 @@ abstract final class AppColors {
   static const primary = Color(0xFF1CB4FF);
   static const primaryDeep = Color(0xFF0B7CFF);
   static const secondary = Color(0xFF1ED4C1);
+  static const campaign = Color(0xFFF4C96D);
   static const text = Color(0xFFF5F8FC);
   static const textMuted = Color(0xFF93A0B5);
   static const border = Color(0xFF2A4562);
@@ -33,6 +34,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.border,
     required this.accent,
     required this.secondary,
+    required this.campaign,
     required this.success,
     required this.danger,
     required this.gradientTop,
@@ -55,6 +57,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
   /// Blue used for buttons, links, icons and highlighted text.
   final Color accent;
   final Color secondary;
+  final Color campaign;
   final Color success;
   final Color danger;
 
@@ -66,20 +69,21 @@ class AppPalette extends ThemeExtension<AppPalette> {
 
   static const dark = AppPalette(
     isDark: true,
-    background: AppColors.background,
-    backgroundRaised: AppColors.backgroundRaised,
-    surface: AppColors.surface,
-    surfaceSecondary: AppColors.surfaceSecondary,
-    surfaceHighlight: AppColors.surfaceHighlight,
+    background: Color(0xFF06111C),
+    backgroundRaised: Color(0xFF0A1828),
+    surface: Color(0xFF0F1D2D),
+    surfaceSecondary: Color(0xFF13293B),
+    surfaceHighlight: Color(0xFF183C50),
     text: AppColors.text,
     textMuted: AppColors.textMuted,
-    border: AppColors.border,
+    border: Color(0xFF2A4562),
     accent: AppColors.primary,
     secondary: AppColors.secondary,
+    campaign: AppColors.campaign,
     success: AppColors.success,
     danger: AppColors.danger,
-    gradientTop: Color(0xFF071422),
-    gradientBottom: Color(0xFF04070E),
+    gradientTop: Color(0xFF071B2C),
+    gradientBottom: Color(0xFF030A12),
     glowPrimary: Color(0x332EC8FF),
     glowSecondary: Color(0x221ED4C1),
     cardShadow: Color(0x401CB4FF),
@@ -87,20 +91,21 @@ class AppPalette extends ThemeExtension<AppPalette> {
 
   static const light = AppPalette(
     isDark: false,
-    background: Color(0xFFF4F8FC),
-    backgroundRaised: Color(0xFFEEF4FA),
+    background: Color(0xFFF5F9FF),
+    backgroundRaised: Color(0xFFEDF4FD),
     surface: Color(0xFFFFFFFF),
-    surfaceSecondary: Color(0xFFEAF1F8),
-    surfaceHighlight: Color(0xFFDCE8F4),
+    surfaceSecondary: Color(0xFFEEF5FB),
+    surfaceHighlight: Color(0xFFE0ECF7),
     text: Color(0xFF0B1626),
     textMuted: Color(0xFF55657A),
     border: Color(0xFFC9D7E6),
     accent: Color(0xFF0A68D6),
     secondary: Color(0xFF0E9F8F),
+    campaign: Color(0xFFB77C13),
     success: Color(0xFF138A5B),
     danger: Color(0xFFD92D3F),
-    gradientTop: Color(0xFFE6F1FB),
-    gradientBottom: Color(0xFFE9EFF7),
+    gradientTop: Color(0xFFE7F2FF),
+    gradientBottom: Color(0xFFEAF1F7),
     glowPrimary: Color(0x261CB4FF),
     glowSecondary: Color(0x1A1ED4C1),
     cardShadow: Color(0x2A0A68D6),
@@ -119,6 +124,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? border,
     Color? accent,
     Color? secondary,
+    Color? campaign,
     Color? success,
     Color? danger,
     Color? gradientTop,
@@ -139,6 +145,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       border: border ?? this.border,
       accent: accent ?? this.accent,
       secondary: secondary ?? this.secondary,
+      campaign: campaign ?? this.campaign,
       success: success ?? this.success,
       danger: danger ?? this.danger,
       gradientTop: gradientTop ?? this.gradientTop,
@@ -165,6 +172,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       border: mix(border, other.border),
       accent: mix(accent, other.accent),
       secondary: mix(secondary, other.secondary),
+      campaign: mix(campaign, other.campaign),
       success: mix(success, other.success),
       danger: mix(danger, other.danger),
       gradientTop: mix(gradientTop, other.gradientTop),
