@@ -123,7 +123,7 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
                     maxLines: 8,
                     textCapitalization: TextCapitalization.sentences,
                     style: AppTextStyles.body(context),
-                    cursorColor: AppColors.primary,
+                    cursorColor: context.palette.accent,
                     decoration: InputDecoration(
                       hintText: l10n.line('websiteDescribeHint'),
                     ),
@@ -134,12 +134,12 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
                 Tooltip(
                   message: l10n.line('voiceInput'),
                   child: Material(
-                    color: AppColors.primary.withValues(alpha: 0.14),
+                    color: context.palette.accent.withValues(alpha: 0.14),
                     shape: const CircleBorder(),
                     child: IconButton(
                       onPressed: _listen,
                       iconSize: 32,
-                      icon: const Icon(Icons.mic_rounded, color: AppColors.primary),
+                      icon: Icon(Icons.mic_rounded, color: context.palette.accent),
                       tooltip: l10n.line('voiceInput'),
                     ),
                   ),

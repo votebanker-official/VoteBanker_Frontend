@@ -284,7 +284,7 @@ class _ImageButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
       onPressed: onPressed,
-      icon: Icon(bytes == null ? Icons.add_a_photo_outlined : Icons.check, color: AppColors.primary),
+      icon: Icon(bytes == null ? Icons.add_a_photo_outlined : Icons.check, color: context.palette.accent),
       label: Text(label),
     );
   }

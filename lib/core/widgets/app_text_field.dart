@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
@@ -13,6 +14,8 @@ class AppTextField extends StatelessWidget {
     this.textInputAction,
     this.textCapitalization = TextCapitalization.none,
     this.autofillHints,
+    this.inputFormatters,
+    this.errorText,
     this.onChanged,
     this.onSubmitted,
     this.maxLines = 1,
@@ -27,6 +30,8 @@ class AppTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final TextCapitalization textCapitalization;
   final Iterable<String>? autofillHints;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? errorText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final int maxLines;
@@ -52,6 +57,7 @@ class AppTextField extends StatelessWidget {
           textInputAction: textInputAction,
           textCapitalization: textCapitalization,
           autofillHints: autofillHints,
+          inputFormatters: inputFormatters,
           onChanged: onChanged,
           onSubmitted: onSubmitted,
           maxLines: maxLines,
@@ -60,6 +66,7 @@ class AppTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon,
+            errorText: errorText,
           ),
         ),
       ],
