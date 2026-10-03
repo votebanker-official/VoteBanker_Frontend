@@ -18,11 +18,10 @@ class WebsiteScreen extends StatefulWidget {
 
 class _WebsiteScreenState extends State<WebsiteScreen> {
   void _continue() {
-    final l10n = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.websiteLater)),
-    );
-    AppRouter.open(context, AppRoutes.social);
+    final session = OnboardingScope.of(context);
+    session.website.applyStyle(session.draft.websiteTemplate);
+    session.website.seedFromProfile(session.draft);
+    AppRouter.open(context, AppRoutes.websiteInfo);
   }
 
   @override
@@ -43,7 +42,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             OnboardingHeader(
               compact: true,
               title: l10n.websiteTitle,
-              description: '${l10n.optionalLabel}. ${l10n.websiteBody}',
+              description: l10n.websiteBody,
             ),
             const SizedBox(height: 18),
             for (final option in options) ...[
@@ -60,10 +59,10 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             OnboardingActions(
               backLabel: l10n.back,
               onBack: () => AppRouter.back(context, AppRoutes.domain),
-              primaryLabel: l10n.websiteOffer,
+              primaryLabel: l10n.line('continueAction'),
               onPrimary: _continue,
               skipLabel: l10n.skipForNow,
-              onSkip: () => AppRouter.open(context, AppRoutes.dashboard),
+              onSkip: () => AppRouter.open(context, AppRoutes.social),
             ),
           ],
         ),

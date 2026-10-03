@@ -144,6 +144,8 @@ class AppLocalizations {
   String welcomeBack(String name) {
     return _t('welcomeBack').replaceAll('{name}', name);
   }
+
+  String line(String key) => _t(key);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
