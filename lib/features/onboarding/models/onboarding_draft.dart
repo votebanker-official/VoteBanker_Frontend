@@ -12,6 +12,8 @@ class OnboardingDraft {
   String stateRegion = '';
   String constituency = '';
   String publicContact = '';
+  String partNo = '';
+  String partName = '';
   String preferredLanguage = '';
   String domainQuery = '';
   String? selectedDomain;

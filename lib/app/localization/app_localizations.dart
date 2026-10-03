@@ -75,6 +75,10 @@ class AppLocalizations {
   String get constituency => _t('constituency');
   String get publicContact => _t('publicContact');
   String get preferredLanguage => _t('preferredLanguage');
+  String get partNo => _t('partNo');
+  String get partName => _t('partName');
+  String get invalidContact => _t('invalidContact');
+  String get invalidSelection => _t('invalidSelection');
   String get selectLanguage => _t('selectLanguage');
   String get saveAndContinue => _t('saveAndContinue');
   String get addPhoto => _t('addPhoto');

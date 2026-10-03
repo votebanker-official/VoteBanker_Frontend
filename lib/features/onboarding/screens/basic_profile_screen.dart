@@ -1,6 +1,7 @@
-import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/localization/app_languages.dart';
@@ -11,6 +12,10 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/onboarding_header.dart';
+import '../data/contact_number.dart';
+import '../data/location_catalog.dart';
+import '../data/location_selection.dart';
+import '../models/onboarding_draft.dart';
 import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_actions.dart';
 import '../widgets/onboarding_frame.dart';
@@ -24,16 +29,25 @@ class BasicProfileScreen extends StatefulWidget {
 
 class _BasicProfileScreenState extends State<BasicProfileScreen> {
   final ImagePicker _picker = ImagePicker();
+  final _contactAnchor = GlobalKey();
+  final _phoneInput = FilteringTextInputFormatter.allow(
+    RegExp(r'[0-9+\-().\s]'),
+  );
+  final _selection = LocationSelection();
   var _ready = false;
 
   late final TextEditingController _fullName;
   late final TextEditingController _designation;
   late final TextEditingController _organization;
-  late final TextEditingController _country;
-  late final TextEditingController _stateRegion;
-  late final TextEditingController _constituency;
   late final TextEditingController _publicContact;
+  late final TextEditingController _partNo;
+  late final TextEditingController _partName;
   late String _preferredLanguage;
+
+  LocationCatalog? _catalog;
+  String? _contactError;
+  String? _languageError;
+  LocationIssue? _locationIssue;
 
   @override
   void didChangeDependencies() {
@@ -45,12 +59,47 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     _fullName = TextEditingController(text: draft.fullName);
     _designation = TextEditingController(text: draft.designation);
     _organization = TextEditingController(text: draft.organization);
-    _country = TextEditingController(text: draft.country);
-    _stateRegion = TextEditingController(text: draft.stateRegion);
-    _constituency = TextEditingController(text: draft.constituency);
     _publicContact = TextEditingController(text: draft.publicContact);
-    _preferredLanguage = draft.preferredLanguage;
+    _partNo = TextEditingController(text: draft.partNo);
+    _partName = TextEditingController(text: draft.partName);
+    _preferredLanguage =
+        draft.preferredLanguage.trim().isEmpty ? 'en' : draft.preferredLanguage;
+    if (draft.preferredLanguage.trim().isEmpty) {
+      draft.preferredLanguage = 'en';
+    }
     _ready = true;
+    final readyCatalog = LocationCatalog.instance;
+    if (readyCatalog != null) {
+      _applyCatalog(readyCatalog, draft);
+    } else {
+      unawaited(_loadLocations(draft));
+    }
+  }
+
+  void _applyCatalog(LocationCatalog catalog, OnboardingDraft draft) {
+    _catalog = catalog;
+    _selection.restore(
+      catalog: catalog,
+      country: draft.country,
+      state: draft.stateRegion,
+      district: draft.constituency,
+    );
+    draft
+      ..country = _selection.country
+      ..stateRegion = _selection.state
+      ..constituency = _selection.district;
+  }
+
+  Future<void> _loadLocations(OnboardingDraft draft) async {
+    try {
+      final catalog = await LocationCatalog.load();
+      if (!mounted) {
+        return;
+      }
+      setState(() => _applyCatalog(catalog, draft));
+    } catch (_) {
+      // The rest of the form still works if the bundled list cannot be read.
+    }
   }
 
   @override
@@ -58,10 +107,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     _fullName.dispose();
     _designation.dispose();
     _organization.dispose();
-    _country.dispose();
-    _stateRegion.dispose();
-    _constituency.dispose();
     _publicContact.dispose();
+    _partNo.dispose();
+    _partName.dispose();
     super.dispose();
   }
 
@@ -71,11 +119,92 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       ..fullName = _fullName.text.trim()
       ..designation = _designation.text.trim()
       ..organization = _organization.text.trim()
-      ..country = _country.text.trim()
-      ..stateRegion = _stateRegion.text.trim()
-      ..constituency = _constituency.text.trim()
       ..publicContact = _publicContact.text.trim()
+      ..partNo = _partNo.text.trim()
+      ..partName = _partName.text.trim()
       ..preferredLanguage = _preferredLanguage;
+    final catalog = _catalog;
+    if (catalog != null) {
+      draft
+        ..country = _selection.country
+        ..stateRegion = _selection.state
+        ..constituency = _selection.district;
+    }
+  }
+
+  void _syncLocation(OnboardingDraft draft) {
+    draft
+      ..country = _selection.country
+      ..stateRegion = _selection.state
+      ..constituency = _selection.district;
+  }
+
+  void _selectCountry(String? value) {
+    final draft = OnboardingScope.of(context).draft;
+    setState(() {
+      _selection.selectCountry(value);
+      _locationIssue = null;
+      _syncLocation(draft);
+    });
+  }
+
+  void _selectState(String? value) {
+    final draft = OnboardingScope.of(context).draft;
+    setState(() {
+      _selection.selectState(value);
+      _locationIssue = null;
+      _syncLocation(draft);
+    });
+  }
+
+  void _selectDistrict(String? value) {
+    final draft = OnboardingScope.of(context).draft;
+    setState(() {
+      _selection.selectDistrict(value);
+      _locationIssue = null;
+      _syncLocation(draft);
+    });
+  }
+
+  void _saveAndContinue() {
+    final l10n = AppLocalizations.of(context);
+    final contactError =
+        isValidContactNumber(_publicContact.text) ? null : l10n.invalidContact;
+    final catalog = _catalog;
+    final locationIssue = catalog == null ? null : _selection.issue(catalog);
+    final languageError =
+        AppLanguages.supports(_preferredLanguage)
+            ? null
+            : l10n.invalidSelection;
+    if (contactError != null ||
+        locationIssue != null ||
+        languageError != null) {
+      setState(() {
+        _contactError = contactError;
+        _locationIssue = locationIssue;
+        _languageError = languageError;
+      });
+      if (contactError != null) {
+        _revealContact();
+      }
+      return;
+    }
+    _commit();
+    AppRouter.open(context, AppRoutes.domain);
+  }
+
+  void _revealContact() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _contactAnchor.currentContext;
+      if (target == null || !target.mounted) {
+        return;
+      }
+      Scrollable.ensureVisible(
+        target,
+        alignment: 0.2,
+        duration: const Duration(milliseconds: 200),
+      );
+    });
   }
 
   Future<void> _pickPhoto() async {
@@ -100,9 +229,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.photoError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.photoError)));
     }
   }
 
@@ -111,6 +240,22 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     final l10n = AppLocalizations.of(context);
     final draft = OnboardingScope.of(context).draft;
     final photo = draft.photoBytes;
+    final catalog = _catalog;
+    final states =
+        catalog == null
+            ? const <String>[]
+            : catalog.statesOf(_selection.country);
+    final districts =
+        catalog == null
+            ? const <String>[]
+            : catalog.districtsOf(_selection.country, _selection.state);
+    final countryEnabled = catalog != null && catalog.countries.isNotEmpty;
+    final stateEnabled =
+        countryEnabled && _selection.country.isNotEmpty && states.isNotEmpty;
+    final districtEnabled =
+        stateEnabled && _selection.state.isNotEmpty && districts.isNotEmpty;
+    final languageValue =
+        AppLanguages.supports(_preferredLanguage) ? _preferredLanguage : null;
 
     return OnboardingFrame(
       child: AppCard(
@@ -158,52 +303,105 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               onChanged: (value) => draft.organization = value,
             ),
             const SizedBox(height: 14),
-            AppTextField(
+            _ProfileDropdown(
+              fieldKey: const ValueKey('profileCountry'),
               label: l10n.country,
-              controller: _country,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.countryName],
-              onChanged: (value) => draft.country = value,
+              hint: l10n.selectLanguage,
+              value: _shown(_selection.country, catalog?.countries ?? const []),
+              options: catalog?.countries ?? const [],
+              enabled: countryEnabled,
+              errorText:
+                  _locationIssue == LocationIssue.country
+                      ? l10n.invalidSelection
+                      : null,
+              onChanged: _selectCountry,
             ),
             const SizedBox(height: 14),
-            AppTextField(
+            _ProfileDropdown(
+              fieldKey: const ValueKey('profileState'),
               label: l10n.stateRegion,
-              controller: _stateRegion,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.addressState],
-              onChanged: (value) => draft.stateRegion = value,
+              hint: l10n.selectLanguage,
+              value: _shown(_selection.state, states),
+              options: states,
+              enabled: stateEnabled,
+              errorText:
+                  _locationIssue == LocationIssue.state
+                      ? l10n.invalidSelection
+                      : null,
+              onChanged: _selectState,
             ),
             const SizedBox(height: 14),
-            AppTextField(
+            _ProfileDropdown(
+              fieldKey: const ValueKey('profileDistrict'),
               label: l10n.constituency,
-              controller: _constituency,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.constituency = value,
+              hint: l10n.selectLanguage,
+              value: _shown(_selection.district, districts),
+              options: districts,
+              enabled: districtEnabled,
+              errorText:
+                  _locationIssue == LocationIssue.district
+                      ? l10n.invalidSelection
+                      : null,
+              onChanged: _selectDistrict,
+            ),
+            const SizedBox(height: 14),
+            KeyedSubtree(
+              key: _contactAnchor,
+              child: AppTextField(
+                key: const ValueKey('profileContact'),
+                label: l10n.publicContact,
+                controller: _publicContact,
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.telephoneNumber],
+                inputFormatters: [_phoneInput],
+                errorText: _contactError,
+                onChanged: (value) {
+                  draft.publicContact = value;
+                  if (_contactError != null) {
+                    final next =
+                        isValidContactNumber(value)
+                            ? null
+                            : l10n.invalidContact;
+                    if (next != _contactError) {
+                      setState(() => _contactError = next);
+                    }
+                  }
+                },
+              ),
             ),
             const SizedBox(height: 14),
             AppTextField(
-              label: l10n.publicContact,
-              controller: _publicContact,
+              key: const ValueKey('profilePartNo'),
+              label: l10n.partNo,
+              controller: _partNo,
               textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.publicContact = value,
+              onChanged: (value) => draft.partNo = value,
+            ),
+            const SizedBox(height: 14),
+            AppTextField(
+              key: const ValueKey('profilePartName'),
+              label: l10n.partName,
+              controller: _partName,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              onChanged: (value) => draft.partName = value,
             ),
             const SizedBox(height: 14),
             Text(
               l10n.preferredLanguage,
-              style: AppTextStyles.label(context).copyWith(
-                fontSize: 13,
-                color: context.palette.textMuted,
-              ),
+              style: AppTextStyles.label(
+                context,
+              ).copyWith(fontSize: 13, color: context.palette.textMuted),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _preferredLanguage.isEmpty ? null : _preferredLanguage,
+              key: const ValueKey('profileLanguage'),
+              initialValue: languageValue,
               isExpanded: true,
               hint: Text(l10n.selectLanguage),
               dropdownColor: context.palette.surfaceSecondary,
+              decoration: InputDecoration(errorText: _languageError),
               items: [
                 for (final language in AppLanguages.all)
                   DropdownMenuItem<String>(
@@ -212,8 +410,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                   ),
               ],
               onChanged: (value) {
-                draft.preferredLanguage = value ?? '';
-                setState(() => _preferredLanguage = value ?? '');
+                final next = value ?? '';
+                draft.preferredLanguage = next;
+                setState(() {
+                  _preferredLanguage = next;
+                  _languageError = null;
+                });
               },
             ),
             const SizedBox(height: 22),
@@ -224,10 +426,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 AppRouter.back(context, AppRoutes.login);
               },
               primaryLabel: l10n.saveAndContinue,
-              onPrimary: () {
-                _commit();
-                AppRouter.open(context, AppRoutes.domain);
-              },
+              onPrimary: _saveAndContinue,
               skipLabel: l10n.skipForNow,
               onSkip: () {
                 _commit();
@@ -237,6 +436,69 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  String? _shown(String current, List<String> options) {
+    return options.contains(current) ? current : null;
+  }
+}
+
+class _ProfileDropdown extends StatelessWidget {
+  const _ProfileDropdown({
+    required this.fieldKey,
+    required this.label,
+    required this.hint,
+    required this.value,
+    required this.options,
+    required this.enabled,
+    required this.onChanged,
+    this.errorText,
+  });
+
+  final Key fieldKey;
+  final String label;
+  final String hint;
+  final String? value;
+  final List<String> options;
+  final bool enabled;
+  final String? errorText;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.label(
+            context,
+          ).copyWith(fontSize: 13, color: context.palette.textMuted),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          key: fieldKey,
+          initialValue: value,
+          isExpanded: true,
+          hint: Text(hint),
+          dropdownColor: context.palette.surfaceSecondary,
+          menuMaxHeight: 320,
+          decoration: InputDecoration(errorText: errorText),
+          items: [
+            for (final option in options)
+              DropdownMenuItem<String>(
+                value: option,
+                child: Text(
+                  option,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+          onChanged: enabled ? onChanged : null,
+        ),
+      ],
     );
   }
 }
@@ -276,20 +538,22 @@ class _PhotoPicker extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: palette.surfaceSecondary,
                   border: Border.all(color: palette.accent, width: 1.4),
-                  image: bytes == null
-                      ? null
-                      : DecorationImage(
-                          image: MemoryImage(bytes!),
-                          fit: BoxFit.cover,
-                        ),
+                  image:
+                      bytes == null
+                          ? null
+                          : DecorationImage(
+                            image: MemoryImage(bytes!),
+                            fit: BoxFit.cover,
+                          ),
                 ),
-                child: bytes == null
-                    ? Icon(
-                        Icons.add_a_photo_outlined,
-                        color: palette.accent,
-                        size: 28,
-                      )
-                    : null,
+                child:
+                    bytes == null
+                        ? Icon(
+                          Icons.add_a_photo_outlined,
+                          color: palette.accent,
+                          size: 28,
+                        )
+                        : null,
               ),
             ),
           ),
