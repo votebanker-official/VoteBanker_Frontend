@@ -61,7 +61,7 @@ abstract final class AppTheme {
       dividerColor: p.border,
       splashColor: p.accent.withValues(alpha: 0.12),
       highlightColor: p.accent.withValues(alpha: 0.08),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: p.surface,
         elevation: 0,
         margin: EdgeInsets.zero,

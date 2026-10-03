@@ -397,7 +397,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               key: const ValueKey('profileLanguage'),
-              initialValue: languageValue,
+              value: languageValue,
               isExpanded: true,
               hint: Text(l10n.selectLanguage),
               dropdownColor: context.palette.surfaceSecondary,
@@ -479,7 +479,7 @@ class _ProfileDropdown extends StatelessWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           key: fieldKey,
-          initialValue: value,
+          value: value,
           isExpanded: true,
           hint: Text(hint),
           dropdownColor: context.palette.surfaceSecondary,
