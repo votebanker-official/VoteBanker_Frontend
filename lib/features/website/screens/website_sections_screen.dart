@@ -55,8 +55,10 @@ class _WebsiteSectionsScreenState extends State<WebsiteSectionsScreen> {
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: website.sections.contains(id),
-                activeColor: AppColors.primary,
-                checkColor: AppColors.background,
+                activeColor: context.palette.accent,
+                checkColor: context.palette.isDark
+                    ? context.palette.background
+                    : Colors.white,
                 title: Text(l10n.line(_labels[id]!), style: AppTextStyles.body(context)),
                 onChanged: (checked) {
                   if (checked ?? false) {

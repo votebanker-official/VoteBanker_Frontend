@@ -26,7 +26,7 @@ class WebsiteLanguageField extends StatelessWidget {
         DropdownButtonFormField<String>(
           value: value,
           isExpanded: true,
-          dropdownColor: AppColors.surfaceSecondary,
+          dropdownColor: context.palette.surfaceSecondary,
           items: [
             for (final language in AppLanguages.all)
               DropdownMenuItem<String>(

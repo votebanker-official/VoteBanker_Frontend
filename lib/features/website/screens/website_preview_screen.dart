@@ -48,7 +48,7 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
     ];
     final selected = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       builder: (context) {
         return SafeArea(
           child: SingleChildScrollView(
@@ -76,7 +76,7 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
   Future<void> _chooseLanguage(WebsiteDraft website) async {
     final selected = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       builder: (context) {
         return SafeArea(
           child: Column(
@@ -181,7 +181,9 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        backgroundColor: selected ? AppColors.primary.withValues(alpha: 0.12) : null,
+        backgroundColor: selected
+            ? context.palette.accent.withValues(alpha: 0.12)
+            : null,
       ),
       onPressed: onPressed,
       child: Text(label),

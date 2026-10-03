@@ -29,7 +29,12 @@ class AppCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Padding(padding: padding, child: child),
+      // Transparent Material so list tiles / checkboxes inside the card paint
+      // their ink correctly instead of hiding behind the card's color.
+      child: Material(
+        type: MaterialType.transparency,
+        child: Padding(padding: padding, child: child),
+      ),
     );
   }
 }

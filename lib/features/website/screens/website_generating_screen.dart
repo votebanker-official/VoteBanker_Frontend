@@ -72,7 +72,9 @@ class _WebsiteGeneratingScreenState extends State<WebsiteGeneratingScreen> {
                   children: [
                     Icon(
                       i < _done ? Icons.check_circle : Icons.radio_button_unchecked,
-                      color: i < _done ? AppColors.secondary : AppColors.textMuted,
+                      color: i < _done
+                          ? context.palette.secondary
+                          : context.palette.textMuted,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
