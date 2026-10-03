@@ -21,7 +21,8 @@ class SetupOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.border;
+    final palette = context.palette;
+    final color = selected ? palette.accent : palette.border;
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -30,13 +31,13 @@ class SetupOption extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.surfaceSecondary,
+            color: palette.surfaceSecondary,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: color, width: selected ? 1.6 : 1),
           ),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.primary),
+              Icon(icon, color: palette.accent),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -49,7 +50,7 @@ class SetupOption extends StatelessWidget {
                 ),
               ),
               if (selected)
-                const Icon(Icons.check_circle, color: AppColors.secondary),
+                Icon(Icons.check_circle, color: palette.secondary),
             ],
           ),
         ),

@@ -195,7 +195,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               l10n.preferredLanguage,
               style: AppTextStyles.label(context).copyWith(
                 fontSize: 13,
-                color: AppColors.textMuted,
+                color: context.palette.textMuted,
               ),
             ),
             const SizedBox(height: 8),
@@ -203,7 +203,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               value: _preferredLanguage.isEmpty ? null : _preferredLanguage,
               isExpanded: true,
               hint: Text(l10n.selectLanguage),
-              dropdownColor: AppColors.surfaceSecondary,
+              dropdownColor: context.palette.surfaceSecondary,
               items: [
                 for (final language in AppLanguages.all)
                   DropdownMenuItem<String>(
@@ -256,6 +256,7 @@ class _PhotoPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Column(
       children: [
         Text(label, style: AppTextStyles.label(context)),
@@ -273,8 +274,8 @@ class _PhotoPicker extends StatelessWidget {
                 height: 104,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.surfaceSecondary,
-                  border: Border.all(color: AppColors.primary, width: 1.4),
+                  color: palette.surfaceSecondary,
+                  border: Border.all(color: palette.accent, width: 1.4),
                   image: bytes == null
                       ? null
                       : DecorationImage(
@@ -283,9 +284,9 @@ class _PhotoPicker extends StatelessWidget {
                         ),
                 ),
                 child: bytes == null
-                    ? const Icon(
+                    ? Icon(
                         Icons.add_a_photo_outlined,
-                        color: AppColors.primary,
+                        color: palette.accent,
                         size: 28,
                       )
                     : null,
@@ -296,7 +297,7 @@ class _PhotoPicker extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           actionLabel,
-          style: AppTextStyles.label(context).copyWith(color: AppColors.primary),
+          style: AppTextStyles.label(context).copyWith(color: palette.accent),
         ),
       ],
     );

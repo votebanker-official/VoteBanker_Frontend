@@ -26,6 +26,7 @@ class DomainResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return AppCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: LayoutBuilder(
@@ -40,8 +41,8 @@ class DomainResultCard extends StatelessWidget {
                   Container(
                     width: 8,
                     height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.success,
+                    decoration: BoxDecoration(
+                      color: palette.success,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -52,7 +53,7 @@ class DomainResultCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.muted(context).copyWith(
-                        color: AppColors.success,
+                        color: palette.success,
                         fontSize: 13,
                       ),
                     ),
@@ -85,10 +86,10 @@ class DomainResultCard extends StatelessWidget {
             button: true,
             child: TextButton(
               style: TextButton.styleFrom(
-                foregroundColor: selected ? const Color(0xFF04221E) : AppColors.primary,
-                backgroundColor: selected ? AppColors.secondary : Colors.transparent,
+                foregroundColor: selected ? const Color(0xFF04221E) : palette.accent,
+                backgroundColor: selected ? palette.secondary : Colors.transparent,
                 side: BorderSide(
-                  color: selected ? AppColors.secondary : AppColors.primary,
+                  color: selected ? palette.secondary : palette.accent,
                 ),
                 minimumSize: const Size(76, 48),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

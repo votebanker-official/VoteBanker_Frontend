@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:votebanker/app/app.dart';
+import 'package:votebanker/app/theme/app_colors.dart';
 import 'package:votebanker/app/localization/translations/en.dart';
 import 'package:votebanker/app/localization/translations/hi.dart';
 import 'package:votebanker/app/localization/translations/kn.dart';
@@ -62,20 +64,45 @@ void main() {
     expect(find.text('VOTE BANKER में आपका स्वागत है'), findsNothing);
   });
 
-  testWidgets('login continues to profile and shows a temporary message', (
-    tester,
-  ) async {
+  testWidgets('login opens the mobile OTP screen', (tester) async {
     await _setSurface(tester, const Size(1280, 900));
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Continue with WhatsApp'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text(enTranslations['authLater']!), findsOneWidget);
-
     await tester.pumpAndSettle();
-    expect(find.text('Basic Profile'), findsOneWidget);
+    expect(find.text(enTranslations['continueMobile']!), findsWidgets);
+  });
+
+  testWidgets('light mode is the default and the toggle switches to dark', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await _setSurface(tester, const Size(1280, 900));
+    await tester.pumpWidget(const VoteBankerApp());
+    await tester.pumpAndSettle();
+
+    BuildContext appContext() => tester.element(find.byType(Scaffold).first);
+    expect(Theme.of(appContext()).brightness, Brightness.light);
+    expect(appContext().palette.isDark, isFalse);
+
+    // The toggle sits to the left of the language selector.
+    final toggle = find.byIcon(Icons.dark_mode_outlined);
+    final language = find.byIcon(Icons.language);
+    expect(toggle, findsOneWidget);
+    expect(
+      tester.getCenter(toggle).dx,
+      lessThan(tester.getCenter(language).dx),
+    );
+
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(Theme.of(appContext()).brightness, Brightness.dark);
+    expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.light_mode_outlined));
+    await tester.pumpAndSettle();
+    expect(Theme.of(appContext()).brightness, Brightness.light);
   });
 
   testWidgets('profile, domain selection, and back keep temporary state', (

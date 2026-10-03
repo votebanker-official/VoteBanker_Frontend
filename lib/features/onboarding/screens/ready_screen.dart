@@ -25,7 +25,7 @@ class ReadyScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.verified_outlined, color: AppColors.secondary, size: 42),
+            Icon(Icons.verified_outlined, color: context.palette.secondary, size: 42),
             const SizedBox(height: 12),
             OnboardingHeader(
               compact: true,

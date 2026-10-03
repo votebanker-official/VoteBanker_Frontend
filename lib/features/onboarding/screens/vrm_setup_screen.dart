@@ -47,7 +47,7 @@ class VrmSetupScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   children: [
-                    Icon(point.$1, color: AppColors.primary),
+                    Icon(point.$1, color: context.palette.accent),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(point.$2, style: AppTextStyles.body(context)),
