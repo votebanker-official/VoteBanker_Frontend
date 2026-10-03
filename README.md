@@ -32,13 +32,11 @@ No `.env` is needed for the frontend. The only setting is `API_BASE_URL` (see `l
 
 ## Deploy
 
-Vercel project `votebanker-frontend` (team `votebanker`). Deploy from this folder:
+Deploys are automatic: the Vercel project `votebanker-frontend` (team `votebanker`) is linked to this GitHub repo, so every push to `main` goes live in a few minutes. Pushes to other branches get a preview link only. If a deploy fails, check the Deployments tab in Vercel.
 
-```bash
-npx vercel deploy --prod --scope votebanker
-```
+The production backend must list the site in its `CORS_ORIGINS` variable.
 
-(Needs access to the Vercel team. Linking the project to GitHub in Vercel -> Settings -> Git makes pushes to `main` deploy automatically.) The production backend must list the site in its `CORS_ORIGINS` variable.
+Theme: colors come from `context.palette.*` (light and dark), not `AppColors.*`. Use the palette in new screens so they look right in both modes.
 
 ## To do
 
