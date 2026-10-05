@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../../../app/localization/app_languages.dart';
+import '../data/profile_languages.dart';
 import '../../website/models/website_draft.dart';
 import '../../website/services/website_services.dart';
 import '../models/onboarding_draft.dart';
@@ -15,10 +15,11 @@ class OnboardingController {
   final WebsiteServices websiteServices = WebsiteServices();
 
   void setLanguageCode(String code) {
-    if (!AppLanguages.supports(code)) {
+    if (!ProfileLanguages.supports(code)) {
       return;
     }
     draft.selectedLanguage = code;
+    draft.preferredLanguage = code;
     locale.value = Locale(code);
   }
 

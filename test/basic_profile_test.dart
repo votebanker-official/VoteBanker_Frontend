@@ -17,22 +17,28 @@ void main() {
   ) async {
     await _openProfile(tester);
 
+    expect(find.text('Leader Profile'), findsOneWidget);
+    expect(find.text('Tell us a little about your leadership'), findsOneWidget);
+    expect(find.text('Every field is optional.'), findsNothing);
+    expect(find.text('Leader Name'), findsOneWidget);
     expect(find.text('Assembly Constituency'), findsOneWidget);
-    expect(find.text('Organization / Party / Affiliation'), findsOneWidget);
+    expect(find.text('Booth Number'), findsOneWidget);
+    expect(find.text('Booth Name'), findsOneWidget);
+    expect(find.text('Party'), findsOneWidget);
+    expect(find.text('Designation'), findsOneWidget);
     expect(find.text('Country'), findsOneWidget);
     expect(find.text('State'), findsOneWidget);
     expect(find.text('District'), findsOneWidget);
     expect(find.text('Contact Number'), findsOneWidget);
-    expect(find.text('Part No'), findsOneWidget);
-    expect(find.text('Part Name'), findsOneWidget);
-    expect(find.text('Select Language'), findsOneWidget);
-    expect(find.text('Designation'), findsNothing);
+    expect(find.text('Part No'), findsNothing);
+    expect(find.text('Part Name'), findsNothing);
+    expect(find.text('Select Language'), findsNothing);
+    expect(find.text('English'), findsWidgets);
     expect(find.text('State / Region'), findsNothing);
     expect(find.text('Constituency / Area'), findsNothing);
     expect(find.text('Public Contact Details'), findsNothing);
     expect(find.text('Preferred Language'), findsNothing);
 
-    expect(_dropdown(tester, 'profileLanguage').initialValue, 'en');
     expect(_dropdown(tester, 'profileState').onChanged, isNull);
     expect(_dropdown(tester, 'profileDistrict').onChanged, isNull);
 
@@ -70,7 +76,10 @@ void main() {
     await _openDropdown(tester, 'profileDistrict');
     expect(find.text('Pune'), findsNothing);
     await _chooseMenuItem(tester, 'Bangalore Urban');
-    expect(_dropdown(tester, 'profileDistrict').initialValue, 'Bangalore Urban');
+    expect(
+      _dropdown(tester, 'profileDistrict').initialValue,
+      'Bangalore Urban',
+    );
 
     _dropdown(tester, 'profileCountry').onChanged!('United States');
     await tester.pumpAndSettle();
@@ -84,7 +93,10 @@ void main() {
 
     await _openDropdown(tester, 'profileDistrict');
     await _chooseMenuItem(tester, 'Los Angeles County');
-    expect(_dropdown(tester, 'profileDistrict').initialValue, 'Los Angeles County');
+    expect(
+      _dropdown(tester, 'profileDistrict').initialValue,
+      'Los Angeles County',
+    );
 
     await _openDropdown(tester, 'profileState');
     await _chooseMenuItem(tester, 'Texas');
@@ -104,7 +116,7 @@ void main() {
     await _tapLabel(tester, 'Save & Continue');
 
     expect(find.text('Enter a valid contact number.'), findsOneWidget);
-    expect(find.text('Basic Profile'), findsOneWidget);
+    expect(find.text('Leader Profile'), findsOneWidget);
     expect(find.text('Domain Name Search'), findsNothing);
 
     await _enter(tester, 'profileContact', '9876543210');
@@ -112,9 +124,8 @@ void main() {
     expect(find.text('Domain Name Search'), findsOneWidget);
 
     await _tapLabel(tester, 'Back');
-    final draft = OnboardingScope.of(
-      tester.element(find.text('Basic Profile')),
-    ).draft;
+    final draft =
+        OnboardingScope.of(tester.element(find.text('Leader Profile'))).draft;
     expect(draft.publicContact, '9876543210');
     expect(draft.partNo, '12/A');
     expect(draft.partName, 'Booth 4');
@@ -140,7 +151,7 @@ void main() {
     expect(_dropdown(tester, 'profileCountry').initialValue, 'India');
     expect(_dropdown(tester, 'profileState').initialValue, 'Karnataka');
     expect(_dropdown(tester, 'profileDistrict').initialValue, isNull);
-    expect(_dropdown(tester, 'profileLanguage').initialValue, 'hi');
+    expect(find.text('हिन्दी'), findsOneWidget);
     expect(controller.draft.constituency, isEmpty);
     expect(controller.draft.partNo, '15');
     expect(controller.draft.partName, 'Central');
@@ -153,7 +164,7 @@ Future<void> _openProfile(WidgetTester tester) async {
   await tester.pumpWidget(const VoteBankerApp());
   await tester.pumpAndSettle();
   await _tapLabel(tester, 'Skip for now');
-  expect(find.text('Basic Profile'), findsOneWidget);
+  expect(find.text('Leader Profile'), findsOneWidget);
 }
 
 DropdownButtonFormField<String> _dropdown(WidgetTester tester, String key) {

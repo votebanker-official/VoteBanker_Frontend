@@ -54,7 +54,14 @@ class WebsiteDraft {
 
   static Set<String> defaultsFor(String? style) {
     return switch (style) {
-      'work' => {'home', 'work', 'achievements', 'updates', 'events', 'contact'},
+      'work' => {
+        'home',
+        'work',
+        'achievements',
+        'updates',
+        'events',
+        'contact',
+      },
       'issue' => {'home', 'about', 'requests', 'contact'},
       _ => {'home', 'about', 'vision', 'contact'},
     };
@@ -82,7 +89,7 @@ class WebsiteDraft {
       fullName = profile.fullName;
     }
     if (publicTitle.isEmpty) {
-      publicTitle = profile.designation;
+      publicTitle = profile.assemblyConstituency;
     }
     if (organization.isEmpty) {
       organization = profile.organization;

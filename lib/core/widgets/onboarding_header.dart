@@ -52,9 +52,17 @@ class OnboardingHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.appName, style: AppTextStyles.wordmark(context).copyWith(fontSize: 16)),
+                    Text(
+                      l10n.appName,
+                      style: AppTextStyles.wordmark(
+                        context,
+                      ).copyWith(fontSize: 16),
+                    ),
                     const SizedBox(height: 2),
-                    Text(l10n.descriptor, style: AppTextStyles.descriptor(context)),
+                    Text(
+                      l10n.descriptor,
+                      style: AppTextStyles.descriptor(context),
+                    ),
                   ],
                 ),
               ),

@@ -24,16 +24,17 @@ class ProfileService {
     // Only send values the user actually filled in, so a returning user with a
     // blank form cannot overwrite a saved profile.
     final text = <String, String?>{
-      'full_name': draft.fullName,
-      'designation': draft.designation,
-      'organization': draft.organization,
+      'full_name': draft.leaderName,
+      'designation': draft.assemblyConstituency,
+      'organization': draft.party,
       'country': draft.country,
       'state_region': draft.stateRegion,
       'constituency': draft.constituency,
       'public_contact': draft.publicContact,
-      'language': draft.preferredLanguage.isNotEmpty
-          ? draft.preferredLanguage
-          : draft.selectedLanguage,
+      'language':
+          draft.preferredLanguage.isNotEmpty
+              ? draft.preferredLanguage
+              : draft.selectedLanguage,
       'selected_domain': draft.selectedDomain,
       'website_template': draft.websiteTemplate,
     };

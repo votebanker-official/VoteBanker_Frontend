@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../app/localization/app_languages.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
@@ -36,17 +35,17 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   final _selection = LocationSelection();
   var _ready = false;
 
-  late final TextEditingController _fullName;
+  late final TextEditingController _leaderName;
+  late final TextEditingController _assemblyConstituency;
+  late final TextEditingController _boothNumber;
+  late final TextEditingController _boothName;
+  late final TextEditingController _party;
   late final TextEditingController _designation;
-  late final TextEditingController _organization;
-  late final TextEditingController _publicContact;
-  late final TextEditingController _partNo;
-  late final TextEditingController _partName;
+  late final TextEditingController _contactNumber;
   late String _preferredLanguage;
 
   LocationCatalog? _catalog;
   String? _contactError;
-  String? _languageError;
   LocationIssue? _locationIssue;
 
   @override
@@ -56,12 +55,15 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       return;
     }
     final draft = OnboardingScope.of(context).draft;
-    _fullName = TextEditingController(text: draft.fullName);
+    _leaderName = TextEditingController(text: draft.leaderName);
+    _assemblyConstituency = TextEditingController(
+      text: draft.assemblyConstituency,
+    );
+    _boothNumber = TextEditingController(text: draft.boothNumber);
+    _boothName = TextEditingController(text: draft.boothName);
+    _party = TextEditingController(text: draft.party);
     _designation = TextEditingController(text: draft.designation);
-    _organization = TextEditingController(text: draft.organization);
-    _publicContact = TextEditingController(text: draft.publicContact);
-    _partNo = TextEditingController(text: draft.partNo);
-    _partName = TextEditingController(text: draft.partName);
+    _contactNumber = TextEditingController(text: draft.contactNumber);
     _preferredLanguage =
         draft.preferredLanguage.trim().isEmpty ? 'en' : draft.preferredLanguage;
     if (draft.preferredLanguage.trim().isEmpty) {
@@ -104,25 +106,29 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   @override
   void dispose() {
-    _fullName.dispose();
+    _leaderName.dispose();
+    _assemblyConstituency.dispose();
+    _boothNumber.dispose();
+    _boothName.dispose();
+    _party.dispose();
     _designation.dispose();
-    _organization.dispose();
-    _publicContact.dispose();
-    _partNo.dispose();
-    _partName.dispose();
+    _contactNumber.dispose();
     super.dispose();
   }
 
   void _commit() {
     final draft = OnboardingScope.of(context).draft;
     draft
-      ..fullName = _fullName.text.trim()
+      ..leaderName = _leaderName.text.trim()
+      ..assemblyConstituency = _assemblyConstituency.text.trim()
+      ..boothNumber = _boothNumber.text.trim()
+      ..boothName = _boothName.text.trim()
+      ..party = _party.text.trim()
       ..designation = _designation.text.trim()
-      ..organization = _organization.text.trim()
-      ..publicContact = _publicContact.text.trim()
-      ..partNo = _partNo.text.trim()
-      ..partName = _partName.text.trim()
-      ..preferredLanguage = _preferredLanguage;
+      ..contactNumber = _contactNumber.text.trim();
+    if (draft.preferredLanguage.trim().isEmpty) {
+      draft.preferredLanguage = _preferredLanguage;
+    }
     final catalog = _catalog;
     if (catalog != null) {
       draft
@@ -169,20 +175,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   void _saveAndContinue() {
     final l10n = AppLocalizations.of(context);
     final contactError =
-        isValidContactNumber(_publicContact.text) ? null : l10n.invalidContact;
+        isValidContactNumber(_contactNumber.text) ? null : l10n.invalidContact;
     final catalog = _catalog;
     final locationIssue = catalog == null ? null : _selection.issue(catalog);
-    final languageError =
-        AppLanguages.supports(_preferredLanguage)
-            ? null
-            : l10n.invalidSelection;
-    if (contactError != null ||
-        locationIssue != null ||
-        languageError != null) {
+    if (contactError != null || locationIssue != null) {
       setState(() {
         _contactError = contactError;
         _locationIssue = locationIssue;
-        _languageError = languageError;
       });
       if (contactError != null) {
         _revealContact();
@@ -254,9 +253,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         countryEnabled && _selection.country.isNotEmpty && states.isNotEmpty;
     final districtEnabled =
         stateEnabled && _selection.state.isNotEmpty && districts.isNotEmpty;
-    final languageValue =
-        AppLanguages.supports(_preferredLanguage) ? _preferredLanguage : null;
-
     return OnboardingFrame(
       child: AppCard(
         child: Column(
@@ -267,8 +263,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               title: l10n.basicProfile,
               description: l10n.profileDescription,
             ),
-            const SizedBox(height: 8),
-            Text(l10n.optionalHint, style: AppTextStyles.muted(context)),
             const SizedBox(height: 20),
             _PhotoPicker(
               label: l10n.photo,
@@ -279,11 +273,45 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             const SizedBox(height: 18),
             AppTextField(
               label: l10n.fullName,
-              controller: _fullName,
+              controller: _leaderName,
               textCapitalization: TextCapitalization.words,
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.name],
-              onChanged: (value) => draft.fullName = value,
+              onChanged: (value) => draft.leaderName = value,
+            ),
+            const SizedBox(height: 14),
+            AppTextField(
+              label: l10n.assemblyConstituency,
+              controller: _assemblyConstituency,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              onChanged: (value) => draft.assemblyConstituency = value,
+            ),
+            const SizedBox(height: 14),
+            AppTextField(
+              key: const ValueKey('profilePartNo'),
+              label: l10n.partNo,
+              controller: _boothNumber,
+              textInputAction: TextInputAction.next,
+              onChanged: (value) => draft.boothNumber = value,
+            ),
+            const SizedBox(height: 14),
+            AppTextField(
+              key: const ValueKey('profilePartName'),
+              label: l10n.partName,
+              controller: _boothName,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              onChanged: (value) => draft.boothName = value,
+            ),
+            const SizedBox(height: 14),
+            AppTextField(
+              label: l10n.organization,
+              controller: _party,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.organizationName],
+              onChanged: (value) => draft.party = value,
             ),
             const SizedBox(height: 14),
             AppTextField(
@@ -292,15 +320,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               textCapitalization: TextCapitalization.words,
               textInputAction: TextInputAction.next,
               onChanged: (value) => draft.designation = value,
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              label: l10n.organization,
-              controller: _organization,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.organizationName],
-              onChanged: (value) => draft.organization = value,
             ),
             const SizedBox(height: 14),
             _ProfileDropdown(
@@ -350,14 +369,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               child: AppTextField(
                 key: const ValueKey('profileContact'),
                 label: l10n.publicContact,
-                controller: _publicContact,
+                controller: _contactNumber,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.telephoneNumber],
                 inputFormatters: [_phoneInput],
                 errorText: _contactError,
                 onChanged: (value) {
-                  draft.publicContact = value;
+                  draft.contactNumber = value;
                   if (_contactError != null) {
                     final next =
                         isValidContactNumber(value)
@@ -369,54 +388,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                   }
                 },
               ),
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              key: const ValueKey('profilePartNo'),
-              label: l10n.partNo,
-              controller: _partNo,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.partNo = value,
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              key: const ValueKey('profilePartName'),
-              label: l10n.partName,
-              controller: _partName,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.partName = value,
-            ),
-            const SizedBox(height: 14),
-            Text(
-              l10n.preferredLanguage,
-              style: AppTextStyles.label(
-                context,
-              ).copyWith(fontSize: 13, color: context.palette.textMuted),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              key: const ValueKey('profileLanguage'),
-              value: languageValue,
-              isExpanded: true,
-              hint: Text(l10n.selectLanguage),
-              dropdownColor: context.palette.surfaceSecondary,
-              decoration: InputDecoration(errorText: _languageError),
-              items: [
-                for (final language in AppLanguages.all)
-                  DropdownMenuItem<String>(
-                    value: language.code,
-                    child: Text(language.nativeName),
-                  ),
-              ],
-              onChanged: (value) {
-                final next = value ?? '';
-                draft.preferredLanguage = next;
-                setState(() {
-                  _preferredLanguage = next;
-                  _languageError = null;
-                });
-              },
             ),
             const SizedBox(height: 22),
             OnboardingActions(
