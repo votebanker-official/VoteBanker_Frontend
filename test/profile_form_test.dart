@@ -32,10 +32,11 @@ void main() {
   {"name":"Nepal","states":[]}
 ]
 ''');
-    final selection = LocationSelection()
-      ..selectCountry('India')
-      ..selectState('Karnataka')
-      ..selectDistrict('Mysore');
+    final selection =
+        LocationSelection()
+          ..selectCountry('India')
+          ..selectState('Karnataka')
+          ..selectDistrict('Mysore');
 
     selection.selectCountry('India');
     expect(selection.state, 'Karnataka');
@@ -50,7 +51,8 @@ void main() {
     expect(selection.country, 'Nepal');
     expect(selection.state, isEmpty);
     expect(selection.district, isEmpty);
-    expect(selection.issue(catalog), isNull);
+    expect(catalog.countries, ['India']);
+    expect(selection.issue(catalog), LocationIssue.country);
 
     selection.restore(
       catalog: catalog,
@@ -73,39 +75,31 @@ void main() {
     expect(selection.district, isEmpty);
   });
 
-  test('bundled catalog uses state names and that state\'s districts', () async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    final catalog = await LocationCatalog.load();
+  test(
+    'bundled catalog uses state names and that state\'s districts',
+    () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final catalog = await LocationCatalog.load();
 
-    expect(catalog.countries, contains('India'));
-    expect(catalog.countries, contains('United States'));
+      expect(catalog.countries, ['India']);
 
-    final indiaStates = catalog.statesOf('India');
-    final karnataka = catalog.districtsOf('India', 'Karnataka');
-    final maharashtra = catalog.districtsOf('India', 'Maharashtra');
-    expect(indiaStates, hasLength(36));
-    expect(indiaStates, containsAll(['Karnataka', 'Telangana', 'Ladakh']));
-    expect(karnataka, contains('Bangalore Urban'));
-    expect(karnataka, isNot(contains('Pune')));
-    expect(karnataka, isNot(contains('Electronic City')));
-    expect(maharashtra, contains('Pune'));
-    expect(maharashtra, isNot(contains('Pune Division')));
-    expect(maharashtra, isNot(contains('Bangalore Urban')));
-    for (final district in karnataka) {
-      expect(indiaStates, isNot(contains(district)));
-    }
+      final indiaStates = catalog.statesOf('India');
+      final karnataka = catalog.districtsOf('India', 'Karnataka');
+      final maharashtra = catalog.districtsOf('India', 'Maharashtra');
+      expect(indiaStates, hasLength(36));
+      expect(indiaStates, containsAll(['Karnataka', 'Telangana', 'Ladakh']));
+      expect(karnataka, contains('Bangalore Urban'));
+      expect(karnataka, isNot(contains('Pune')));
+      expect(karnataka, isNot(contains('Electronic City')));
+      expect(maharashtra, contains('Pune'));
+      expect(maharashtra, isNot(contains('Pune Division')));
+      expect(maharashtra, isNot(contains('Bangalore Urban')));
+      for (final district in karnataka) {
+        expect(indiaStates, isNot(contains(district)));
+      }
 
-    final usStates = catalog.statesOf('United States');
-    expect(usStates, contains('California'));
-    expect(usStates, isNot(contains('Los Angeles')));
-    expect(usStates, isNot(contains('Los Angeles County')));
-    expect(
-      catalog.districtsOf('United States', 'California'),
-      contains('Los Angeles County'),
-    );
-    expect(
-      catalog.districtsOf('United States', 'Texas'),
-      isNot(contains('Los Angeles County')),
-    );
-  });
+      expect(catalog.statesOf('United States'), isEmpty);
+      expect(catalog.districtsOf('United States', 'California'), isEmpty);
+    },
+  );
 }

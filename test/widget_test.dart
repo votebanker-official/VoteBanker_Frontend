@@ -18,30 +18,59 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  testWidgets('english is the default and every language updates the login screen', (
+  testWidgets(
+    'english is the default and every language updates the login screen',
+    (tester) async {
+      await _setSurface(tester, const Size(1280, 900));
+      await tester.pumpWidget(const VoteBankerApp());
+      await tester.pumpAndSettle();
+
+      final catalogs = {
+        'English': enTranslations,
+        'ಕನ್ನಡ': knTranslations,
+        'हिन्दी': hiTranslations,
+        'తెలుగు': teTranslations,
+        'தமிழ்': taTranslations,
+        'മലയാളം': mlTranslations,
+      };
+
+      for (final entry in catalogs.entries) {
+        if (entry.key != 'English') {
+          await _chooseLanguage(tester, entry.key);
+        }
+        expect(find.text(entry.value['welcomeTitle']!), findsOneWidget);
+        expect(find.text(entry.value['continueWhatsApp']!), findsOneWidget);
+        expect(find.text(entry.value['appName']!), findsWidgets);
+      }
+    },
+  );
+
+  testWidgets('sanskrit updates the welcome screen', (tester) async {
+    await _setSurface(tester, const Size(1280, 900));
+    await tester.pumpWidget(const VoteBankerApp());
+    await tester.pumpAndSettle();
+
+    await _chooseLanguage(tester, 'संस्कृतम् (Sanskrit)');
+
+    expect(find.text('स्वागतं, नेतः!'), findsOneWidget);
+    expect(find.text('Welcome Leader!'), findsNothing);
+    expect(find.textContaining('WhatsApp द्वारा अग्रेसरतु'), findsOneWidget);
+  });
+
+  testWidgets('a language Flutter does not ship still leaves the page usable', (
     tester,
   ) async {
     await _setSurface(tester, const Size(1280, 900));
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
 
-    final catalogs = {
-      'English': enTranslations,
-      'ಕನ್ನಡ': knTranslations,
-      'हिन्दी': hiTranslations,
-      'తెలుగు': teTranslations,
-      'தமிழ்': taTranslations,
-      'മലയാളം': mlTranslations,
-    };
+    await _chooseLanguage(tester, 'ᱥᱟᱱᱛᱟᱲᱤ (Santali)');
 
-    for (final entry in catalogs.entries) {
-      if (entry.key != 'English') {
-        await _chooseLanguage(tester, entry.key);
-      }
-      expect(find.text(entry.value['welcomeTitle']!), findsOneWidget);
-      expect(find.text(entry.value['continueWhatsApp']!), findsOneWidget);
-      expect(find.text(entry.value['appName']!), findsWidgets);
-    }
+    expect(tester.takeException(), isNull);
+    expect(find.byType(MaterialApp), findsOneWidget);
+    final context = tester.element(find.byIcon(Icons.language));
+    expect(MaterialLocalizations.of(context), isNotNull);
+    expect(Localizations.localeOf(context).languageCode, 'sat');
   });
 
   testWidgets('language change keeps the profile screen and typed name', (
@@ -58,8 +87,8 @@ void main() {
     );
     await _chooseLanguage(tester, 'हिन्दी');
 
-    expect(find.text('मूल प्रोफ़ाइल'), findsOneWidget);
-    final profileContext = tester.element(find.text('मूल प्रोफ़ाइल'));
+    expect(find.text('लीडर प्रोफ़ाइल'), findsOneWidget);
+    final profileContext = tester.element(find.text('लीडर प्रोफ़ाइल'));
     expect(OnboardingScope.of(profileContext).draft.fullName, 'Arjun Verma');
     expect(find.text('VOTE BANKER में आपका स्वागत है'), findsNothing);
   });
@@ -113,10 +142,21 @@ void main() {
     await tester.pumpAndSettle();
 
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Basic Profile'), findsOneWidget);
+    expect(find.text('Leader Profile'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextField).hitTestable().first, 'Arjun Verma');
+    await tester.enterText(
+      find.byType(TextField).hitTestable().first,
+      'Arjun Verma',
+    );
     await _tapLabel(tester, 'Save & Continue');
+    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Arjun Verma'), findsWidgets);
+
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('Leader Profile'), findsOneWidget);
+
+    await _tapLabel(tester, 'Skip for now');
     expect(find.text('Domain Name Search'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).hitTestable(), 'Arjun Verma');
@@ -131,11 +171,14 @@ void main() {
     await tester.ensureVisible(card);
     await tester.tap(find.descendant(of: card, matching: find.text('Add')));
     await tester.pump();
-    expect(find.descendant(of: card, matching: find.text('Selected')), findsOneWidget);
+    expect(
+      find.descendant(of: card, matching: find.text('Selected')),
+      findsOneWidget,
+    );
 
     await _tapLabel(tester, 'Back');
-    expect(find.text('Basic Profile'), findsOneWidget);
-    final profileContext = tester.element(find.text('Basic Profile'));
+    expect(find.text('Leader Profile'), findsOneWidget);
+    final profileContext = tester.element(find.text('Leader Profile'));
     expect(OnboardingScope.of(profileContext).draft.fullName, 'Arjun Verma');
     expect(
       OnboardingScope.of(profileContext).draft.selectedDomain,
@@ -143,17 +186,18 @@ void main() {
     );
 
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Selected'), findsOneWidget);
-
-    await _tapLabel(tester, 'Next');
-    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Portfolio Website'), findsWidgets);
+    expect(find.text('Arjun Verma'), findsWidgets);
 
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Meta Social Media'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Dashboard'), findsOneWidget);
-    expect(find.text('Your VOTE BANKER workspace starts here.'), findsOneWidget);
+    expect(
+      find.text('Your VOTE BANKER workspace starts here.'),
+      findsOneWidget,
+    );
     expect(find.text('Marketplace'), findsOneWidget);
   });
 
@@ -165,7 +209,8 @@ void main() {
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Next');
-    await _tapLabel(tester, 'Continue');
+    await tester.tap(find.byKey(const ValueKey('openTemplate')));
+    await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byType(TextField).hitTestable().first,
@@ -192,7 +237,10 @@ void main() {
     }
 
     expect(find.text('Meera Rao'), findsWidgets);
-    expect(find.text('Clean streets and open meetings for River Ward.'), findsOneWidget);
+    expect(
+      find.text('Clean streets and open meetings for River Ward.'),
+      findsOneWidget,
+    );
     expect(find.text('Community organizer'), findsOneWidget);
     expect(find.text(enTranslations['websiteOffer']!), findsNothing);
 
@@ -201,7 +249,9 @@ void main() {
     expect(find.text(enTranslations['websiteOffer']!), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('Meera Rao').first).dy,
-      lessThan(tester.getTopLeft(find.text(enTranslations['websiteOffer']!)).dy),
+      lessThan(
+        tester.getTopLeft(find.text(enTranslations['websiteOffer']!)).dy,
+      ),
     );
   });
 
@@ -239,7 +289,14 @@ Future<void> _setSurface(WidgetTester tester, Size size) async {
 Future<void> _chooseLanguage(WidgetTester tester, String nativeName) async {
   await tester.tap(find.byIcon(Icons.language));
   await tester.pumpAndSettle();
-  await tester.tap(find.text(nativeName).last);
+  final item = find.textContaining(nativeName);
+  await tester.scrollUntilVisible(
+    item,
+    120,
+    scrollable: find.byType(Scrollable).last,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(item.last);
   await tester.pumpAndSettle();
 }
 

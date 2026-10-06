@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 
 /// Country, state, and district names for the profile form.
 ///
-/// The lists are the GeoNames gazetteer (countryInfo, admin1, and admin2),
+/// The app is India only, so [parse] keeps India and drops every other
+/// country in the source file. The lists are the GeoNames gazetteer
+/// (countryInfo, admin1, and admin2),
 /// published at https://www.geonames.org/ under the Creative Commons
 /// Attribution 4.0 license.
 ///
@@ -63,7 +65,10 @@ class LocationCatalog {
         continue;
       }
       final name = entry['name'];
-      if (name is! String || name.isEmpty || countries.contains(name)) {
+      if (name is! String ||
+          name.isEmpty ||
+          name != 'India' ||
+          countries.contains(name)) {
         continue;
       }
 

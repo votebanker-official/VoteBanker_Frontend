@@ -28,14 +28,38 @@ void main() {
     }
   });
 
-  test('language menu uses the six native names', () {
+  test('language menu is English first, then the Indian languages', () {
+    expect(AppLanguages.all.map((language) => language.code).toList(), [
+      'en',
+      'as',
+      'bn',
+      'brx',
+      'doi',
+      'gu',
+      'hi',
+      'kn',
+      'ks',
+      'kok',
+      'mai',
+      'ml',
+      'mni',
+      'mr',
+      'ne',
+      'or',
+      'pa',
+      'sa',
+      'sat',
+      'sd',
+      'ta',
+      'te',
+      'ur',
+    ]);
+    expect(AppLanguages.all.first.nativeName, 'English');
     expect(
-      AppLanguages.all.map((language) => language.code).toList(),
-      ['en', 'kn', 'hi', 'te', 'ta', 'ml'],
-    );
-    expect(
-      AppLanguages.all.map((language) => language.nativeName).toList(),
-      ['English', 'ಕನ್ನಡ', 'हिन्दी', 'తెలుగు', 'தமிழ்', 'മലയാളം'],
+      AppLanguages.all.map((language) => language.code),
+      isNot(
+        containsAll(['fr', 'es', 'de', 'ar', 'zh', 'ja', 'ko', 'pt', 'ru']),
+      ),
     );
   });
 }

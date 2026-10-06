@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../features/onboarding/data/profile_languages.dart';
 import 'translations/en.dart';
+import 'translations/indian.dart';
 import 'translations/hi.dart';
 import 'translations/kn.dart';
 import 'translations/ml.dart';
@@ -13,13 +15,8 @@ class AppLocalizations {
 
   final Locale locale;
 
-  static const supportedLocales = <Locale>[
-    Locale('en'),
-    Locale('kn'),
-    Locale('hi'),
-    Locale('te'),
-    Locale('ta'),
-    Locale('ml'),
+  static final supportedLocales = <Locale>[
+    for (final language in ProfileLanguages.all) Locale(language.code),
   ];
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
@@ -31,13 +28,14 @@ class AppLocalizations {
     return value!;
   }
 
-  static const _catalog = <String, Map<String, String>>{
+  static final _catalog = <String, Map<String, String>>{
     'en': enTranslations,
     'kn': knTranslations,
     'hi': hiTranslations,
     'te': teTranslations,
     'ta': taTranslations,
     'ml': mlTranslations,
+    ...indianTranslations,
   };
 
   String _t(String key) {
@@ -46,9 +44,9 @@ class AppLocalizations {
   }
 
   String stepProgress(int step, int total) {
-    return _t('stepProgress')
-        .replaceAll('{step}', '$step')
-        .replaceAll('{total}', '$total');
+    return _t(
+      'stepProgress',
+    ).replaceAll('{step}', '$step').replaceAll('{total}', '$total');
   }
 
   String get appName => _t('appName');
@@ -69,6 +67,7 @@ class AppLocalizations {
   String get fullName => _t('fullName');
   String get photo => _t('photo');
   String get designation => _t('designation');
+  String get assemblyConstituency => _t('assemblyConstituency');
   String get organization => _t('organization');
   String get country => _t('country');
   String get stateRegion => _t('stateRegion');
@@ -120,6 +119,36 @@ class AppLocalizations {
   String get templateIssue => _t('templateIssue');
   String get templateIssueBody => _t('templateIssueBody');
   String get websiteOffer => _t('websiteOffer');
+  String get portfolioTemplates => _t('portfolioTemplates');
+  String get portfolioMyWebsite => _t('portfolioMyWebsite');
+  String get portfolioRecommended => _t('portfolioRecommended');
+  String get portfolioNavHome => _t('portfolioNavHome');
+  String get portfolioNavAbout => _t('portfolioNavAbout');
+  String get portfolioNavVision => _t('portfolioNavVision');
+  String get portfolioNavGallery => _t('portfolioNavGallery');
+  String get portfolioNavContact => _t('portfolioNavContact');
+  String get portfolioHeadlineModern => _t('portfolioHeadlineModern');
+  String get portfolioSupportModern => _t('portfolioSupportModern');
+  String get portfolioHeadlineTraditional => _t('portfolioHeadlineTraditional');
+  String get portfolioSupportTraditional => _t('portfolioSupportTraditional');
+  String get portfolioHeadlinePeople => _t('portfolioHeadlinePeople');
+  String get portfolioSupportPeople => _t('portfolioSupportPeople');
+  String get portfolioJoin => _t('portfolioJoin');
+  String get portfolioModernCampaign => _t('portfolioModernCampaign');
+  String get portfolioTraditionalCampaign => _t('portfolioTraditionalCampaign');
+  String get portfolioPeopleCampaign => _t('portfolioPeopleCampaign');
+  String get portfolioModern => _t('portfolioModern');
+  String get portfolioModernBody => _t('portfolioModernBody');
+  String get portfolioTraditional => _t('portfolioTraditional');
+  String get portfolioTraditionalBody => _t('portfolioTraditionalBody');
+  String get portfolioPeople => _t('portfolioPeople');
+  String get portfolioPeopleBody => _t('portfolioPeopleBody');
+  String get portfolioMakeYours => _t('portfolioMakeYours');
+  String get portfolioMakeYoursBody => _t('portfolioMakeYoursBody');
+  String get portfolioGetWebsite => _t('portfolioGetWebsite');
+  String get portfolioOneTime => _t('portfolioOneTime');
+  String get portfolioSkip => _t('portfolioSkip');
+  String get portfolioNotReady => _t('portfolioNotReady');
   String get websiteLater => _t('websiteLater');
   String get socialTitle => _t('socialTitle');
   String get socialBody => _t('socialBody');
@@ -152,14 +181,13 @@ class AppLocalizations {
   String line(String key) => _t(key);
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
   bool isSupported(Locale locale) {
-    return AppLocalizations.supportedLocales.any(
-      (supported) => supported.languageCode == locale.languageCode,
-    );
+    return ProfileLanguages.supports(locale.languageCode);
   }
 
   @override
