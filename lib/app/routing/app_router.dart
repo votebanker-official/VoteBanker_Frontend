@@ -6,6 +6,7 @@ import '../../core/services/profile_service.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
 import '../../features/merchandise/screens/merchandise_screen.dart';
+import '../../features/speech_generator/speech_generator_screen.dart';
 import '../../features/onboarding/screens/basic_profile_screen.dart';
 import '../../features/onboarding/screens/domain_search_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
@@ -42,6 +43,7 @@ abstract final class AppRoutes {
   static const ready = '/ready';
   static const dashboard = '/dashboard';
   static const merchandise = '/merchandise';
+  static const speech = '/speech';
 }
 
 abstract final class AppRouter {
@@ -66,6 +68,7 @@ abstract final class AppRouter {
       AppRoutes.ready => const ReadyScreen(),
       AppRoutes.dashboard => const DashboardPlaceholderScreen(),
       AppRoutes.merchandise => const MerchandiseScreen(),
+      AppRoutes.speech => const SpeechGeneratorScreen(),
       _ => const LoginScreen(),
     };
 

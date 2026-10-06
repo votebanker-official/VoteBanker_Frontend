@@ -25,6 +25,12 @@ class DashboardPlaceholderScreen extends StatelessWidget {
       _Module(Icons.language, l10n.cardDomain),
       _Module(Icons.share_outlined, l10n.cardSocial),
       _Module(Icons.auto_awesome_outlined, l10n.cardContent),
+      _Module(
+        Icons.record_voice_over_outlined,
+        l10n.line('speechCard'),
+        subtitle: l10n.line('speechCardBody'),
+        route: AppRoutes.speech,
+      ),
       _Module(Icons.groups_outlined, l10n.cardVrm),
       _Module(Icons.volunteer_activism_outlined, l10n.cardVolunteers),
       _Module(Icons.event_outlined, l10n.cardEvents),
