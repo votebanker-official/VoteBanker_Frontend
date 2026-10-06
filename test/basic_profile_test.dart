@@ -56,9 +56,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(country);
     await tester.pumpAndSettle();
-    expect(find.text('Afghanistan'), findsWidgets);
+    expect(find.text('India'), findsWidgets);
+    expect(find.text('Afghanistan'), findsNothing);
+    expect(find.text('United States'), findsNothing);
     expect(find.text('Bangalore Urban'), findsNothing);
-    await tester.tap(find.text('Afghanistan').last);
+    await tester.tap(find.text('India').last);
     await tester.pumpAndSettle();
 
     _dropdown(tester, 'profileCountry').onChanged!('India');
@@ -81,28 +83,16 @@ void main() {
       'Bangalore Urban',
     );
 
-    _dropdown(tester, 'profileCountry').onChanged!('United States');
-    await tester.pumpAndSettle();
-    expect(_dropdown(tester, 'profileState').initialValue, isNull);
-    expect(_dropdown(tester, 'profileDistrict').initialValue, isNull);
-    expect(_dropdown(tester, 'profileDistrict').onChanged, isNull);
-
     await _openDropdown(tester, 'profileState');
-    await _chooseMenuItem(tester, 'California');
-    expect(_dropdown(tester, 'profileState').initialValue, 'California');
-
-    await _openDropdown(tester, 'profileDistrict');
-    await _chooseMenuItem(tester, 'Los Angeles County');
-    expect(
-      _dropdown(tester, 'profileDistrict').initialValue,
-      'Los Angeles County',
-    );
-
-    await _openDropdown(tester, 'profileState');
-    await _chooseMenuItem(tester, 'Texas');
-    expect(_dropdown(tester, 'profileState').initialValue, 'Texas');
+    await _chooseMenuItem(tester, 'Maharashtra');
+    expect(_dropdown(tester, 'profileState').initialValue, 'Maharashtra');
     expect(_dropdown(tester, 'profileDistrict').initialValue, isNull);
     expect(_dropdown(tester, 'profileDistrict').onChanged, isNotNull);
+
+    await _openDropdown(tester, 'profileDistrict');
+    expect(find.text('Bangalore Urban'), findsNothing);
+    await _chooseMenuItem(tester, 'Pune');
+    expect(_dropdown(tester, 'profileDistrict').initialValue, 'Pune');
   });
 
   testWidgets('contact validation and part fields stay in the profile draft', (

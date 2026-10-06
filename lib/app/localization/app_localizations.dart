@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../../features/onboarding/data/profile_languages.dart';
 import 'translations/en.dart';
+import 'translations/indian.dart';
 import 'translations/hi.dart';
 import 'translations/kn.dart';
 import 'translations/ml.dart';
 import 'translations/ta.dart';
 import 'translations/te.dart';
-import 'translations/wide.dart';
 
 class AppLocalizations {
   AppLocalizations(this.locale);
@@ -35,7 +35,7 @@ class AppLocalizations {
     'te': teTranslations,
     'ta': taTranslations,
     'ml': mlTranslations,
-    ...wideTranslations,
+    ...indianTranslations,
   };
 
   String _t(String key) {

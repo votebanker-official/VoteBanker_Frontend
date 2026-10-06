@@ -13,6 +13,7 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/onboarding_header.dart';
 import '../data/contact_number.dart';
 import '../data/location_catalog.dart';
+import '../data/profile_languages.dart';
 import '../data/location_selection.dart';
 import '../models/onboarding_draft.dart';
 import '../state/onboarding_controller.dart';
@@ -65,10 +66,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     _designation = TextEditingController(text: draft.designation);
     _contactNumber = TextEditingController(text: draft.contactNumber);
     _preferredLanguage =
-        draft.preferredLanguage.trim().isEmpty ? 'en' : draft.preferredLanguage;
-    if (draft.preferredLanguage.trim().isEmpty) {
-      draft.preferredLanguage = 'en';
-    }
+        ProfileLanguages.supports(draft.preferredLanguage)
+            ? draft.preferredLanguage
+            : 'en';
+    draft.preferredLanguage = _preferredLanguage;
     _ready = true;
     final readyCatalog = LocationCatalog.instance;
     if (readyCatalog != null) {

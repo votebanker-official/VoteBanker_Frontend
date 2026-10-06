@@ -1,3 +1,5 @@
+import '../../features/onboarding/data/profile_languages.dart';
+
 class AppLanguage {
   const AppLanguage(this.code, this.nativeName);
 
@@ -7,14 +9,11 @@ class AppLanguage {
   final String nativeName;
 }
 
+/// Same Indian language list as [ProfileLanguages], English first.
 abstract final class AppLanguages {
-  static const all = <AppLanguage>[
-    AppLanguage('en', 'English'),
-    AppLanguage('kn', 'ಕನ್ನಡ'),
-    AppLanguage('hi', 'हिन्दी'),
-    AppLanguage('te', 'తెలుగు'),
-    AppLanguage('ta', 'தமிழ்'),
-    AppLanguage('ml', 'മലയാളം'),
+  static final all = <AppLanguage>[
+    for (final language in ProfileLanguages.all)
+      AppLanguage(language.code, language.nativeName),
   ];
 
   static String nativeName(String code) {
@@ -27,6 +26,6 @@ abstract final class AppLanguages {
   }
 
   static bool supports(String code) {
-    return all.any((language) => language.code == code);
+    return ProfileLanguages.supports(code);
   }
 }

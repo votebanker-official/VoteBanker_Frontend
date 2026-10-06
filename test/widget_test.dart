@@ -45,6 +45,18 @@ void main() {
     },
   );
 
+  testWidgets('sanskrit updates the welcome screen', (tester) async {
+    await _setSurface(tester, const Size(1280, 900));
+    await tester.pumpWidget(const VoteBankerApp());
+    await tester.pumpAndSettle();
+
+    await _chooseLanguage(tester, 'संस्कृतम् (Sanskrit)');
+
+    expect(find.text('स्वागतं, नेतः!'), findsOneWidget);
+    expect(find.text('Welcome Leader!'), findsNothing);
+    expect(find.textContaining('WhatsApp द्वारा अग्रेसरतु'), findsOneWidget);
+  });
+
   testWidgets('a language Flutter does not ship still leaves the page usable', (
     tester,
   ) async {
@@ -52,13 +64,13 @@ void main() {
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
 
-    await _chooseLanguage(tester, 'Hausa');
+    await _chooseLanguage(tester, 'ᱥᱟᱱᱛᱟᱲᱤ (Santali)');
 
     expect(tester.takeException(), isNull);
     expect(find.byType(MaterialApp), findsOneWidget);
     final context = tester.element(find.byIcon(Icons.language));
     expect(MaterialLocalizations.of(context), isNotNull);
-    expect(Localizations.localeOf(context).languageCode, 'ha');
+    expect(Localizations.localeOf(context).languageCode, 'sat');
   });
 
   testWidgets('language change keeps the profile screen and typed name', (
