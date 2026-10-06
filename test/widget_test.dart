@@ -137,6 +137,14 @@ void main() {
       'Arjun Verma',
     );
     await _tapLabel(tester, 'Save & Continue');
+    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Arjun Verma'), findsWidgets);
+
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('Leader Profile'), findsOneWidget);
+
+    await _tapLabel(tester, 'Skip for now');
     expect(find.text('Domain Name Search'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).hitTestable(), 'Arjun Verma');
@@ -166,10 +174,8 @@ void main() {
     );
 
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Selected'), findsOneWidget);
-
-    await _tapLabel(tester, 'Next');
-    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Portfolio Website'), findsWidgets);
+    expect(find.text('Arjun Verma'), findsWidgets);
 
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Meta Social Media'), findsOneWidget);
@@ -191,7 +197,8 @@ void main() {
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Next');
-    await _tapLabel(tester, 'Continue');
+    await tester.tap(find.byKey(const ValueKey('openTemplate')));
+    await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byType(TextField).hitTestable().first,
