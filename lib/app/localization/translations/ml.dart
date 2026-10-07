@@ -328,4 +328,6 @@ const mlTranslations = <String, String>{
   'speechVoiceLater': 'ശബ്ദ പ്ലേബാക്ക് പിന്നീട് ചേർക്കും.',
   'speechTranslatePick': 'ഭാഷ തിരഞ്ഞെടുക്കുക',
   'speechEditPrompt': 'വിഷയം തിരുത്തുക',
+  'letterCard': 'കത്ത് ജനറേറ്റർ',
+  'letterCardBody': 'ഔദ്യോഗിക കത്ത് എഴുതുക',
 };

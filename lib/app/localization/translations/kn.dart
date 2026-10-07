@@ -325,4 +325,6 @@ const knTranslations = <String, String>{
   'speechVoiceLater': 'ಧ್ವನಿ ಪ್ಲೇಬ್ಯಾಕ್ ನಂತರ ಸೇರಿಸಲಾಗುತ್ತದೆ.',
   'speechTranslatePick': 'ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ',
   'speechEditPrompt': 'ವಿಷಯ ಬದಲಿಸಿ',
+  'letterCard': 'ಪತ್ರ ರಚನೆ',
+  'letterCardBody': 'ಅಧಿಕೃತ ಪತ್ರ ಬರೆಯಿರಿ',
 };

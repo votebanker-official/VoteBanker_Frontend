@@ -329,4 +329,6 @@ const taTranslations = <String, String>{
   'speechVoiceLater': 'குரல் இயக்கம் பின்னர் சேர்க்கப்படும்.',
   'speechTranslatePick': 'மொழியைத் தேர்ந்தெடுக்கவும்',
   'speechEditPrompt': 'தலைப்பை மாற்று',
+  'letterCard': 'கடித உருவாக்கி',
+  'letterCardBody': 'அதிகாரப்பூர்வ கடிதம் எழுதுங்கள்',
 };

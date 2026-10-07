@@ -322,4 +322,6 @@ const hiTranslations = <String, String>{
   'speechVoiceLater': 'आवाज़ में सुनना बाद में जोड़ा जाएगा।',
   'speechTranslatePick': 'भाषा चुनें',
   'speechEditPrompt': 'विषय बदलें',
+  'letterCard': 'पत्र जनरेटर',
+  'letterCardBody': 'आधिकारिक पत्र लिखें',
 };

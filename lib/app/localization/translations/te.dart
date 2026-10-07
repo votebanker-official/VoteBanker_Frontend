@@ -324,4 +324,6 @@ const teTranslations = <String, String>{
   'speechVoiceLater': 'వాయిస్ ప్లేబ్యాక్ తర్వాత చేర్చబడుతుంది.',
   'speechTranslatePick': 'భాష ఎంచుకోండి',
   'speechEditPrompt': 'అంశం మార్చండి',
+  'letterCard': 'లేఖ రచన',
+  'letterCardBody': 'అధికారిక లేఖ రాయండి',
 };
