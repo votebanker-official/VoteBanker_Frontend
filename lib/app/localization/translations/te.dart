@@ -267,6 +267,11 @@ const teTranslations = <String, String>{
   'profilePhotoTitle': 'ప్రొఫైల్ ఫోటో',
   'profilePhotoHint': 'మీ ఫోటోను జోడించండి',
   'takePhoto': 'ఫోటో తీయండి',
+  'selectFromAlbum': 'ఆల్బమ్ నుండి ఎంచుకోండి',
+  'takeSelfie': 'సెల్ఫీ తీయండి',
+  'capturePhoto': 'క్యాప్చర్',
+  'cameraUnavailable':
+      'కెమెరా అందుబాటులో లేదు. కెమెరా అనుమతి ఇచ్చి మళ్లీ ప్రయత్నించండి.',
   'deletePhoto': 'తొలగించు',
   'enterFullName': 'పూర్తి పేరు నమోదు చేయండి',
   'selectDesignation': 'హోదాను ఎంచుకోండి',

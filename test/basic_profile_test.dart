@@ -183,6 +183,12 @@ void main() {
     expect(find.text('Take Photo'), findsOneWidget);
     expect(find.text('John'), findsOneWidget);
 
+    await _tapLabel(tester, 'Take Photo');
+    expect(find.text('Select from album'), findsOneWidget);
+    expect(find.text('Take selfie'), findsOneWidget);
+    Navigator.of(tester.element(find.text('Select from album'))).pop();
+    await tester.pumpAndSettle();
+
     final context = tester.element(find.text('Leader Profile'));
     expect(Theme.of(context).brightness, Brightness.light);
 

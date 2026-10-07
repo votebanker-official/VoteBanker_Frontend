@@ -9,6 +9,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../data/contact_number.dart';
@@ -212,11 +213,56 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     });
   }
 
+  Future<void> _choosePhotoSource() async {
+    final l10n = AppLocalizations.of(context);
+    final palette = context.palette;
+    final camera = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: palette.surface,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library_outlined,
+                  color: palette.accent,
+                ),
+                title: Text(l10n.selectFromAlbum),
+                onTap: () => Navigator.of(context).pop(false),
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt_outlined, color: palette.accent),
+                title: Text(l10n.takeSelfie),
+                onTap: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (camera == null || !mounted) {
+      return;
+    }
+    await _pickPhoto(camera: camera);
+  }
+
   Future<void> _pickPhoto({required bool camera}) async {
     final l10n = AppLocalizations.of(context);
     try {
+      if (camera) {
+        final bytes = await captureSelfie(context);
+        if (bytes == null || !mounted) {
+          return;
+        }
+        OnboardingScope.of(context).draft.photoBytes = bytes;
+        setState(() {});
+        return;
+      }
       final file = await _picker.pickImage(
-        source: camera ? ImageSource.camera : ImageSource.gallery,
+        source: ImageSource.gallery,
         maxWidth: 1600,
         imageQuality: 85,
         requestFullMetadata: false,
@@ -231,10 +277,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       OnboardingScope.of(context).draft.photoBytes = bytes;
       setState(() {});
     } catch (_) {
-      if (camera) {
-        await _pickPhoto(camera: false);
-        return;
-      }
       if (!mounted) {
         return;
       }
@@ -295,8 +337,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           takeLabel: l10n.takePhoto,
           deleteLabel: l10n.deletePhoto,
           bytes: photo,
-          onCamera: () => _pickPhoto(camera: true),
-          onTake: () => _pickPhoto(camera: true),
+          onAdd: _choosePhotoSource,
           onDelete: photo == null ? null : _deletePhoto,
         ),
         const SizedBox(height: 16),
@@ -650,8 +691,7 @@ class _PhotoCard extends StatelessWidget {
     required this.hint,
     required this.takeLabel,
     required this.deleteLabel,
-    required this.onCamera,
-    required this.onTake,
+    required this.onAdd,
     required this.onDelete,
     this.bytes,
   });
@@ -661,8 +701,7 @@ class _PhotoCard extends StatelessWidget {
   final String takeLabel;
   final String deleteLabel;
   final Uint8List? bytes;
-  final VoidCallback onCamera;
-  final VoidCallback onTake;
+  final VoidCallback onAdd;
   final VoidCallback? onDelete;
 
   @override
@@ -724,7 +763,7 @@ class _PhotoCard extends StatelessWidget {
                       shape: const CircleBorder(),
                       child: InkWell(
                         customBorder: const CircleBorder(),
-                        onTap: onCamera,
+                        onTap: onAdd,
                         child: Padding(
                           padding: const EdgeInsets.all(6),
                           child: Icon(
@@ -758,7 +797,7 @@ class _PhotoCard extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: onTake,
+                        onPressed: onAdd,
                         icon: const Icon(Icons.photo_camera_outlined, size: 16),
                         label: Text(takeLabel),
                       ),

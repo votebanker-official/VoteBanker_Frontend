@@ -273,6 +273,11 @@ const taTranslations = <String, String>{
   'profilePhotoTitle': 'சுயவிவரப் புகைப்படம்',
   'profilePhotoHint': 'உங்கள் புகைப்படத்தைச் சேர்க்கவும்',
   'takePhoto': 'புகைப்படம் எடு',
+  'selectFromAlbum': 'ஆல்பத்திலிருந்து தேர்ந்தெடு',
+  'takeSelfie': 'செல்பி எடு',
+  'capturePhoto': 'எடு',
+  'cameraUnavailable':
+      'கேமரா இல்லை. கேமரா அனுமதி கொடுத்து மீண்டும் முயலவும்.',
   'deletePhoto': 'நீக்கு',
   'enterFullName': 'முழு பெயரை உள்ளிடவும்',
   'selectDesignation': 'பதவியைத் தேர்ந்தெடுக்கவும்',

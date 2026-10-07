@@ -272,6 +272,11 @@ const mlTranslations = <String, String>{
   'profilePhotoTitle': 'പ്രൊഫൈൽ ഫോട്ടോ',
   'profilePhotoHint': 'നിങ്ങളുടെ ഫോട്ടോ ചേർക്കുക',
   'takePhoto': 'ഫോട്ടോ എടുക്കുക',
+  'selectFromAlbum': 'ആൽബത്തിൽ നിന്ന് തിരഞ്ഞെടുക്കുക',
+  'takeSelfie': 'സെൽഫി എടുക്കുക',
+  'capturePhoto': 'ക്യാപ്‌ചർ',
+  'cameraUnavailable':
+      'ക്യാമറ ലഭ്യമല്ല. ക്യാമറ അനുവദിച്ച് വീണ്ടും ശ്രമിക്കുക.',
   'deletePhoto': 'ഇല്ലാതാക്കുക',
   'enterFullName': 'പൂർണ്ണ പേര് നൽകുക',
   'selectDesignation': 'പദവി തിരഞ്ഞെടുക്കുക',

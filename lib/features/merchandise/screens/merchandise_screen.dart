@@ -132,12 +132,13 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
+                                clipBehavior: Clip.none,
                                 itemCount: catalog.products.length,
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: columns,
                                   mainAxisSpacing: 12,
                                   crossAxisSpacing: 12,
-                                  mainAxisExtent: 168,
+                                  mainAxisExtent: 124,
                                 ),
                                 itemBuilder: (context, index) {
                                   final item = catalog.products[index];
@@ -217,23 +218,60 @@ class _ProductTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final radius = BorderRadius.circular(18);
     return Material(
-      color: Colors.transparent,
+      color: palette.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: palette.border.withValues(alpha: 0.85)),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
-        child: AppCard(
-          padding: const EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(_iconFor(product.slug), color: context.palette.accent),
-              const Spacer(),
-              Text(product.name, style: AppTextStyles.label(context)),
-              const SizedBox(height: 4),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: palette.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _iconFor(product.slug),
+                  color: palette.accent,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(height: 10),
               Text(
-                action,
-                style: AppTextStyles.muted(context).copyWith(fontSize: 13),
+                product.name,
+                style: AppTextStyles.label(context).copyWith(fontSize: 15),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      action,
+                      style: AppTextStyles.muted(context).copyWith(fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 14,
+                    color: palette.accent,
+                  ),
+                ],
               ),
             ],
           ),

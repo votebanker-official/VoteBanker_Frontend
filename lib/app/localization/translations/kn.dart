@@ -268,6 +268,11 @@ const knTranslations = <String, String>{
   'profilePhotoTitle': 'ಪ್ರೊಫೈಲ್ ಫೋಟೋ',
   'profilePhotoHint': 'ನಿಮ್ಮ ಫೋಟೋ ಸೇರಿಸಿ',
   'takePhoto': 'ಫೋಟೋ ತೆಗೆಯಿರಿ',
+  'selectFromAlbum': 'ಆಲ್ಬಂನಿಂದ ಆಯ್ಕೆಮಾಡಿ',
+  'takeSelfie': 'ಸೆಲ್ಫಿ ತೆಗೆಯಿರಿ',
+  'capturePhoto': 'ಕ್ಯಾಪ್ಚರ್',
+  'cameraUnavailable':
+      'ಕ್ಯಾಮೆರಾ ಲಭ್ಯವಿಲ್ಲ. ಕ್ಯಾಮೆರಾ ಅನುಮತಿ ನೀಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
   'deletePhoto': 'ಅಳಿಸಿ',
   'enterFullName': 'ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ',
   'selectDesignation': 'ಹುದ್ದೆ ಆಯ್ಕೆಮಾಡಿ',

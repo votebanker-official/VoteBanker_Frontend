@@ -332,6 +332,11 @@ const enTranslations = <String, String>{
   'profilePhotoTitle': 'Profile Photo',
   'profilePhotoHint': 'Add your photo',
   'takePhoto': 'Take Photo',
+  'selectFromAlbum': 'Select from album',
+  'takeSelfie': 'Take selfie',
+  'capturePhoto': 'Capture',
+  'cameraUnavailable':
+      'Camera is not available. Allow camera access and try again.',
   'deletePhoto': 'Delete',
   'enterFullName': 'Enter full name',
   'selectDesignation': 'Select designation',

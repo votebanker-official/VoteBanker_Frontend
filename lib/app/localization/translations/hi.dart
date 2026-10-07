@@ -265,6 +265,11 @@ const hiTranslations = <String, String>{
   'profilePhotoTitle': 'प्रोफ़ाइल फ़ोटो',
   'profilePhotoHint': 'अपनी फ़ोटो जोड़ें',
   'takePhoto': 'फ़ोटो लें',
+  'selectFromAlbum': 'एल्बम से चुनें',
+  'takeSelfie': 'सेल्फी लें',
+  'capturePhoto': 'कैप्चर',
+  'cameraUnavailable':
+      'कैमरा उपलब्ध नहीं है। कैमरा की अनुमति दें और फिर कोशिश करें।',
   'deletePhoto': 'हटाएँ',
   'enterFullName': 'पूरा नाम लिखें',
   'selectDesignation': 'पद चुनें',

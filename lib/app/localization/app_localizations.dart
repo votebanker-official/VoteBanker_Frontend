@@ -68,6 +68,10 @@ class AppLocalizations {
   String get profilePhotoTitle => _t('profilePhotoTitle');
   String get profilePhotoHint => _t('profilePhotoHint');
   String get takePhoto => _t('takePhoto');
+  String get selectFromAlbum => _t('selectFromAlbum');
+  String get takeSelfie => _t('takeSelfie');
+  String get capturePhoto => _t('capturePhoto');
+  String get cameraUnavailable => _t('cameraUnavailable');
   String get deletePhoto => _t('deletePhoto');
   String get enterFullName => _t('enterFullName');
   String get selectDesignation => _t('selectDesignation');
