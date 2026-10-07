@@ -862,7 +862,7 @@ class _ProfileDropdown extends StatelessWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           key: fieldKey,
-          initialValue: value,
+          value: value,
           isExpanded: true,
           hint: Text(hint),
           icon: Icon(Icons.keyboard_arrow_down, color: palette.textMuted),
