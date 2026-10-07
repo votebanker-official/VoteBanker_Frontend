@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/app.dart';
+import 'package:votebanker/app/localization/translations/kn.dart';
 import 'package:votebanker/features/onboarding/data/location_catalog.dart';
+import 'package:votebanker/features/onboarding/data/political_party.dart';
+import 'package:votebanker/features/onboarding/widgets/party_symbol.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 
 void main() {
@@ -18,18 +21,21 @@ void main() {
     await _openProfile(tester);
 
     expect(find.text('Leader Profile'), findsOneWidget);
-    expect(find.text('Tell us a little about your leadership'), findsOneWidget);
+    expect(
+      find.text('Tell us a little about your leadership and journey.'),
+      findsOneWidget,
+    );
     expect(find.text('Every field is optional.'), findsNothing);
-    expect(find.text('Leader Name'), findsOneWidget);
-    expect(find.text('Assembly Constituency'), findsOneWidget);
-    expect(find.text('Booth Number'), findsOneWidget);
-    expect(find.text('Booth Name'), findsOneWidget);
-    expect(find.text('Party'), findsOneWidget);
-    expect(find.text('Designation'), findsOneWidget);
-    expect(find.text('Country'), findsOneWidget);
-    expect(find.text('State'), findsOneWidget);
-    expect(find.text('District'), findsOneWidget);
-    expect(find.text('Contact Number'), findsOneWidget);
+    expect(find.text('Leader Name *'), findsOneWidget);
+    expect(find.text('Assembly Constituency *'), findsOneWidget);
+    expect(find.text('Booth Number *'), findsOneWidget);
+    expect(find.text('Booth Name *'), findsOneWidget);
+    expect(find.text('Party *'), findsOneWidget);
+    expect(find.text('Designation *'), findsOneWidget);
+    expect(find.text('Country *'), findsOneWidget);
+    expect(find.text('State *'), findsOneWidget);
+    expect(find.text('District *'), findsOneWidget);
+    expect(find.text('Contact Number *'), findsOneWidget);
     expect(find.text('Part No'), findsNothing);
     expect(find.text('Part Name'), findsNothing);
     expect(find.text('Select Language'), findsNothing);
@@ -39,7 +45,8 @@ void main() {
     expect(find.text('Public Contact Details'), findsNothing);
     expect(find.text('Preferred Language'), findsNothing);
 
-    expect(_dropdown(tester, 'profileState').onChanged, isNull);
+    expect(_dropdown(tester, 'profileCountry').initialValue, 'India');
+    expect(_dropdown(tester, 'profileState').onChanged, isNotNull);
     expect(_dropdown(tester, 'profileDistrict').onChanged, isNull);
 
     final contact = _textField(tester, 'profileContact');
@@ -148,6 +155,119 @@ void main() {
     expect(controller.draft.partName, 'Central');
     expect(controller.draft.preferredLanguage, 'hi');
   });
+
+  testWidgets('kannada, english, and theme update the leader profile', (
+    tester,
+  ) async {
+    await _openProfile(tester);
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey('profileLeaderName')),
+        matching: find.byType(TextField),
+      ),
+      'John',
+    );
+
+    await _chooseLanguage(tester, 'ಕನ್ನಡ');
+    expect(find.text(knTranslations['basicProfile']!), findsOneWidget);
+    expect(find.text(knTranslations['takePhoto']!), findsOneWidget);
+    expect(find.text(knTranslations['locationSection']!), findsOneWidget);
+    expect(find.text(knTranslations['contactSection']!), findsOneWidget);
+    expect(find.text('Leader Profile'), findsNothing);
+    expect(find.text('Take Photo'), findsNothing);
+    expect(find.text('1 of 4'), findsNothing);
+    expect(find.text('John'), findsOneWidget);
+
+    await _chooseLanguage(tester, 'English');
+    expect(find.text('Leader Profile'), findsOneWidget);
+    expect(find.text('Take Photo'), findsOneWidget);
+    expect(find.text('John'), findsOneWidget);
+
+    final context = tester.element(find.text('Leader Profile'));
+    expect(Theme.of(context).brightness, Brightness.light);
+
+    await tester.tap(find.byIcon(Icons.dark_mode_outlined));
+    await tester.pumpAndSettle();
+    expect(
+      Theme.of(tester.element(find.text('Leader Profile'))).brightness,
+      Brightness.dark,
+    );
+
+    await tester.tap(find.byIcon(Icons.light_mode_outlined));
+    await tester.pumpAndSettle();
+    expect(
+      Theme.of(tester.element(find.text('Leader Profile'))).brightness,
+      Brightness.light,
+    );
+  });
+
+  testWidgets('party dropdown shows grouped symbols and keeps the selection', (
+    tester,
+  ) async {
+    await _openProfile(tester);
+    await _openDropdown(tester, 'profileParty');
+
+    expect(find.text('National Parties'), findsOneWidget);
+    expect(find.text('Regional & State Parties'), findsOneWidget);
+    expect(find.byType(Scrollable), findsWidgets);
+
+    final header = tester.widget<DropdownMenuItem<String>>(
+      find.ancestor(
+        of: find.text('National Parties'),
+        matching: find.byType(DropdownMenuItem<String>),
+      ),
+    );
+    expect(header.enabled, isFalse);
+
+    for (final party in PartyOption.all) {
+      final name = find.text(party.name);
+      await tester.scrollUntilVisible(
+        name,
+        80,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      final row = find.ancestor(of: name.last, matching: find.byType(Row));
+      final symbol = find.descendant(
+        of: row.first,
+        matching: find.byType(PartySymbol),
+      );
+      expect(symbol, findsOneWidget);
+      final symbolBox = tester.getRect(symbol);
+      final nameBox = tester.getRect(name.last);
+      expect(symbolBox.center.dx, lessThan(nameBox.left));
+      expect((symbolBox.center.dy - nameBox.center.dy).abs(), lessThan(12));
+      expect(symbolBox.width, lessThanOrEqualTo(nameBox.left));
+    }
+
+    await tester.tapAt(const Offset(8, 8));
+    await tester.pumpAndSettle();
+    _dropdown(tester, 'profileParty').onChanged!('Bharatiya Janata Party');
+    await tester.pumpAndSettle();
+    expect(
+      _dropdown(tester, 'profileParty').initialValue,
+      'Bharatiya Janata Party',
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('profileParty')),
+        matching: find.byType(PartySymbol),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      OnboardingScope.of(
+        tester.element(find.text('Leader Profile')),
+      ).draft.party,
+      'Bharatiya Janata Party',
+    );
+
+    await tester.binding.setSurfaceSize(const Size(390, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpAndSettle();
+    await _openDropdown(tester, 'profileParty');
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Future<void> _openProfile(WidgetTester tester) async {
@@ -207,6 +327,20 @@ Future<void> _setSurface(WidgetTester tester, Size size) async {
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+Future<void> _chooseLanguage(WidgetTester tester, String nativeName) async {
+  await tester.tap(find.byIcon(Icons.language));
+  await tester.pumpAndSettle();
+  final item = find.textContaining(nativeName);
+  await tester.scrollUntilVisible(
+    item,
+    120,
+    scrollable: find.byType(Scrollable).last,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(item.last);
+  await tester.pumpAndSettle();
 }
 
 Future<void> _tapLabel(WidgetTester tester, String text) async {
