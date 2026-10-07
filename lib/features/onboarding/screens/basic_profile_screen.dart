@@ -8,17 +8,20 @@ import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
+import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
-import '../../../core/widgets/onboarding_header.dart';
 import '../data/contact_number.dart';
 import '../data/location_catalog.dart';
 import '../data/profile_languages.dart';
+import '../data/profile_options.dart';
 import '../data/location_selection.dart';
 import '../models/onboarding_draft.dart';
 import '../state/onboarding_controller.dart';
-import '../widgets/onboarding_actions.dart';
+import '../data/political_party.dart';
 import '../widgets/onboarding_frame.dart';
+import '../widgets/party_symbol.dart';
 
 class BasicProfileScreen extends StatefulWidget {
   const BasicProfileScreen({super.key});
@@ -87,6 +90,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       state: draft.stateRegion,
       district: draft.constituency,
     );
+    if (_selection.country.isEmpty && catalog.countries.contains('India')) {
+      _selection.country = 'India';
+    }
     draft
       ..country = _selection.country
       ..stateRegion = _selection.state
@@ -207,9 +213,54 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     });
   }
 
-  Future<void> _pickPhoto() async {
+  Future<void> _choosePhotoSource() async {
+    final l10n = AppLocalizations.of(context);
+    final palette = context.palette;
+    final camera = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: palette.surface,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library_outlined,
+                  color: palette.accent,
+                ),
+                title: Text(l10n.selectFromAlbum),
+                onTap: () => Navigator.of(context).pop(false),
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt_outlined, color: palette.accent),
+                title: Text(l10n.takeSelfie),
+                onTap: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (camera == null || !mounted) {
+      return;
+    }
+    await _pickPhoto(camera: camera);
+  }
+
+  Future<void> _pickPhoto({required bool camera}) async {
     final l10n = AppLocalizations.of(context);
     try {
+      if (camera) {
+        final bytes = await captureSelfie(context);
+        if (bytes == null || !mounted) {
+          return;
+        }
+        OnboardingScope.of(context).draft.photoBytes = bytes;
+        setState(() {});
+        return;
+      }
       final file = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1600,
@@ -235,6 +286,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
   }
 
+  void _deletePhoto() {
+    OnboardingScope.of(context).draft.photoBytes = null;
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -254,160 +310,264 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         countryEnabled && _selection.country.isNotEmpty && states.isNotEmpty;
     final districtEnabled =
         stateEnabled && _selection.state.isNotEmpty && districts.isNotEmpty;
-    return OnboardingFrame(
-      child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            OnboardingHeader(
-              compact: true,
-              title: l10n.basicProfile,
-              description: l10n.profileDescription,
-            ),
-            const SizedBox(height: 20),
-            _PhotoPicker(
-              label: l10n.photo,
-              actionLabel: photo == null ? l10n.addPhoto : l10n.changePhoto,
-              bytes: photo,
-              onPick: _pickPhoto,
-            ),
-            const SizedBox(height: 18),
-            AppTextField(
-              label: l10n.fullName,
-              controller: _leaderName,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.name],
-              onChanged: (value) => draft.leaderName = value,
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              label: l10n.assemblyConstituency,
-              controller: _assemblyConstituency,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.assemblyConstituency = value,
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              key: const ValueKey('profilePartNo'),
-              label: l10n.partNo,
-              controller: _boothNumber,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.boothNumber = value,
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              key: const ValueKey('profilePartName'),
-              label: l10n.partName,
-              controller: _boothName,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.boothName = value,
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              label: l10n.organization,
-              controller: _party,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.organizationName],
-              onChanged: (value) => draft.party = value,
-            ),
-            const SizedBox(height: 14),
-            AppTextField(
-              label: l10n.designation,
-              controller: _designation,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
-              onChanged: (value) => draft.designation = value,
-            ),
-            const SizedBox(height: 14),
-            _ProfileDropdown(
-              fieldKey: const ValueKey('profileCountry'),
-              label: l10n.country,
-              hint: l10n.selectLanguage,
-              value: _shown(_selection.country, catalog?.countries ?? const []),
-              options: catalog?.countries ?? const [],
-              enabled: countryEnabled,
-              errorText:
-                  _locationIssue == LocationIssue.country
-                      ? l10n.invalidSelection
-                      : null,
-              onChanged: _selectCountry,
-            ),
-            const SizedBox(height: 14),
-            _ProfileDropdown(
-              fieldKey: const ValueKey('profileState'),
-              label: l10n.stateRegion,
-              hint: l10n.selectLanguage,
-              value: _shown(_selection.state, states),
-              options: states,
-              enabled: stateEnabled,
-              errorText:
-                  _locationIssue == LocationIssue.state
-                      ? l10n.invalidSelection
-                      : null,
-              onChanged: _selectState,
-            ),
-            const SizedBox(height: 14),
-            _ProfileDropdown(
-              fieldKey: const ValueKey('profileDistrict'),
-              label: l10n.constituency,
-              hint: l10n.selectLanguage,
-              value: _shown(_selection.district, districts),
-              options: districts,
-              enabled: districtEnabled,
-              errorText:
-                  _locationIssue == LocationIssue.district
-                      ? l10n.invalidSelection
-                      : null,
-              onChanged: _selectDistrict,
-            ),
-            const SizedBox(height: 14),
-            KeyedSubtree(
-              key: _contactAnchor,
-              child: AppTextField(
-                key: const ValueKey('profileContact'),
-                label: l10n.publicContact,
-                controller: _contactNumber,
-                keyboardType: TextInputType.phone,
+    final wideBooth = MediaQuery.sizeOf(context).width >= 560;
+    final designations = ProfileOptions.withSaved(
+      ProfileOptions.designations,
+      _designation.text,
+    );
+    final parties = ProfileOptions.withSaved(
+      ProfileOptions.parties,
+      _party.text,
+    );
+
+    final form = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ProfileHeader(
+          l10n: l10n,
+          onBack: () {
+            _commit();
+            AppRouter.back(context, AppRoutes.login);
+          },
+        ),
+        const SizedBox(height: 16),
+        _PhotoCard(
+          title: l10n.profilePhotoTitle,
+          hint: l10n.profilePhotoHint,
+          takeLabel: l10n.takePhoto,
+          deleteLabel: l10n.deletePhoto,
+          bytes: photo,
+          onAdd: _choosePhotoSource,
+          onDelete: photo == null ? null : _deletePhoto,
+        ),
+        const SizedBox(height: 16),
+        AppTextField(
+          key: const ValueKey('profileLeaderName'),
+          label: '${l10n.fullName} *',
+          hint: l10n.enterFullName,
+          prefixIcon: const Icon(Icons.person_outline),
+          controller: _leaderName,
+          textCapitalization: TextCapitalization.words,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.name],
+          onChanged: (value) => draft.leaderName = value,
+        ),
+        const SizedBox(height: 14),
+        _ProfileDropdown(
+          fieldKey: const ValueKey('profileDesignation'),
+          label: '${l10n.designation} *',
+          hint: l10n.selectDesignation,
+          icon: Icons.work_outline,
+          value: _shown(_designation.text, designations),
+          options: designations,
+          enabled: true,
+          onChanged: (value) {
+            setState(() => _designation.text = value ?? '');
+            draft.designation = _designation.text;
+          },
+        ),
+        const SizedBox(height: 14),
+        _ProfileDropdown(
+          fieldKey: const ValueKey('profileParty'),
+          label: '${l10n.organization} *',
+          hint: l10n.selectParty,
+          icon: Icons.flag_outlined,
+          value: _shown(_party.text, parties),
+          options: parties,
+          showPartySymbols: true,
+          nationalPartiesLabel: l10n.nationalParties,
+          regionalPartiesLabel: l10n.regionalParties,
+          enabled: true,
+          onChanged: (value) {
+            setState(() => _party.text = value ?? '');
+            draft.party = _party.text;
+          },
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.location_on_outlined,
+          title: l10n.locationSection,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _ProfileDropdown(
+                fieldKey: const ValueKey('profileCountry'),
+                label: '${l10n.country} *',
+                hint: l10n.selectCountry,
+                icon: Icons.public,
+                value: _shown(
+                  _selection.country,
+                  catalog?.countries ?? const [],
+                ),
+                options: catalog?.countries ?? const [],
+                enabled: countryEnabled,
+                errorText:
+                    _locationIssue == LocationIssue.country
+                        ? l10n.invalidSelection
+                        : null,
+                onChanged: _selectCountry,
+              ),
+              const SizedBox(height: 14),
+              _ProfileDropdown(
+                fieldKey: const ValueKey('profileState'),
+                label: '${l10n.stateRegion} *',
+                hint: l10n.selectState,
+                icon: Icons.location_on_outlined,
+                value: _shown(_selection.state, states),
+                options: states,
+                enabled: stateEnabled,
+                errorText:
+                    _locationIssue == LocationIssue.state
+                        ? l10n.invalidSelection
+                        : null,
+                onChanged: _selectState,
+              ),
+              const SizedBox(height: 14),
+              _ProfileDropdown(
+                fieldKey: const ValueKey('profileDistrict'),
+                label: '${l10n.constituency} *',
+                hint: l10n.selectDistrict,
+                icon: Icons.account_balance_outlined,
+                value: _shown(_selection.district, districts),
+                options: districts,
+                enabled: districtEnabled,
+                errorText:
+                    _locationIssue == LocationIssue.district
+                        ? l10n.invalidSelection
+                        : null,
+                onChanged: _selectDistrict,
+              ),
+              const SizedBox(height: 14),
+              AppTextField(
+                key: const ValueKey('profileAssembly'),
+                label: '${l10n.assemblyConstituency} *',
+                hint: l10n.selectConstituency,
+                prefixIcon: const Icon(Icons.groups_outlined),
+                controller: _assemblyConstituency,
+                textCapitalization: TextCapitalization.words,
                 textInputAction: TextInputAction.next,
-                autofillHints: const [AutofillHints.telephoneNumber],
-                inputFormatters: [_phoneInput],
-                errorText: _contactError,
-                onChanged: (value) {
-                  draft.contactNumber = value;
-                  if (_contactError != null) {
-                    final next =
-                        isValidContactNumber(value)
-                            ? null
-                            : l10n.invalidContact;
-                    if (next != _contactError) {
-                      setState(() => _contactError = next);
-                    }
+                onChanged: (value) => draft.assemblyConstituency = value,
+              ),
+              const SizedBox(height: 14),
+              if (wideBooth)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _boothNumberField(l10n, draft)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _boothNameField(l10n, draft)),
+                  ],
+                )
+              else ...[
+                _boothNumberField(l10n, draft),
+                const SizedBox(height: 14),
+                _boothNameField(l10n, draft),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _SectionCard(
+          icon: Icons.phone_outlined,
+          title: l10n.contactSection,
+          child: KeyedSubtree(
+            key: _contactAnchor,
+            child: AppTextField(
+              key: const ValueKey('profileContact'),
+              label: '${l10n.publicContact} *',
+              hint: l10n.enterMobile,
+              prefixIcon: const Icon(Icons.phone_outlined),
+              controller: _contactNumber,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.telephoneNumber],
+              inputFormatters: [_phoneInput],
+              errorText: _contactError,
+              onChanged: (value) {
+                draft.contactNumber = value;
+                if (_contactError != null) {
+                  final next =
+                      isValidContactNumber(value) ? null : l10n.invalidContact;
+                  if (next != _contactError) {
+                    setState(() => _contactError = next);
                   }
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 22),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  _commit();
+                  AppRouter.back(context, AppRoutes.login);
                 },
+                icon: const Icon(Icons.arrow_back),
+                label: Text(l10n.back),
               ),
             ),
-            const SizedBox(height: 22),
-            OnboardingActions(
-              backLabel: l10n.back,
-              onBack: () {
-                _commit();
-                AppRouter.back(context, AppRoutes.login);
-              },
-              primaryLabel: l10n.saveAndContinue,
-              onPrimary: _saveAndContinue,
-              skipLabel: l10n.skipForNow,
-              onSkip: () {
-                _commit();
-                AppRouter.open(context, AppRoutes.domain);
-              },
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: FilledButton(
+                onPressed: _saveAndContinue,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(l10n.saveAndContinue),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward, size: 18),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
-      ),
+        Center(
+          child: TextButton(
+            onPressed: () {
+              _commit();
+              AppRouter.open(context, AppRoutes.domain);
+            },
+            child: Text(l10n.skipForNow),
+          ),
+        ),
+      ],
+    );
+
+    return OnboardingFrame(
+      child: context.palette.isDark ? form : AppCard(child: form),
+    );
+  }
+
+  Widget _boothNumberField(AppLocalizations l10n, OnboardingDraft draft) {
+    return AppTextField(
+      key: const ValueKey('profilePartNo'),
+      label: '${l10n.partNo} *',
+      hint: l10n.enterBoothNumber,
+      prefixIcon: const Icon(Icons.tag),
+      controller: _boothNumber,
+      textInputAction: TextInputAction.next,
+      onChanged: (value) => draft.boothNumber = value,
+    );
+  }
+
+  Widget _boothNameField(AppLocalizations l10n, OnboardingDraft draft) {
+    return AppTextField(
+      key: const ValueKey('profilePartName'),
+      label: '${l10n.partName} *',
+      hint: l10n.enterBoothName,
+      prefixIcon: const Icon(Icons.home_work_outlined),
+      controller: _boothName,
+      textCapitalization: TextCapitalization.words,
+      textInputAction: TextInputAction.next,
+      onChanged: (value) => draft.boothName = value,
     );
   }
 
@@ -416,29 +576,280 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   }
 }
 
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.l10n, required this.onBack});
+
+  final AppLocalizations l10n;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              tooltip: l10n.back,
+              onPressed: onBack,
+              icon: const Icon(Icons.arrow_back),
+            ),
+            ClipOval(
+              child: Image.asset(
+                AppAssets.logo,
+                width: 36,
+                height: 36,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.appName, style: AppTextStyles.wordmark(context)),
+                  Text(
+                    l10n.profilePlatform,
+                    style: AppTextStyles.descriptor(context),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(l10n.basicProfile, style: AppTextStyles.headline(context)),
+        const SizedBox(height: 4),
+        Text(l10n.profileDescription, style: AppTextStyles.muted(context)),
+      ],
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: palette.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: palette.accent.withValues(alpha: 0.16),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(icon, color: palette.accent, size: 18),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.headline(
+                      context,
+                    ).copyWith(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoCard extends StatelessWidget {
+  const _PhotoCard({
+    required this.title,
+    required this.hint,
+    required this.takeLabel,
+    required this.deleteLabel,
+    required this.onAdd,
+    required this.onDelete,
+    this.bytes,
+  });
+
+  final String title;
+  final String hint;
+  final String takeLabel;
+  final String deleteLabel;
+  final Uint8List? bytes;
+  final VoidCallback onAdd;
+  final VoidCallback? onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: palette.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 92,
+              height: 92,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: palette.background,
+                      border: Border.all(color: palette.accent, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: palette.accent.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                        ),
+                      ],
+                      image:
+                          bytes == null
+                              ? null
+                              : DecorationImage(
+                                image: MemoryImage(bytes!),
+                                fit: BoxFit.cover,
+                              ),
+                    ),
+                    child: SizedBox(
+                      width: 92,
+                      height: 92,
+                      child:
+                          bytes == null
+                              ? Icon(
+                                Icons.person,
+                                size: 40,
+                                color: palette.textMuted,
+                              )
+                              : null,
+                    ),
+                  ),
+                  Positioned(
+                    right: -2,
+                    bottom: -2,
+                    child: Material(
+                      color: palette.accent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: onAdd,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.photo_camera,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.headline(
+                      context,
+                    ).copyWith(fontSize: 16),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(hint, style: AppTextStyles.muted(context)),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: onAdd,
+                        icon: const Icon(Icons.photo_camera_outlined, size: 16),
+                        label: Text(takeLabel),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: onDelete,
+                        icon: const Icon(Icons.delete_outline, size: 16),
+                        label: Text(deleteLabel),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ProfileDropdown extends StatelessWidget {
   const _ProfileDropdown({
     required this.fieldKey,
     required this.label,
     required this.hint,
+    required this.icon,
     required this.value,
     required this.options,
     required this.enabled,
     required this.onChanged,
     this.errorText,
+    this.showPartySymbols = false,
+    this.nationalPartiesLabel = '',
+    this.regionalPartiesLabel = '',
   });
 
   final Key fieldKey;
   final String label;
   final String hint;
+  final IconData icon;
   final String? value;
   final List<String> options;
   final bool enabled;
   final String? errorText;
   final ValueChanged<String?> onChanged;
+  final bool showPartySymbols;
+  final String nationalPartiesLabel;
+  final String regionalPartiesLabel;
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -446,28 +857,42 @@ class _ProfileDropdown extends StatelessWidget {
           label,
           style: AppTextStyles.label(
             context,
-          ).copyWith(fontSize: 13, color: context.palette.textMuted),
+          ).copyWith(fontSize: 13, color: palette.text),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           key: fieldKey,
-          value: value,
+          initialValue: value,
           isExpanded: true,
           hint: Text(hint),
-          dropdownColor: context.palette.surfaceSecondary,
-          menuMaxHeight: 320,
-          decoration: InputDecoration(errorText: errorText),
-          items: [
-            for (final option in options)
-              DropdownMenuItem<String>(
-                value: option,
-                child: Text(
-                  option,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
+          icon: Icon(Icons.keyboard_arrow_down, color: palette.textMuted),
+          dropdownColor: palette.surfaceSecondary,
+          menuMaxHeight: MediaQuery.sizeOf(context).height * 0.5,
+          itemHeight: showPartySymbols ? 56 : kMinInteractiveDimension,
+          decoration: InputDecoration(
+            prefixIcon:
+                showPartySymbols ? null : Icon(icon, color: palette.textMuted),
+            errorText: errorText,
+          ),
+          items:
+              showPartySymbols
+                  ? _partyMenuItems(
+                    options,
+                    nationalPartiesLabel,
+                    regionalPartiesLabel,
+                    palette,
+                  )
+                  : [
+                    for (final option in options)
+                      DropdownMenuItem<String>(
+                        value: option,
+                        child: Text(
+                          option,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
           onChanged: enabled ? onChanged : null,
         ),
       ],
@@ -475,67 +900,70 @@ class _ProfileDropdown extends StatelessWidget {
   }
 }
 
-class _PhotoPicker extends StatelessWidget {
-  const _PhotoPicker({
-    required this.label,
-    required this.actionLabel,
-    required this.onPick,
-    this.bytes,
-  });
+class _PartyOptionLabel extends StatelessWidget {
+  const _PartyOptionLabel({required this.name});
 
-  final String label;
-  final String actionLabel;
-  final Uint8List? bytes;
-  final VoidCallback onPick;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(label, style: AppTextStyles.label(context)),
-        const SizedBox(height: 10),
-        Semantics(
-          button: true,
-          label: actionLabel,
-          child: Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: onPick,
-              child: Ink(
-                width: 104,
-                height: 104,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: palette.surfaceSecondary,
-                  border: Border.all(color: palette.accent, width: 1.4),
-                  image:
-                      bytes == null
-                          ? null
-                          : DecorationImage(
-                            image: MemoryImage(bytes!),
-                            fit: BoxFit.cover,
-                          ),
-                ),
-                child:
-                    bytes == null
-                        ? Icon(
-                          Icons.add_a_photo_outlined,
-                          color: palette.accent,
-                          size: 28,
-                        )
-                        : null,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          actionLabel,
-          style: AppTextStyles.label(context).copyWith(color: palette.accent),
+        PartySymbol(name),
+        const SizedBox(width: PartySymbol.gap),
+        Expanded(
+          child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       ],
     );
   }
+}
+
+List<DropdownMenuItem<String>> _partyMenuItems(
+  List<String> options,
+  String nationalLabel,
+  String regionalLabel,
+  AppPalette palette,
+) {
+  final known = options.toSet();
+  final saved =
+      options.where((name) => PartyOption.findByName(name) == null).toList();
+
+  DropdownMenuItem<String> party(String name) {
+    return DropdownMenuItem<String>(
+      value: name,
+      child: _PartyOptionLabel(name: name),
+    );
+  }
+
+  DropdownMenuItem<String> header(String id, String label) {
+    return DropdownMenuItem<String>(
+      enabled: false,
+      value: id,
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: palette.textMuted,
+        ),
+      ),
+    );
+  }
+
+  return [
+    for (final name in saved) party(name),
+    if (PartyOption.national.any((party) => known.contains(party.name)))
+      header('__national_parties__', nationalLabel),
+    for (final partyOption in PartyOption.national)
+      if (known.contains(partyOption.name)) party(partyOption.name),
+    if (PartyOption.regional.any((party) => known.contains(party.name)))
+      header('__regional_parties__', regionalLabel),
+    for (final partyOption in PartyOption.regional)
+      if (known.contains(partyOption.name)) party(partyOption.name),
+  ];
 }

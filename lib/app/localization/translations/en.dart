@@ -14,7 +14,7 @@ const enTranslations = <String, String>{
   'continueEmail': 'Continue with Email',
   'authLater': 'Sign-in will be connected later. Continuing for now.',
   'basicProfile': 'Leader Profile',
-  'profileDescription': 'Tell us a little about your leadership',
+  'profileDescription': 'Tell us a little about your leadership and journey.',
   'fullName': 'Leader Name',
   'photo': 'Photo',
   'assemblyConstituency': 'Assembly Constituency',

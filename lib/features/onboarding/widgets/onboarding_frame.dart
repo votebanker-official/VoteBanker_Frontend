@@ -7,10 +7,7 @@ import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 
 class OnboardingFrame extends StatelessWidget {
-  const OnboardingFrame({
-    required this.child,
-    super.key,
-  });
+  const OnboardingFrame({required this.child, super.key});
 
   final Widget child;
 
@@ -74,4 +71,3 @@ class OnboardingFrame extends StatelessWidget {
     );
   }
 }
-

@@ -28,16 +28,38 @@ void main() {
     await tester.pumpAndSettle();
     await _tap(tester, 'Skip for now');
 
-    await tester.enterText(find.byType(TextField).at(0), 'Rahul Kumar');
-    await tester.enterText(find.byType(TextField).at(1), 'Hubballi');
-    await tester.enterText(find.byType(TextField).at(4), 'Example Party');
-    await tester.enterText(find.byType(TextField).at(5), 'Constituency Leader');
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey('profileLeaderName')),
+        matching: find.byType(TextField),
+      ),
+      'Rahul Kumar',
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey('profileAssembly')),
+        matching: find.byType(TextField),
+      ),
+      'Hubballi',
+    );
+    tester
+        .widget<DropdownButtonFormField<String>>(
+          find.byKey(const ValueKey('profileParty')),
+        )
+        .onChanged!('Indian National Congress');
+    await tester.pump();
+    tester
+        .widget<DropdownButtonFormField<String>>(
+          find.byKey(const ValueKey('profileDesignation')),
+        )
+        .onChanged!('Constituency Leader');
+    await tester.pump();
     await _tap(tester, 'Save & Continue');
 
     expect(find.text('Portfolio Website'), findsOneWidget);
     expect(find.text('Rahul Kumar'), findsWidgets);
     expect(find.textContaining('Hubballi'), findsWidgets);
-    expect(find.textContaining('Example Party'), findsWidgets);
+    expect(find.textContaining('Indian National Congress'), findsWidgets);
     expect(find.byKey(const ValueKey('preview-modern')), findsOneWidget);
     expect(find.text('Modern'), findsWidgets);
     expect(find.byIcon(Icons.check_circle), findsOneWidget);
