@@ -9,6 +9,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/services/profile_service.dart';
 import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -74,6 +75,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             : 'en';
     draft.preferredLanguage = _preferredLanguage;
     _ready = true;
+    unawaited(_loadSavedProfile(draft));
     final readyCatalog = LocationCatalog.instance;
     if (readyCatalog != null) {
       _applyCatalog(readyCatalog, draft);
@@ -97,6 +99,54 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       ..country = _selection.country
       ..stateRegion = _selection.state
       ..constituency = _selection.district;
+  }
+
+  Future<void> _loadSavedProfile(OnboardingDraft draft) async {
+    final profile = await ProfileService.instance.fetchProfile();
+    if (!mounted || profile == null) return;
+    final boothNumber = _boothNumber.text;
+    final boothName = _boothName.text;
+    ProfileService.applyProfile(draft, profile);
+    final photoUrl = draft.profilePhotoUrl;
+    if (photoUrl.isNotEmpty &&
+        draft.photoBytes == null &&
+        !draft.photoRemoved) {
+      final bytes = await ProfileService.instance.downloadPhoto(photoUrl);
+      if (!mounted || draft.photoRemoved || draft.photoPendingUpload) return;
+      if (bytes != null) draft.photoBytes = bytes;
+    }
+    if (!mounted) return;
+    setState(() {
+      if (boothNumber.trim().isEmpty && draft.boothNumber.isNotEmpty) {
+        _boothNumber.text = draft.boothNumber;
+      }
+      if (boothName.trim().isEmpty && draft.boothName.isNotEmpty) {
+        _boothName.text = draft.boothName;
+      }
+      if (_leaderName.text.trim().isEmpty && draft.leaderName.isNotEmpty) {
+        _leaderName.text = draft.leaderName;
+      }
+      if (_assemblyConstituency.text.trim().isEmpty &&
+          draft.assemblyConstituency.isNotEmpty) {
+        _assemblyConstituency.text = draft.assemblyConstituency;
+      }
+      if (_party.text.trim().isEmpty && draft.party.isNotEmpty) {
+        _party.text = draft.party;
+      }
+      if (_contactNumber.text.trim().isEmpty &&
+          draft.contactNumber.isNotEmpty) {
+        _contactNumber.text = draft.contactNumber;
+      }
+      final catalog = _catalog;
+      if (catalog != null) {
+        _selection.restore(
+          catalog: catalog,
+          country: draft.country,
+          state: draft.stateRegion,
+          district: draft.constituency,
+        );
+      }
+    });
   }
 
   Future<void> _loadLocations(OnboardingDraft draft) async {
@@ -128,6 +178,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     draft
       ..leaderName = _leaderName.text.trim()
       ..assemblyConstituency = _assemblyConstituency.text.trim()
+      ..assemblyConstituencyId = null
       ..boothNumber = _boothNumber.text.trim()
       ..boothName = _boothName.text.trim()
       ..party = _party.text.trim()
@@ -252,29 +303,33 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   Future<void> _pickPhoto({required bool camera}) async {
     final l10n = AppLocalizations.of(context);
     try {
+      final Uint8List? bytes;
       if (camera) {
-        final bytes = await captureSelfie(context);
-        if (bytes == null || !mounted) {
-          return;
-        }
-        OnboardingScope.of(context).draft.photoBytes = bytes;
-        setState(() {});
+        bytes = await captureSelfie(context);
+      } else {
+        final file = await _picker.pickImage(
+          source: ImageSource.gallery,
+          maxWidth: 1600,
+          imageQuality: 85,
+          requestFullMetadata: false,
+        );
+        bytes = file == null ? null : await file.readAsBytes();
+      }
+      if (bytes == null || !mounted) {
         return;
       }
-      final file = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1600,
-        imageQuality: 85,
-        requestFullMetadata: false,
-      );
-      if (file == null || !mounted) {
+      if (bytes.length > ProfileService.maxPhotoBytes ||
+          ProfileService.photoContentType(bytes) == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.photoError)));
         return;
       }
-      final bytes = await file.readAsBytes();
-      if (!mounted) {
-        return;
-      }
-      OnboardingScope.of(context).draft.photoBytes = bytes;
+      final draft = OnboardingScope.of(context).draft;
+      draft
+        ..photoBytes = bytes
+        ..photoPendingUpload = true
+        ..photoRemoved = false;
       setState(() {});
     } catch (_) {
       if (!mounted) {
@@ -287,7 +342,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   }
 
   void _deletePhoto() {
-    OnboardingScope.of(context).draft.photoBytes = null;
+    final draft = OnboardingScope.of(context).draft;
+    draft
+      ..photoBytes = null
+      ..profilePhotoUrl = ''
+      ..photoPendingUpload = false
+      ..photoRemoved = true;
     setState(() {});
   }
 
@@ -438,16 +498,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 onChanged: _selectDistrict,
               ),
               const SizedBox(height: 14),
-              AppTextField(
-                key: const ValueKey('profileAssembly'),
-                label: '${l10n.assemblyConstituency} *',
-                hint: l10n.selectConstituency,
-                prefixIcon: const Icon(Icons.groups_outlined),
-                controller: _assemblyConstituency,
-                textCapitalization: TextCapitalization.words,
-                textInputAction: TextInputAction.next,
-                onChanged: (value) => draft.assemblyConstituency = value,
-              ),
+              _assemblyField(l10n, draft),
               const SizedBox(height: 14),
               if (wideBooth)
                 Row(
@@ -543,6 +594,23 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
     return OnboardingFrame(
       child: context.palette.isDark ? form : AppCard(child: form),
+    );
+  }
+
+  Widget _assemblyField(AppLocalizations l10n, OnboardingDraft draft) {
+    return AppTextField(
+      key: const ValueKey('profileAssembly'),
+      label: '${l10n.assemblyConstituency} *',
+      hint: l10n.enterAssemblyConstituency,
+      prefixIcon: const Icon(Icons.groups_outlined),
+      controller: _assemblyConstituency,
+      textCapitalization: TextCapitalization.words,
+      textInputAction: TextInputAction.next,
+      onChanged: (value) {
+        draft
+          ..assemblyConstituency = value
+          ..assemblyConstituencyId = null;
+      },
     );
   }
 

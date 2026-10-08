@@ -4,20 +4,11 @@ import 'package:flutter/services.dart';
 
 /// Country, state, and district names for the profile form.
 ///
-/// The app is India only, so [parse] keeps India and drops every other
-/// country in the source file. The lists are the GeoNames gazetteer
-/// (countryInfo, admin1, and admin2),
-/// published at https://www.geonames.org/ under the Creative Commons
-/// Attribution 4.0 license.
-///
-/// States are first-order administrative divisions only. Districts are the
-/// second-order divisions of the selected state, such as districts or
-/// counties. Cities and towns are not taken from a separate city list.
-/// Five Maharashtra records that GeoNames labels with a "Division" suffix
-/// are stored as the district name: Pune, Satara, Nashik, Nagpur, and
-/// Amravati. Names follow that gazetteer, including older English spellings,
-/// and divisions created after this snapshot are absent. A country or state
-/// with no published second-order divisions has an empty district list.
+/// The lists are the Local Government Directory "All States of India" and
+/// "All Districts of India" workbooks retrieved on 7 October 2026 from
+/// https://lgdirectory.gov.in/downloadDirectory.do.
+/// Assembly constituencies are not included. No official
+/// district-to-constituency mapping was available to import.
 class LocationCatalog {
   LocationCatalog._({
     required List<String> countries,

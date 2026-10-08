@@ -88,12 +88,12 @@ void main() {
       final maharashtra = catalog.districtsOf('India', 'Maharashtra');
       expect(indiaStates, hasLength(36));
       expect(indiaStates, containsAll(['Karnataka', 'Telangana', 'Ladakh']));
-      expect(karnataka, contains('Bangalore Urban'));
+      expect(karnataka, contains('Bengaluru Urban'));
       expect(karnataka, isNot(contains('Pune')));
       expect(karnataka, isNot(contains('Electronic City')));
       expect(maharashtra, contains('Pune'));
       expect(maharashtra, isNot(contains('Pune Division')));
-      expect(maharashtra, isNot(contains('Bangalore Urban')));
+      expect(maharashtra, isNot(contains('Bengaluru Urban')));
       for (final district in karnataka) {
         expect(indiaStates, isNot(contains(district)));
       }

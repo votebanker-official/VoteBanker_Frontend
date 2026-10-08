@@ -83,6 +83,10 @@ class AppLocalizations {
   String get selectState => _t('selectState');
   String get selectDistrict => _t('selectDistrict');
   String get selectConstituency => _t('selectConstituency');
+  String get enterAssemblyConstituency => _t('enterAssemblyConstituency');
+  String get noAssemblyConstituencies => _t('noAssemblyConstituencies');
+  String get loadingAssemblyConstituencies =>
+      _t('loadingAssemblyConstituencies');
   String get enterBoothNumber => _t('enterBoothNumber');
   String get enterBoothName => _t('enterBoothName');
   String get contactSection => _t('contactSection');
