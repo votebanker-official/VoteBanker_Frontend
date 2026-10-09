@@ -110,9 +110,9 @@ const taTranslations = <String, String>{
   'portfolioSkip': 'தவிர்',
   'portfolioNotReady':
       'தேர்ந்த வார்ப்புருவுடன் வலைத்தளம் தனிப்பயனாக்க தயாராக உள்ளது.',
-  'socialTitle': 'Meta சமூக ஊடகம்',
+  'socialTitle': 'சமூக ஊடக அமைப்பு',
   'socialBody':
-      'Instagram, Facebook மற்றும் Meta அந்த APIகள் வந்ததும் இணைக்கப்படும்.',
+      'உங்கள் வரவையும் ஈடுபாட்டையும் அதிகரிக்க சமூக ஊடக கணக்குகளை இணைக்கவும்.',
   'socialInstagram': 'Instagram',
   'socialFacebook': 'Facebook',
   'socialMeta': 'Meta Business',

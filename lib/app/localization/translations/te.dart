@@ -106,9 +106,9 @@ const teTranslations = <String, String>{
   'portfolioSkip': 'దాటవేయి',
   'portfolioNotReady':
       'ఎంచుకున్న టెంప్లేట్‌తో వెబ్‌సైట్ అనుకూలీకరణకు సిద్ధంగా ఉంది.',
-  'socialTitle': 'Meta సోషల్ మీడియా',
+  'socialTitle': 'సోషల్ మీడియా సెటప్',
   'socialBody':
-      'Instagram, Facebook మరియు Meta ఆ APIలు వచ్చినప్పుడు కలుస్తాయి.',
+      'మీ చేరువ మరియు పాల్గొనడం పెంచేందుకు సోషల్ మీడియా ఖాతాలను కనెక్ట్ చేయండి.',
   'socialInstagram': 'Instagram',
   'socialFacebook': 'Facebook',
   'socialMeta': 'Meta Business',

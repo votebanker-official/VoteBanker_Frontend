@@ -190,7 +190,7 @@ void main() {
     expect(find.text('Arjun Verma'), findsWidgets);
 
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Meta Social Media'), findsOneWidget);
+    expect(find.text('Social Media Setup'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Dashboard'), findsOneWidget);

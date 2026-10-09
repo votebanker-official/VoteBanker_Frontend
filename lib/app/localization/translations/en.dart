@@ -108,11 +108,17 @@ const enTranslations = <String, String>{
   'portfolioSkip': 'Skip',
   'portfolioNotReady':
       'Your website is ready to customize with the selected template.',
-  'socialTitle': 'Meta Social Media',
+  'socialTitle': 'Social Media Setup',
   'socialBody':
-      'Instagram, Facebook, and Meta can be connected when those APIs are added.',
+      'Connect your social media accounts to increase your reach and engagement.',
   'socialInstagram': 'Instagram',
   'socialFacebook': 'Facebook',
+  'socialWhatsApp': 'WhatsApp',
+  'socialX': 'X / Twitter',
+  'socialYouTube': 'YouTube',
+  'socialEmail': 'Email',
+  'socialConnect': 'Connect',
+  'socialConnectSoon': '{platform} connection will be available soon.',
   'socialMeta': 'Meta Business',
   'viewPlans': 'View Plans',
   'socialLater':

@@ -110,9 +110,9 @@ const mlTranslations = <String, String>{
   'portfolioSkip': 'ഒഴിവാക്കുക',
   'portfolioNotReady':
       'തിരഞ്ഞെടുത്ത ടെംപ്ലേറ്റോടെ വെബ്‌സൈറ്റ് ക്രമീകരിക്കാൻ തയ്യാറാണ്.',
-  'socialTitle': 'Meta സോഷ്യൽ മീഡിയ',
+  'socialTitle': 'സോഷ്യൽ മീഡിയ സജ്ജീകരണം',
   'socialBody':
-      'Instagram, Facebook, Meta എന്നിവ ആ APIകൾ വരുമ്പോൾ ബന്ധിപ്പിക്കും.',
+      'നിങ്ങളുടെ എത്തിച്ചേരലും ഇടപഴകലും കൂട്ടാൻ സോഷ്യൽ മീഡിയ അക്കൗണ്ടുകൾ ബന്ധിപ്പിക്കുക.',
   'socialInstagram': 'Instagram',
   'socialFacebook': 'Facebook',
   'socialMeta': 'Meta Business',

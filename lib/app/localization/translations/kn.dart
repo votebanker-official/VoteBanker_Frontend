@@ -107,9 +107,9 @@ const knTranslations = <String, String>{
   'portfolioSkip': 'ಬಿಟ್ಟುಬಿಡಿ',
   'portfolioNotReady':
       'ಆಯ್ಕೆಮಾಡಿದ ಟೆಂಪ್ಲೇಟ್‌ನೊಂದಿಗೆ ವೆಬ್‌ಸೈಟ್ ಕಸ್ಟಮೈಸ್‌ಗೆ ಸಿದ್ಧವಾಗಿದೆ.',
-  'socialTitle': 'Meta ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ',
+  'socialTitle': 'ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ ಸೆಟಪ್',
   'socialBody':
-      'Instagram, Facebook ಮತ್ತು Meta ಆ APIಗಳು ಬಂದಾಗ ಸಂಪರ್ಕವಾಗುತ್ತವೆ.',
+      'ನಿಮ್ಮ ವ್ಯಾಪ್ತಿ ಮತ್ತು ತೊಡಗಿಸಿಕೊಳ್ಳುವಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸಲು ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ ಖಾತೆಗಳನ್ನು ಸಂಪರ್ಕಿಸಿ.',
   'socialInstagram': 'Instagram',
   'socialFacebook': 'Facebook',
   'socialMeta': 'Meta Business',

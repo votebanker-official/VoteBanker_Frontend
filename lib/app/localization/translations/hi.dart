@@ -108,8 +108,9 @@ const hiTranslations = <String, String>{
   'portfolioSkip': 'छोड़ें',
   'portfolioNotReady':
       'चुने हुए टेम्पलेट के साथ वेबसाइट अनुकूलन के लिए तैयार है।',
-  'socialTitle': 'Meta सोशल मीडिया',
-  'socialBody': 'Instagram, Facebook और Meta तब जुड़ेंगे जब वे API मिलेंगे।',
+  'socialTitle': 'सोशल मीडिया सेटअप',
+  'socialBody':
+      'अपनी पहुंच और जुड़ाव बढ़ाने के लिए सोशल मीडिया खाते जोड़ें।',
   'socialInstagram': 'Instagram',
   'socialFacebook': 'Facebook',
   'socialMeta': 'Meta Business',
