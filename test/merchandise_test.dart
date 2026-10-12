@@ -46,6 +46,11 @@ void main() {
   });
 
   testWidgets('a design request keeps the line the user typed and does not charge', (tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     Map<String, dynamic>? saved;
     await tester.pumpWidget(
       _app(
@@ -66,6 +71,10 @@ void main() {
     await tester.pump();
 
     await tester.enterText(find.byType(TextField).at(0), 'River Ward meetings');
+    await tester.pump();
+    final preview = tester.widget<Text>(find.byKey(const Key('merchPreviewLine')));
+    expect(preview.data, 'River Ward meetings');
+    expect(find.text('LIVE PREVIEW'), findsOneWidget);
     await tester.enterText(find.byType(TextField).at(1), 'Meera Rao');
     final save = find.text('Save design request');
     await tester.ensureVisible(save);
