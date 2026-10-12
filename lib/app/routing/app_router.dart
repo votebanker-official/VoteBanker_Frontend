@@ -87,6 +87,12 @@ abstract final class AppRouter {
   }
 
   static void open(BuildContext context, String route, {Object? arguments}) {
+    // Ignore repeat taps while this route is already leaving the screen.
+    final current = ModalRoute.of(context);
+    if (current != null && !current.isCurrent) {
+      return;
+    }
+
     // Every onboarding step moves forward through here, so this is where the
     // answers collected so far are saved for signed-in users.
     final draft = OnboardingScope.maybeOf(context)?.draft;

@@ -56,7 +56,13 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
 
   void _select(String domain) {
     OnboardingScope.of(context).selectDomain(domain);
-    setState(() {});
+    _commit();
+    AppRouter.open(context, AppRoutes.website);
+  }
+
+  void _continueToWebsite() {
+    _commit();
+    AppRouter.open(context, AppRoutes.website);
   }
 
   @override
@@ -154,15 +160,9 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
               AppRouter.back(context, AppRoutes.profile);
             },
             primaryLabel: l10n.next,
-            onPrimary: () {
-              _commit();
-              AppRouter.open(context, AppRoutes.website);
-            },
+            onPrimary: _continueToWebsite,
             skipLabel: l10n.skipForNow,
-            onSkip: () {
-              _commit();
-              AppRouter.open(context, AppRoutes.dashboard);
-            },
+            onSkip: _continueToWebsite,
           ),
         ],
       ),
