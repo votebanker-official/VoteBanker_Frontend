@@ -30,9 +30,12 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
     if (_ready) {
       return;
     }
-    _query = TextEditingController(
-      text: OnboardingScope.of(context).draft.domainQuery,
-    );
+    final draft = OnboardingScope.of(context).draft;
+    final name = draft.leaderName.trim();
+    if (draft.domainQuery.trim().isEmpty && name.isNotEmpty) {
+      draft.domainQuery = name;
+    }
+    _query = TextEditingController(text: draft.domainQuery);
     _ready = true;
   }
 

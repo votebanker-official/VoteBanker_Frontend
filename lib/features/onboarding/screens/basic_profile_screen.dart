@@ -125,8 +125,19 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   void _commit() {
     final draft = OnboardingScope.of(context).draft;
+    final nextName = _leaderName.text.trim();
+    final previousName = draft.leaderName.trim();
+    final query = draft.domainQuery.trim();
+    // Keep a website name the user typed themselves. Otherwise the search
+    // follows the name from this form, including when that name changes.
+    if (query.isEmpty || query == previousName) {
+      if (query != nextName) {
+        draft.selectedDomain = null;
+      }
+      draft.domainQuery = nextName;
+    }
     draft
-      ..leaderName = _leaderName.text.trim()
+      ..leaderName = nextName
       ..assemblyConstituency = _assemblyConstituency.text.trim()
       ..boothNumber = _boothNumber.text.trim()
       ..boothName = _boothName.text.trim()

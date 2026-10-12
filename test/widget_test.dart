@@ -157,10 +157,7 @@ void main() {
     expect(find.text('Leader Profile'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Domain Name Search'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField).hitTestable(), 'Arjun Verma');
-    await tester.pump();
+    expect(find.text('Website name search'), findsOneWidget);
     expect(find.text('arjunverma.com'), findsOneWidget);
     expect(find.text('₹999'), findsOneWidget);
 
