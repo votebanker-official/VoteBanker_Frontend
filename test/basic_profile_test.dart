@@ -66,7 +66,7 @@ void main() {
     expect(find.text('India'), findsWidgets);
     expect(find.text('Afghanistan'), findsNothing);
     expect(find.text('United States'), findsNothing);
-    expect(find.text('Bangalore Urban'), findsNothing);
+    expect(find.text('Bengaluru Urban'), findsNothing);
     await tester.tap(find.text('India').last);
     await tester.pumpAndSettle();
 
@@ -78,16 +78,16 @@ void main() {
 
     await _openDropdown(tester, 'profileState');
     expect(find.text('Andhra Pradesh'), findsWidgets);
-    expect(find.text('Bangalore Urban'), findsNothing);
+    expect(find.text('Bengaluru Urban'), findsNothing);
     await _chooseMenuItem(tester, 'Karnataka');
     expect(_dropdown(tester, 'profileState').initialValue, 'Karnataka');
 
     await _openDropdown(tester, 'profileDistrict');
     expect(find.text('Pune'), findsNothing);
-    await _chooseMenuItem(tester, 'Bangalore Urban');
+    await _chooseMenuItem(tester, 'Bengaluru Urban');
     expect(
       _dropdown(tester, 'profileDistrict').initialValue,
-      'Bangalore Urban',
+      'Bengaluru Urban',
     );
 
     await _openDropdown(tester, 'profileState');
@@ -97,7 +97,7 @@ void main() {
     expect(_dropdown(tester, 'profileDistrict').onChanged, isNotNull);
 
     await _openDropdown(tester, 'profileDistrict');
-    expect(find.text('Bangalore Urban'), findsNothing);
+    expect(find.text('Bengaluru Urban'), findsNothing);
     await _chooseMenuItem(tester, 'Pune');
     expect(_dropdown(tester, 'profileDistrict').initialValue, 'Pune');
   });

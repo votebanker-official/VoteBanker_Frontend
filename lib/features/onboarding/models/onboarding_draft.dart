@@ -7,7 +7,19 @@ class OnboardingDraft {
   String fullName = '';
   Uint8List? photoBytes;
 
-  /// Assembly constituency. Older call sites still read this as [designation].
+  /// Saved photo address from GET /api/profile. Empty until a photo is stored.
+  String profilePhotoUrl = '';
+
+  /// A newly picked photo still needs POST /api/profile/photo.
+  bool photoPendingUpload = false;
+
+  /// The user pressed Delete and the stored photo should be removed.
+  bool photoRemoved = false;
+
+  /// Optional catalog id. Manual entry leaves this null.
+  int? assemblyConstituencyId;
+
+  /// Constituency number and name typed by the leader, such as "72 - Dharwad".
   String assemblyConstituency = '';
 
   /// Role collected after Party. Kept separate from [assemblyConstituency].

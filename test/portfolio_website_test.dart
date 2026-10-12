@@ -103,7 +103,7 @@ void main() {
 
     await _tap(tester, 'Save & Continue');
     await _tap(tester, 'Skip for now');
-    expect(find.text('Meta Social Media'), findsOneWidget);
+    expect(find.text('Social Media Setup'), findsOneWidget);
   });
 }
 

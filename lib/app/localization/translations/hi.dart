@@ -108,8 +108,9 @@ const hiTranslations = <String, String>{
   'portfolioSkip': 'छोड़ें',
   'portfolioNotReady':
       'चुने हुए टेम्पलेट के साथ वेबसाइट अनुकूलन के लिए तैयार है।',
-  'socialTitle': 'Meta सोशल मीडिया',
-  'socialBody': 'Instagram, Facebook और Meta तब जुड़ेंगे जब वे API मिलेंगे।',
+  'socialTitle': 'सोशल मीडिया सेटअप',
+  'socialBody':
+      'अपनी पहुंच और जुड़ाव बढ़ाने के लिए सोशल मीडिया खाते जोड़ें।',
   'socialInstagram': 'Instagram',
   'socialFacebook': 'Facebook',
   'socialMeta': 'Meta Business',
@@ -281,6 +282,9 @@ const hiTranslations = <String, String>{
   'selectState': 'राज्य चुनें',
   'selectDistrict': 'जिला चुनें',
   'selectConstituency': 'विधानसभा क्षेत्र चुनें',
+  'enterAssemblyConstituency': 'निर्वाचन क्षेत्र संख्या और नाम लिखें',
+  'noAssemblyConstituencies': 'कोई विधानसभा क्षेत्र उपलब्ध नहीं',
+  'loadingAssemblyConstituencies': 'विधानसभा क्षेत्र लोड हो रहे हैं',
   'enterBoothNumber': 'बूथ नंबर लिखें',
   'enterBoothName': 'बूथ का नाम लिखें',
   'contactSection': 'संपर्क जानकारी',
@@ -292,11 +296,15 @@ const hiTranslations = <String, String>{
   'speechTitle': 'भाषण जनरेटर',
   'speechSubtitle': 'अपने विषय, संदर्भ और मुख्य बातों से पूरा भाषण बनाएँ।',
   'speechPromptLabel': 'भाषण किस बारे में होना चाहिए?',
-  'speechPromptHint': 'विषय, कार्यक्रम, श्रोता, मुख्य बातें और वह संदेश लिखें जो आप कहना चाहते हैं...',
+  'speechPromptHint':
+      'विषय, कार्यक्रम, श्रोता, मुख्य बातें और वह संदेश लिखें जो आप कहना चाहते हैं...',
   'speechExamples': 'उदाहरण',
-  'speechExampleEducation': 'मेरे क्षेत्र में शिक्षा, सड़क और रोज़गार के अवसर सुधारने पर एक भाषण तैयार करें।',
-  'speechExampleWater': 'स्थानीय जल आपूर्ति और गली की रोशनी पर जनसभा में निवासियों का स्वागत करें।',
-  'speechExampleUpdate': 'विकास की जानकारी दें और लोगों को सामुदायिक चर्चा में शामिल होने के लिए बुलाएँ।',
+  'speechExampleEducation':
+      'मेरे क्षेत्र में शिक्षा, सड़क और रोज़गार के अवसर सुधारने पर एक भाषण तैयार करें।',
+  'speechExampleWater':
+      'स्थानीय जल आपूर्ति और गली की रोशनी पर जनसभा में निवासियों का स्वागत करें।',
+  'speechExampleUpdate':
+      'विकास की जानकारी दें और लोगों को सामुदायिक चर्चा में शामिल होने के लिए बुलाएँ।',
   'speechType': 'भाषण का प्रकार',
   'speechTypePublic': 'जनसभा',
   'speechTypeConstituency': 'क्षेत्र की बैठक',
@@ -342,8 +350,10 @@ const hiTranslations = <String, String>{
   'speechCopied': 'भाषण कॉपी हो गया।',
   'speechSaved': 'भाषण सहेजा गया।',
   'speechSaveFailed': 'भाषण सहेजा नहीं जा सका।',
-  'speechError': 'भाषण नहीं बन सका। जाँचें कि VOTE BANKER बैकएंड चल रहा है, फिर फिर कोशिश करें।',
-  'speechMockNote': 'यह आपके विषय से बना विकास ड्राफ्ट है। मूल भाषण के लिए बैकएंड पर भाषण मॉडल जोड़ें।',
+  'speechError':
+      'भाषण नहीं बन सका। जाँचें कि VOTE BANKER बैकएंड चल रहा है, फिर फिर कोशिश करें।',
+  'speechMockNote':
+      'यह आपके विषय से बना विकास ड्राफ्ट है। मूल भाषण के लिए बैकएंड पर भाषण मॉडल जोड़ें।',
   'speechVoiceLater': 'आवाज़ में सुनना बाद में जोड़ा जाएगा।',
   'speechTranslatePick': 'भाषा चुनें',
   'speechEditPrompt': 'विषय बदलें',
