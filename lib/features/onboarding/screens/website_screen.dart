@@ -82,7 +82,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             children: [
               IconButton(
                 tooltip: l10n.back,
-                onPressed: () => AppRouter.back(context, AppRoutes.profile),
+                onPressed: () => AppRouter.back(context, AppRoutes.domain),
                 icon: const Icon(Icons.arrow_back),
               ),
               Expanded(

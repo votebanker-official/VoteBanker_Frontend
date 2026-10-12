@@ -55,6 +55,8 @@ void main() {
         .onChanged!('Constituency Leader');
     await tester.pump();
     await _tap(tester, 'Save & Continue');
+    expect(find.text('Website name search'), findsOneWidget);
+    await _tap(tester, 'Skip for now');
 
     expect(find.text('Portfolio Website'), findsOneWidget);
     expect(find.text('Rahul Kumar'), findsWidgets);
@@ -97,11 +99,14 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
+    expect(find.text('Website name search'), findsOneWidget);
+    await _tap(tester, 'Back');
     expect(find.text('Leader Profile'), findsOneWidget);
     expect(controller.draft.leaderName, 'Rahul Kumar');
     expect(controller.draft.photoBytes, isNotNull);
 
     await _tap(tester, 'Save & Continue');
+    await _tap(tester, 'Skip for now');
     await _tap(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
   });

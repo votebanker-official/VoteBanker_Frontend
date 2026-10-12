@@ -149,14 +149,6 @@ void main() {
       'Arjun Verma',
     );
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Portfolio Website'), findsOneWidget);
-    expect(find.text('Arjun Verma'), findsWidgets);
-
-    await tester.tap(find.byIcon(Icons.arrow_back));
-    await tester.pumpAndSettle();
-    expect(find.text('Leader Profile'), findsOneWidget);
-
-    await _tapLabel(tester, 'Skip for now');
     expect(find.text('Website name search'), findsOneWidget);
     expect(find.text('arjunverma.com'), findsOneWidget);
     expect(find.text('₹999'), findsOneWidget);
@@ -167,12 +159,13 @@ void main() {
     );
     await tester.ensureVisible(card);
     await tester.tap(find.descendant(of: card, matching: find.text('Add')));
-    await tester.pump();
-    expect(
-      find.descendant(of: card, matching: find.text('Selected')),
-      findsOneWidget,
-    );
+    await tester.pumpAndSettle();
+    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Arjun Verma'), findsWidgets);
 
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('Website name search'), findsOneWidget);
     await _tapLabel(tester, 'Back');
     expect(find.text('Leader Profile'), findsOneWidget);
     final profileContext = tester.element(find.text('Leader Profile'));
@@ -183,6 +176,8 @@ void main() {
     );
 
     await _tapLabel(tester, 'Save & Continue');
+    expect(find.text('Website name search'), findsOneWidget);
+    await _tapLabel(tester, 'Skip for now');
     expect(find.text('Portfolio Website'), findsWidgets);
     expect(find.text('Arjun Verma'), findsWidgets);
 
@@ -271,7 +266,7 @@ void main() {
     expect(find.text('arjunverma.com'), findsOneWidget);
 
     await _tapLabel(tester, mlTranslations['skipForNow']!);
-    expect(find.text(mlTranslations['dashboard']!), findsOneWidget);
+    expect(find.text(mlTranslations['websiteTitle']!), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

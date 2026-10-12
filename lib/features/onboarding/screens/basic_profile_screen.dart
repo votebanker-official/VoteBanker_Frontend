@@ -258,7 +258,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       return;
     }
     _commit();
-    AppRouter.open(context, AppRoutes.website);
+    AppRouter.open(context, AppRoutes.domain);
   }
 
   void _revealContact() {

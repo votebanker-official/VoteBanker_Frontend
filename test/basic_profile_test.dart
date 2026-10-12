@@ -114,14 +114,13 @@ void main() {
 
     expect(find.text('Enter a valid contact number.'), findsOneWidget);
     expect(find.text('Leader Profile'), findsOneWidget);
-    expect(find.text('Portfolio Website'), findsNothing);
+    expect(find.text('Website name search'), findsNothing);
 
     await _enter(tester, 'profileContact', '9876543210');
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Website name search'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.arrow_back));
-    await tester.pumpAndSettle();
+    await _tapLabel(tester, 'Back');
     final draft =
         OnboardingScope.of(tester.element(find.text('Leader Profile'))).draft;
     expect(draft.publicContact, '9876543210');
