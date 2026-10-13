@@ -193,7 +193,9 @@ void main() {
     expect(find.text('Marketplace'), findsOneWidget);
   });
 
-  testWidgets('filled website is shown before the price', (tester) async {
+  testWidgets('template continue opens website details without payment', (
+    tester,
+  ) async {
     await _setSurface(tester, const Size(1280, 1400));
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
@@ -201,50 +203,20 @@ void main() {
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Next');
-    await tester.tap(find.byKey(const ValueKey('openTemplate')));
+    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text(enTranslations['portfolioGetWebsite']!), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('continueTemplate')));
     await tester.pumpAndSettle();
+    expect(find.text('Website Details'), findsOneWidget);
 
-    await tester.enterText(
-      find.byType(TextField).hitTestable().first,
-      'Clean streets and open meetings for River Ward.',
-    );
-    await _tapLabel(tester, 'Continue');
-
-    final identity = find.byType(TextField).hitTestable();
-    await tester.enterText(identity.at(0), 'Meera Rao');
-    await tester.enterText(identity.at(1), 'Community organizer');
-    await tester.enterText(identity.at(2), 'River Ward Collective');
-    await _tapLabel(tester, 'Next');
-    await _tapLabel(tester, 'Next');
-    await _tapLabel(tester, 'Next');
-    await _tapLabel(tester, 'Next');
-    await _tapLabel(tester, 'Continue');
-    FocusManager.instance.primaryFocus?.unfocus();
-    await tester.pump();
-    await tester.ensureVisible(find.text('Continue').last);
-    await tester.tap(find.text('Continue').last);
-    await tester.pump();
-    for (var step = 0; step < 8; step++) {
-      await tester.pump(const Duration(milliseconds: 500));
-    }
-
-    expect(find.text('Meera Rao'), findsWidgets);
-    expect(
-      find.text('Clean streets and open meetings for River Ward.'),
-      findsOneWidget,
-    );
-    expect(find.text('Community organizer'), findsOneWidget);
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'Meera Rao');
+    await tester.enterText(fields.at(1), 'Clean streets for River Ward');
+    await tester.enterText(fields.at(2), 'Community organizer for River Ward.');
+    await _tapLabel(tester, 'Save & Continue');
+    expect(find.text('Social Media Setup'), findsOneWidget);
     expect(find.text(enTranslations['websiteOffer']!), findsNothing);
-
-    await _tapLabel(tester, 'Continue');
-    expect(find.text('Meera Rao'), findsWidgets);
-    expect(find.text(enTranslations['websiteOffer']!), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('Meera Rao').first).dy,
-      lessThan(
-        tester.getTopLeft(find.text(enTranslations['websiteOffer']!)).dy,
-      ),
-    );
   });
 
   testWidgets('narrow malayalam layout does not overflow', (tester) async {
