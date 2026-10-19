@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 import '../data/profile_languages.dart';
+import '../../website/models/portfolio_config.dart';
+import '../../website/models/website_builder_draft.dart';
 import '../../website/models/website_draft.dart';
 import '../../website/services/website_services.dart';
 import '../models/onboarding_draft.dart';
@@ -12,7 +14,11 @@ class OnboardingController {
   final ValueNotifier<Locale> locale;
   final OnboardingDraft draft = OnboardingDraft();
   final WebsiteDraft website = WebsiteDraft();
+  final PortfolioConfig portfolio = PortfolioConfig();
+  WebsiteBuilderDraft websiteBuilder = WebsiteBuilderDraft();
   final WebsiteServices websiteServices = WebsiteServices();
+  bool portfolioRestored = false;
+  bool websiteBuilderRestored = false;
 
   void setLanguageCode(String code) {
     if (!ProfileLanguages.supports(code)) {

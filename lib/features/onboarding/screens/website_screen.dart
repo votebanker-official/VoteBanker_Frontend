@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,8 +9,14 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/primary_button.dart';
-import '../../website/models/website_document.dart';
-import '../../website/widgets/website_site_view.dart';
+import '../../website/models/portfolio_config.dart';
+import '../../website/models/website_builder_draft.dart';
+import '../../website/models/website_template_catalog.dart';
+import '../../website/screens/website_builder_screen.dart';
+import '../../website/services/portfolio_store.dart';
+import '../../website/services/website_builder_store.dart';
+import '../../website/widgets/portfolio_live_preview.dart';
+import '../../website/widgets/website_builder_preview.dart';
 import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_frame.dart';
 
@@ -22,33 +30,61 @@ class WebsiteScreen extends StatefulWidget {
 class _WebsiteScreenState extends State<WebsiteScreen> {
   var _showMine = false;
 
-  String _templateId(String? stored) {
-    return switch (stored) {
-      'traditional' || 'work' => 'traditional',
-      'peopleFirst' || 'issue' => 'peopleFirst',
-      _ => 'modern',
-    };
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restorePortfolio());
   }
 
-  String _styleId(String template) {
-    return switch (template) {
-      'traditional' => 'work',
-      'peopleFirst' => 'issue',
-      _ => 'public',
-    };
+  Future<void> _restorePortfolio() async {
+    if (!mounted) return;
+    final session = OnboardingScope.of(context);
+    if (session.portfolioRestored && session.websiteBuilderRestored) return;
+    final saved = await PortfolioStore.instance.load();
+    final builder = await WebsiteBuilderStore.instance.loadPreferred();
+    if (!mounted) return;
+    setState(() {
+      session.portfolioRestored = true;
+      session.websiteBuilderRestored = true;
+      if (saved != null) {
+        session.portfolio.templateId =
+            WebsiteTemplates.normalize(saved.templateId);
+        for (final entry in saved.templates.entries) {
+          session.portfolio.templates[
+              WebsiteTemplates.normalize(entry.key)] = entry.value;
+        }
+        session.draft.websiteTemplate ??=
+            WebsiteTemplates.normalize(saved.templateId);
+      }
+      if (builder != null) {
+        session.websiteBuilder = builder;
+        session.draft.websiteTemplate ??= builder.templateId;
+        session.portfolio.selectTemplate(builder.templateId);
+      }
+    });
   }
+
+  String _templateId(String? stored) => WebsiteTemplates.normalize(stored);
 
   void _select(String template) {
+    final session = OnboardingScope.of(context);
+    final id = WebsiteTemplates.normalize(template);
     setState(() {
-      OnboardingScope.of(context).draft.websiteTemplate = template;
+      session.draft.websiteTemplate = id;
+      session.portfolio.selectTemplate(id);
+      session.websiteBuilder.selectTemplate(id);
     });
+    unawaited(PortfolioStore.instance.save(session.portfolio));
+    unawaited(WebsiteBuilderStore.instance.saveNow(session.websiteBuilder));
   }
 
   void _prepare() {
     final session = OnboardingScope.of(context);
     final template = _templateId(session.draft.websiteTemplate);
     session.draft.websiteTemplate = template;
-    session.website.applyStyle(_styleId(template));
+    session.portfolio.selectTemplate(template);
+    session.websiteBuilder.selectTemplate(template);
+    session.website.applyStyle(WebsiteTemplates.styleId(template));
     session.website.seedFromProfile(session.draft);
     final photo = session.draft.photoBytes;
     if (photo != null && session.website.photos.isEmpty) {
@@ -56,14 +92,83 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     }
   }
 
-  void _openPurchase() {
-    _prepare();
-    AppRouter.open(context, AppRoutes.websitePurchase);
+  PortfolioProfileFacts _facts(OnboardingController session) {
+    final draft = session.draft;
+    return PortfolioProfileFacts(
+      name: draft.leaderName.trim(),
+      designation: draft.designation.trim(),
+      constituency: draft.assemblyConstituency.trim(),
+      party: draft.party.trim(),
+      location: [
+        draft.district,
+        draft.state,
+        draft.country,
+      ].where((value) => value.trim().isNotEmpty).join(', '),
+      contact: draft.contactNumber.trim(),
+      photo: draft.photoBytes,
+    );
   }
 
-  void _openBuilder() {
+  Future<void> _openBuilder({required bool continueOnboarding}) async {
     _prepare();
-    AppRouter.open(context, AppRoutes.websiteInfo);
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => WebsiteBuilderScreen(
+          continueOnboarding: continueOnboarding,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _previewTemplate(String template) async {
+    final session = OnboardingScope.of(context);
+    final draft = WebsiteBuilderDraft(templateId: template)
+      ..fullName = session.draft.leaderName.trim()
+      ..designation = session.draft.designation.trim()
+      ..constituency = session.draft.assemblyConstituency.trim()
+      ..party = session.draft.party.trim()
+      ..shortIntro = session.websiteBuilder.shortIntro;
+    if (session.draft.photoBytes != null) {
+      draft.profilePhoto = MediaRef(
+        base64: base64Encode(session.draft.photoBytes!),
+      );
+    }
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                WebsiteTemplateCatalog.byId(template).name,
+                style: AppTextStyles.headline(context),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 420,
+                child: WebsiteBuilderPreview(draft: draft),
+              ),
+              const SizedBox(height: 12),
+              PrimaryButton(
+                label: AppLocalizations.of(context)
+                    .line('portfolioCustomizeTemplate'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _select(template);
+                  _openBuilder(continueOnboarding: true);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -86,8 +191,8 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 icon: const Icon(Icons.arrow_back),
               ),
               Expanded(
-                child: Text(
-                  l10n.websiteTitle,
+                child:                 Text(
+                  l10n.line('chooseWebsiteTemplate'),
                   textAlign: TextAlign.center,
                   style: AppTextStyles.headline(context),
                 ),
@@ -99,6 +204,12 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             ],
           ),
           const SizedBox(height: 8),
+          Text(
+            l10n.line('chooseWebsiteTemplateBody'),
+            textAlign: TextAlign.center,
+            style: AppTextStyles.muted(context),
+          ),
+          const SizedBox(height: 12),
           _TabSwitcher(
             templatesLabel: l10n.portfolioTemplates,
             mineLabel: l10n.portfolioMyWebsite,
@@ -137,49 +248,43 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 ),
                 IconButton(
                   key: const ValueKey('openTemplate'),
-                  tooltip: l10n.portfolioTemplates,
-                  onPressed: _openBuilder,
+                  tooltip: l10n.line('portfolioCustomizeTemplate'),
+                  onPressed: () => _openBuilder(continueOnboarding: true),
                   icon: Icon(Icons.arrow_forward, color: palette.accent),
                 ),
               ],
             ),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                for (final id in const [
-                  'modern',
-                  'traditional',
-                  'peopleFirst',
-                ]) ...[
-                  Expanded(
-                    child: _TemplateChoice(
-                      key: ValueKey('template-$id'),
-                      label: _choiceLabel(l10n, id),
-                      selected: template == id,
-                      photo: draft.photoBytes,
-                      onTap: () => _select(id),
-                    ),
-                  ),
-                  if (id != 'peopleFirst') const SizedBox(width: 10),
-                ],
-              ],
-            ),
-            const SizedBox(height: 16),
+            for (final info in WebsiteTemplateCatalog.all) ...[
+              _TemplateCard(
+                key: ValueKey('template-${info.id}'),
+                info: info,
+                selected: template == info.id,
+                photo: draft.photoBytes,
+                selectLabel: l10n.line('portfolioSelectTemplate'),
+                previewLabel: l10n.line('portfolioPreviewTemplate'),
+                recommendedLabel: l10n.portfolioRecommended,
+                onSelect: () => _select(info.id),
+                onPreview: () => _previewTemplate(info.id),
+              ),
+              const SizedBox(height: 12),
+            ],
             _InfoCard(
               title: l10n.portfolioMakeYours,
               body: l10n.portfolioMakeYoursBody,
             ),
             const SizedBox(height: 18),
             PrimaryButton(
-              label: l10n.portfolioGetWebsite,
-              icon: Icons.language,
-              onPressed: _openPurchase,
+              key: const ValueKey('continueTemplate'),
+              label: l10n.line('portfolioCustomizeTemplate'),
+              icon: Icons.arrow_forward,
+              onPressed: () => _openBuilder(continueOnboarding: true),
             ),
             const SizedBox(height: 8),
-            Text(
-              l10n.portfolioOneTime,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.muted(context),
+            OutlinedButton(
+              key: const ValueKey('customizeTemplate'),
+              onPressed: () => _openBuilder(continueOnboarding: true),
+              child: Text(l10n.line('portfolioContinue')),
             ),
             const SizedBox(height: 8),
             TextButton(
@@ -189,44 +294,47 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
           ] else
             _MyWebsite(
               l10n: l10n,
-              templateLabel: _title(l10n, template),
-              leaderName: draft.leaderName.trim(),
-              constituency: draft.assemblyConstituency.trim(),
-              party: draft.party.trim(),
-              designation: draft.designation.trim(),
-              country: draft.country.trim(),
-              state: draft.state.trim(),
-              district: draft.district.trim(),
-              contact: draft.contactNumber.trim(),
-              photo: draft.photoBytes,
-              preview: session.website.preview,
+              design: session.portfolio.active,
+              facts: _facts(session),
+              builderDraft: session.websiteBuilder,
+              headline: _headline(l10n, template),
+              support: _support(l10n, template),
+              onEdit: () => _openBuilder(continueOnboarding: false),
             ),
         ],
       ),
     );
   }
 
+  String _headline(AppLocalizations l10n, String template) {
+    return switch (WebsiteTemplates.normalize(template)) {
+      WebsiteTemplates.official => l10n.portfolioHeadlineTraditional,
+      WebsiteTemplates.community => l10n.portfolioHeadlinePeople,
+      _ => l10n.portfolioHeadlineModern,
+    };
+  }
+
+  String _support(AppLocalizations l10n, String template) {
+    return switch (WebsiteTemplates.normalize(template)) {
+      WebsiteTemplates.official => l10n.portfolioSupportTraditional,
+      WebsiteTemplates.community => l10n.portfolioSupportPeople,
+      _ => l10n.portfolioSupportModern,
+    };
+  }
+
   String _title(AppLocalizations l10n, String template) {
-    return switch (template) {
-      'traditional' => l10n.portfolioTraditionalCampaign,
-      'peopleFirst' => l10n.portfolioPeopleCampaign,
+    return switch (WebsiteTemplates.normalize(template)) {
+      WebsiteTemplates.official => l10n.portfolioTraditionalCampaign,
+      WebsiteTemplates.community => l10n.portfolioPeopleCampaign,
       _ => l10n.portfolioModernCampaign,
     };
   }
 
   String _body(AppLocalizations l10n, String template) {
-    return switch (template) {
-      'traditional' => l10n.portfolioTraditionalBody,
-      'peopleFirst' => l10n.portfolioPeopleBody,
+    return switch (WebsiteTemplates.normalize(template)) {
+      WebsiteTemplates.official => l10n.portfolioTraditionalBody,
+      WebsiteTemplates.community => l10n.portfolioPeopleBody,
       _ => l10n.portfolioModernBody,
-    };
-  }
-
-  String _choiceLabel(AppLocalizations l10n, String id) {
-    return switch (id) {
-      'traditional' => l10n.portfolioTraditional,
-      'peopleFirst' => l10n.portfolioPeople,
-      _ => l10n.portfolioModern,
     };
   }
 }
@@ -352,14 +460,15 @@ class _FeaturedPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final headline = switch (template) {
-      'traditional' => l10n.portfolioHeadlineTraditional,
-      'peopleFirst' => l10n.portfolioHeadlinePeople,
+    final normalized = WebsiteTemplates.normalize(template);
+    final headline = switch (normalized) {
+      WebsiteTemplates.official => l10n.portfolioHeadlineTraditional,
+      WebsiteTemplates.community => l10n.portfolioHeadlinePeople,
       _ => l10n.portfolioHeadlineModern,
     };
-    final support = switch (template) {
-      'traditional' => l10n.portfolioSupportTraditional,
-      'peopleFirst' => l10n.portfolioSupportPeople,
+    final support = switch (normalized) {
+      WebsiteTemplates.official => l10n.portfolioSupportTraditional,
+      WebsiteTemplates.community => l10n.portfolioSupportPeople,
       _ => l10n.portfolioSupportModern,
     };
     final details = [
@@ -522,91 +631,125 @@ class _FeaturedPreview extends StatelessWidget {
   }
 }
 
-class _TemplateChoice extends StatelessWidget {
-  const _TemplateChoice({
+class _TemplateCard extends StatelessWidget {
+  const _TemplateCard({
     super.key,
-    required this.label,
+    required this.info,
     required this.selected,
     required this.photo,
-    required this.onTap,
+    required this.selectLabel,
+    required this.previewLabel,
+    required this.recommendedLabel,
+    required this.onSelect,
+    required this.onPreview,
   });
 
-  final String label;
+  final WebsiteTemplateInfo info;
   final bool selected;
   final Uint8List? photo;
-  final VoidCallback onTap;
+  final String selectLabel;
+  final String previewLabel;
+  final String recommendedLabel;
+  final VoidCallback onSelect;
+  final VoidCallback onPreview;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            color: palette.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected ? palette.accent : palette.border,
-              width: selected ? 1.6 : 1,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: selected ? Color(info.primaryColor) : palette.border,
+          width: selected ? 1.8 : 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Stack(
               children: [
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: SizedBox(
-                        height: 64,
-                        width: double.infinity,
-                        child: _PhotoFill(
-                          photo: photo,
-                          tint: palette.surfaceHighlight,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: 110,
+                    width: double.infinity,
+                    child: _PhotoFill(
+                      photo: photo,
+                      tint: Color(info.primaryColor).withValues(alpha: 0.25),
+                    ),
+                  ),
+                ),
+                if (info.recommended)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Color(info.primaryColor),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        child: Text(
+                          recommendedLabel,
+                          style: AppTextStyles.label(context)
+                              .copyWith(color: Colors.white),
                         ),
                       ),
                     ),
-                    if (selected)
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Icon(
-                          Icons.check_circle,
-                          color: palette.accent,
-                          size: 18,
-                        ),
-                      ),
+                  ),
+                if (selected)
+                  const Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Icon(Icons.check_circle, color: Color(0xFF22C55E)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(info.name, style: AppTextStyles.headline(context)),
+            const SizedBox(height: 4),
+            Text(info.description, style: AppTextStyles.muted(context)),
+            const SizedBox(height: 8),
+            for (final feature in info.features.take(5))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(Icons.check, size: 16, color: Color(info.primaryColor)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(feature, style: AppTextStyles.body(context)),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: selected ? palette.accent : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
+              ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    label: selectLabel,
+                    onPressed: onSelect,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 6,
-                    ),
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.label(
-                        context,
-                      ).copyWith(color: selected ? Colors.white : palette.text),
-                    ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: onPreview,
+                    child: Text(previewLabel),
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -655,87 +798,52 @@ class _InfoCard extends StatelessWidget {
 class _MyWebsite extends StatelessWidget {
   const _MyWebsite({
     required this.l10n,
-    required this.templateLabel,
-    required this.leaderName,
-    required this.constituency,
-    required this.party,
-    required this.designation,
-    required this.country,
-    required this.state,
-    required this.district,
-    required this.contact,
-    required this.photo,
-    required this.preview,
+    required this.design,
+    required this.facts,
+    required this.builderDraft,
+    required this.headline,
+    required this.support,
+    required this.onEdit,
   });
 
   final AppLocalizations l10n;
-  final String templateLabel;
-  final String leaderName;
-  final String constituency;
-  final String party;
-  final String designation;
-  final String country;
-  final String state;
-  final String district;
-  final String contact;
-  final Uint8List? photo;
-  final WebsiteDocument? preview;
+  final PortfolioDesign design;
+  final PortfolioProfileFacts facts;
+  final WebsiteBuilderDraft builderDraft;
+  final String headline;
+  final String support;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    final lines = [
-      leaderName,
-      designation,
-      constituency,
-      party,
-      [district, state, country].where((value) => value.isNotEmpty).join(', '),
-      contact,
-    ].where((value) => value.isNotEmpty);
-
+    final hasBuilderContent = builderDraft.fullName.trim().isNotEmpty ||
+        builderDraft.shortIntro.trim().isNotEmpty ||
+        builderDraft.design.websiteName.trim().isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: palette.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: palette.accent),
+        if (hasBuilderContent)
+          WebsiteBuilderPreview(draft: builderDraft)
+        else
+          PortfolioLivePreview(
+            design: design,
+            profile: facts,
+            fallbackHeadline: headline,
+            fallbackSupport: support,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(templateLabel, style: AppTextStyles.headline(context)),
-                const SizedBox(height: 8),
-                if (photo != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.memory(
-                      photo!,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                for (final line in lines) ...[
-                  const SizedBox(height: 6),
-                  Text(line, style: AppTextStyles.body(context)),
-                ],
-                const SizedBox(height: 8),
-                Text(
-                  l10n.portfolioNotReady,
-                  style: AppTextStyles.muted(context),
-                ),
-              ],
-            ),
+        const SizedBox(height: 12),
+        if (builderDraft.status.isNotEmpty)
+          Text(
+            'Status: ${builderDraft.status}',
+            style: AppTextStyles.muted(context),
           ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          key: const ValueKey('editWebsite'),
+          onPressed: onEdit,
+          icon: const Icon(Icons.edit_outlined),
+          label: Text(l10n.line('portfolioEditWebsite')),
         ),
-        if (preview != null) ...[
-          const SizedBox(height: 16),
-          WebsiteSiteView(document: preview!),
-        ],
       ],
     );
   }

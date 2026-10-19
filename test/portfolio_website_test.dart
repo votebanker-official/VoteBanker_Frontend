@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/app.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
+import 'package:votebanker/features/website/models/website_builder_draft.dart';
 
 void main() {
   setUpAll(() {
@@ -19,7 +20,7 @@ void main() {
     addTearDown(controller.dispose);
     controller.draft.photoBytes = _png;
 
-    tester.view.physicalSize = const Size(390, 900);
+    tester.view.physicalSize = const Size(390, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -58,40 +59,68 @@ void main() {
     expect(find.text('Website name search'), findsOneWidget);
     await _tap(tester, 'Skip for now');
 
-    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.textContaining('Choose Your Website Template'), findsOneWidget);
     expect(find.text('Rahul Kumar'), findsWidgets);
     expect(find.textContaining('Hubballi'), findsWidgets);
     expect(find.textContaining('Indian National Congress'), findsWidgets);
-    expect(find.byKey(const ValueKey('preview-modern')), findsOneWidget);
-    expect(find.text('Modern'), findsWidgets);
-    expect(find.byIcon(Icons.check_circle), findsOneWidget);
-    expect(find.byType(Image), findsWidgets);
-
-    await tester.tap(find.byKey(const ValueKey('template-traditional')));
-    await tester.pump();
-    expect(find.byKey(const ValueKey('preview-traditional')), findsOneWidget);
-    expect(find.text('Rooted in Service'), findsOneWidget);
-    expect(controller.draft.websiteTemplate, 'traditional');
-
-    await tester.tap(find.byKey(const ValueKey('template-peopleFirst')));
-    await tester.pump();
-    expect(find.byKey(const ValueKey('preview-peopleFirst')), findsOneWidget);
-    expect(find.text('A constituency that listens'), findsOneWidget);
-
-    await tester.tap(find.byKey(const ValueKey('template-modern')));
-    await tester.pump();
-    expect(find.text('A Stronger Constituency'), findsOneWidget);
-
-    await tester.tap(find.text('My Website'));
-    await tester.pumpAndSettle();
-    expect(find.text('Rahul Kumar'), findsWidgets);
-    expect(find.text('Constituency Leader'), findsWidgets);
     expect(
-      find.text(
-        'Your website is ready to customize with the selected template.',
-      ),
+      find.byKey(const ValueKey('preview-professional')),
       findsOneWidget,
     );
+    expect(find.text('Professional'), findsWidgets);
+    expect(find.byIcon(Icons.check_circle), findsWidgets);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('template-official')),
+    );
+    await tester.tap(find.byKey(const ValueKey('template-official')));
+    await tester.pump();
+    // Selecting uses the Select Template button inside the card.
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('template-official')),
+        matching: find.text('Select Template'),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('preview-official')), findsOneWidget);
+    expect(find.text('Serving with Responsibility'), findsOneWidget);
+    expect(controller.draft.websiteTemplate, WebsiteTemplates.official);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('template-community')),
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('template-community')),
+        matching: find.text('Select Template'),
+      ),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('preview-community')), findsOneWidget);
+    expect(find.text('Growing Together'), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('template-professional')),
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('template-professional')),
+        matching: find.text('Select Template'),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Building a Better Tomorrow'), findsOneWidget);
+
+    await tester.dragUntilVisible(
+      find.text('My Website'),
+      find.byType(Scrollable).first,
+      const Offset(0, 300),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('My Website'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('editWebsite')), findsOneWidget);
 
     await tester.tap(find.text('Templates'));
     await tester.pumpAndSettle();
