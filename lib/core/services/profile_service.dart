@@ -93,6 +93,7 @@ class ProfileService {
           entry.key: entry.value,
       if (draft.socialChannels.isNotEmpty)
         'social_channels': draft.socialChannels.toList(),
+      if (draft.vrmRequested) 'vrm_requested': true,
     };
   }
 

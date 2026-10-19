@@ -1092,7 +1092,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            initialValue: ProjectStatus.normalize(item.status),
+            value: ProjectStatus.normalize(item.status),
             decoration: const InputDecoration(
               labelText: 'Status',
               border: OutlineInputBorder(),

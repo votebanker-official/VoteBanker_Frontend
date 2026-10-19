@@ -15,10 +15,6 @@ class VrmSetupScreen extends StatelessWidget {
 
   void _continue(BuildContext context) {
     OnboardingScope.of(context).draft.vrmRequested = true;
-    final l10n = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.vrmLater)),
-    );
     AppRouter.open(context, AppRoutes.ready);
   }
 

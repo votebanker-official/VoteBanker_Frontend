@@ -37,7 +37,12 @@ class DashboardPlaceholderScreen extends StatelessWidget {
         subtitle: l10n.line('letterCardBody'),
         route: AppRoutes.letter,
       ),
-      _Module(Icons.groups_outlined, l10n.cardVrm),
+      _Module(
+        Icons.groups_outlined,
+        l10n.cardVrm,
+        subtitle: l10n.line('vrmRecordsBody'),
+        route: AppRoutes.vrmRecords,
+      ),
       _Module(Icons.volunteer_activism_outlined, l10n.cardVolunteers),
       _Module(Icons.event_outlined, l10n.cardEvents),
       _Module(Icons.assignment_outlined, l10n.cardIssues),
