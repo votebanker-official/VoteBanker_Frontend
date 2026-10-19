@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:votebanker/app/app.dart';
 import 'package:votebanker/app/theme/app_colors.dart';
@@ -10,6 +14,7 @@ import 'package:votebanker/app/localization/translations/kn.dart';
 import 'package:votebanker/app/localization/translations/ml.dart';
 import 'package:votebanker/app/localization/translations/ta.dart';
 import 'package:votebanker/app/localization/translations/te.dart';
+import 'package:votebanker/features/onboarding/services/domain_service.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 import 'package:votebanker/features/onboarding/widgets/domain_result_card.dart';
 
@@ -138,7 +143,12 @@ void main() {
     tester,
   ) async {
     await _setSurface(tester, const Size(1280, 900));
-    await tester.pumpWidget(const VoteBankerApp());
+    await tester.pumpWidget(
+      DomainServiceHost(
+        service: _mockDomainService(),
+        child: const VoteBankerApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await _tapLabel(tester, 'Skip for now');
@@ -150,15 +160,20 @@ void main() {
     );
     await _tapLabel(tester, 'Save & Continue');
     expect(find.text('Website name search'), findsOneWidget);
+
+    await tester.tap(find.text('Search'));
+    await tester.pumpAndSettle();
     expect(find.text('arjunverma.com'), findsOneWidget);
-    expect(find.text('₹999'), findsOneWidget);
+    expect(find.textContaining('12.50 USD'), findsOneWidget);
 
     final card = find.ancestor(
       of: find.text('arjunverma.com'),
       matching: find.byType(DomainResultCard),
     );
     await tester.ensureVisible(card);
-    await tester.tap(find.descendant(of: card, matching: find.text('Add')));
+    await tester.tap(
+      find.descendant(of: card, matching: find.text('Select Domain')),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Portfolio Website'), findsOneWidget);
     expect(find.text('Arjun Verma'), findsWidgets);
@@ -249,7 +264,12 @@ void main() {
 
   testWidgets('narrow malayalam layout does not overflow', (tester) async {
     await _setSurface(tester, const Size(320, 740));
-    await tester.pumpWidget(const VoteBankerApp());
+    await tester.pumpWidget(
+      DomainServiceHost(
+        service: _mockDomainService(),
+        child: const VoteBankerApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await _chooseLanguage(tester, 'മലയാളം');
@@ -263,12 +283,44 @@ void main() {
 
     await tester.enterText(find.byType(TextField).hitTestable(), 'Arjun Verma');
     await tester.pump();
+    await tester.tap(find.text(mlTranslations['domainSearch']!));
+    await tester.pumpAndSettle();
     expect(find.text('arjunverma.com'), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
     await _tapLabel(tester, mlTranslations['skipForNow']!);
     expect(find.text(mlTranslations['websiteTitle']!), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+DomainService _mockDomainService() {
+  final client = MockClient((request) async {
+    return http.Response(
+      jsonEncode({
+        'success': true,
+        'results': [
+          {
+            'domain': 'arjunverma.com',
+            'available': true,
+            'status': 'free',
+            'price': {'amount': 12.5, 'currency': 'USD'},
+            'isPremium': false,
+          },
+          {
+            'domain': 'arjunverma.in',
+            'available': false,
+            'status': 'in use',
+            'price': null,
+            'isPremium': false,
+          },
+        ],
+      }),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  });
+  return DomainService(client: client, baseUrls: const ['http://domain.test']);
 }
 
 Future<void> _setSurface(WidgetTester tester, Size size) async {

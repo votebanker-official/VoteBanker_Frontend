@@ -8,21 +8,27 @@ class DomainResultCard extends StatelessWidget {
   const DomainResultCard({
     required this.domain,
     required this.availability,
+    required this.availabilityColor,
     required this.price,
     required this.perYear,
     required this.actionLabel,
     required this.selected,
     required this.onAdd,
+    this.premiumLabel,
+    this.canSelect = true,
     super.key,
   });
 
   final String domain;
   final String availability;
+  final Color availabilityColor;
   final String price;
   final String perYear;
   final String actionLabel;
   final bool selected;
-  final VoidCallback onAdd;
+  final VoidCallback? onAdd;
+  final String? premiumLabel;
+  final bool canSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +48,7 @@ class DomainResultCard extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: palette.success,
+                      color: availabilityColor,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -53,72 +59,96 @@ class DomainResultCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.muted(context).copyWith(
-                        color: palette.success,
+                        color: availabilityColor,
                         fontSize: 13,
                       ),
                     ),
                   ),
                 ],
               ),
+              if (premiumLabel != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  premiumLabel!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.muted(context).copyWith(
+                    color: palette.accent,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ],
           );
 
-          final priceBlock = Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
+          final priceBlock = price.isEmpty
+              ? const SizedBox.shrink()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
               Text(
                 price,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
                 style: AppTextStyles.label(context),
               ),
-              Text(
-                perYear,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.muted(context).copyWith(fontSize: 12),
-              ),
-            ],
-          );
-
-          final action = Semantics(
-            selected: selected,
-            button: true,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: selected ? const Color(0xFF04221E) : palette.accent,
-                backgroundColor: selected ? palette.secondary : Colors.transparent,
-                side: BorderSide(
-                  color: selected ? palette.secondary : palette.accent,
+              if (perYear.isNotEmpty)
+                Text(
+                  perYear,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: AppTextStyles.muted(context).copyWith(fontSize: 12),
                 ),
-                minimumSize: const Size(76, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: onAdd,
-              child: Text(
-                actionLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          );
+                  ],
+                );
 
-          if (constraints.maxWidth < 360) {
+          final action = !canSelect
+              ? const SizedBox.shrink()
+              : Semantics(
+                  selected: selected,
+                  button: true,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor:
+                          selected ? const Color(0xFF04221E) : palette.accent,
+                      backgroundColor:
+                          selected ? palette.secondary : Colors.transparent,
+                      side: BorderSide(
+                        color: selected ? palette.secondary : palette.accent,
+                      ),
+                      minimumSize: const Size(76, 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: onAdd,
+                    child: Text(
+                      actionLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                );
+
+          if (constraints.maxWidth < 520) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 details,
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(child: priceBlock),
-                    const SizedBox(width: 8),
-                    action,
-                  ],
-                ),
+                if (price.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  priceBlock,
+                ],
+                if (canSelect) ...[
+                  const SizedBox(height: 12),
+                  Align(alignment: Alignment.centerRight, child: action),
+                ],
               ],
             );
           }
@@ -126,10 +156,19 @@ class DomainResultCard extends StatelessWidget {
           return Row(
             children: [
               Expanded(child: details),
-              const SizedBox(width: 8),
-              priceBlock,
-              const SizedBox(width: 8),
-              action,
+              if (price.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: priceBlock,
+                  ),
+                ),
+              ],
+              if (canSelect) ...[
+                const SizedBox(width: 8),
+                action,
+              ],
             ],
           );
         },
