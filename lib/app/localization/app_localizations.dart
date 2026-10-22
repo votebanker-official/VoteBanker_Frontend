@@ -86,12 +86,21 @@ class AppLocalizations {
   String get locationSection => _t('locationSection');
   String get selectCountry => _t('selectCountry');
   String get selectState => _t('selectState');
+  String get searchStates => _t('searchStates');
+  String get noStatesFound => _t('noStatesFound');
+  String get clearStateSearch => _t('clearStateSearch');
+  String get searchDistricts => _t('searchDistricts');
+  String get noDistrictsFound => _t('noDistrictsFound');
   String get selectDistrict => _t('selectDistrict');
   String get selectConstituency => _t('selectConstituency');
   String get enterAssemblyConstituency => _t('enterAssemblyConstituency');
   String get noAssemblyConstituencies => _t('noAssemblyConstituencies');
   String get loadingAssemblyConstituencies =>
       _t('loadingAssemblyConstituencies');
+  String get searchConstituencies => _t('searchConstituencies');
+  String get noConstituenciesFound => _t('noConstituenciesFound');
+  String get assemblyCatalogUnavailable => _t('assemblyCatalogUnavailable');
+  String get assemblyCatalogLoadFailed => _t('assemblyCatalogLoadFailed');
   String get enterBoothNumber => _t('enterBoothNumber');
   String get enterBoothName => _t('enterBoothName');
   String get contactSection => _t('contactSection');

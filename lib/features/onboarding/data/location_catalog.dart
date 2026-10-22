@@ -7,8 +7,9 @@ import 'package:flutter/services.dart';
 /// The lists are the Local Government Directory "All States of India" and
 /// "All Districts of India" workbooks retrieved on 7 October 2026 from
 /// https://lgdirectory.gov.in/downloadDirectory.do.
-/// Assembly constituencies are not included. No official
-/// district-to-constituency mapping was available to import.
+/// Assembly constituencies are not in this file. The profile loads them from
+/// the location API, which stays empty until an official Election Commission
+/// list with number, name, state, and district is imported.
 class LocationCatalog {
   LocationCatalog._({
     required List<String> countries,
