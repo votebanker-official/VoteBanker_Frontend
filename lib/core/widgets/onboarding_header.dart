@@ -9,12 +9,14 @@ class OnboardingHeader extends StatelessWidget {
     required this.title,
     this.description,
     this.compact = false,
+    this.centerTitle = false,
     super.key,
   });
 
   final String title;
   final String? description;
   final bool compact;
+  final bool centerTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class OnboardingHeader extends StatelessWidget {
       header: true,
       child: Text(
         title,
-        textAlign: compact ? TextAlign.start : TextAlign.center,
+        textAlign: centerTitle || !compact ? TextAlign.center : TextAlign.start,
         style: AppTextStyles.headline(context),
       ),
     );
@@ -69,7 +71,9 @@ class OnboardingHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          titleText,
+          centerTitle
+              ? SizedBox(width: double.infinity, child: titleText)
+              : titleText,
           if (description != null) ...[
             const SizedBox(height: 8),
             Text(description!, style: AppTextStyles.muted(context)),
