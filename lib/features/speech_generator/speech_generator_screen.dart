@@ -33,7 +33,7 @@ class _SpeechGeneratorScreenState extends State<SpeechGeneratorScreen> {
   late final TextEditingController _prompt = TextEditingController();
 
   var _speechType = 'Public Meeting';
-  var _language = 'English';
+  var _language = 'Hindi';
   var _duration = '5 minutes';
   var _tone = 'Formal';
   var _phase = _SpeechPhase.form;

@@ -60,7 +60,12 @@ class AppLocalizations {
   String get welcomeBody => _t('welcomeBody');
   String get continueWhatsApp => _t('continueWhatsApp');
   String get continueMobile => _t('continueMobile');
-  String get continueEmail => _t('continueEmail');
+  String get continueFacebook => _t('continueFacebook');
+  String get continueInstagram => _t('continueInstagram');
+  String get socialNotConfigured => _t('socialNotConfigured');
+  String get socialDenied => _t('socialDenied');
+  String get socialFailed => _t('socialFailed');
+  String get socialWebOnly => _t('socialWebOnly');
   String get authLater => _t('authLater');
   String get basicProfile => _t('basicProfile');
   String get profileDescription => _t('profileDescription');
@@ -134,9 +139,10 @@ class AppLocalizations {
   String get domainSearchUnavailable => _t('domainSearchUnavailable');
   String get domainSearchAccessDenied => _t('domainSearchAccessDenied');
   String get domainSearchAccessDeniedIp => _t('domainSearchAccessDeniedIp');
+  String get domainSearchAuthFailed => _t('domainSearchAuthFailed');
   String get domainRetry => _t('domainRetry');
   String get registrationPrice => _t('registrationPrice');
-  String get supplierPrice => _t('supplierPrice');
+  String get renewalPrice => _t('renewalPrice');
   String get premiumDomain => _t('premiumDomain');
   String get perYear => _t('perYear');
   String get dashboard => _t('dashboard');

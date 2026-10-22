@@ -86,6 +86,67 @@ void main() {
     expect(speech.sections.single.heading, 'ನಮಸ್ಕಾರ');
   });
 
+  test('a template reply is skipped when another server can write the speech', () async {
+    final client = MockClient((request) async {
+      if (request.url.host == 'template.test') {
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'speech': {
+              'title': 'Draft',
+              'language': 'English',
+              'speechType': 'Public Meeting',
+              'duration': '5 minutes',
+              'tone': 'Formal',
+              'source': 'mock',
+              'sections': [
+                {'heading': 'Opening', 'content': 'This is a development draft.'},
+              ],
+              'fullText': 'Draft',
+            },
+          }),
+          200,
+          headers: const {'content-type': 'application/json'},
+        );
+      }
+      return http.Response(
+        jsonEncode({
+          'success': true,
+          'speech': {
+            'title': 'शिक्षा पर भाषण',
+            'language': 'Hindi',
+            'speechType': 'Public Meeting',
+            'duration': '5 minutes',
+            'tone': 'Formal',
+            'source': 'ai',
+            'sections': [
+              {'heading': 'अभिवादन', 'content': 'शिक्षा हमारे बच्चों का हक है।'},
+            ],
+            'fullText': 'शिक्षा पर भाषण',
+          },
+        }),
+        200,
+        headers: const {'content-type': 'application/json'},
+      );
+    });
+
+    final speech = await SpeechService(
+      client: client,
+      baseUrls: const ['http://template.test', 'http://model.test'],
+    ).generate(
+      const SpeechRequest(
+        prompt: 'education in the constituency',
+        speechType: 'Public Meeting',
+        language: 'Hindi',
+        duration: '5 minutes',
+        tone: 'Formal',
+      ),
+    );
+
+    expect(speech.isMock, isFalse);
+    expect(speech.title, 'शिक्षा पर भाषण');
+  });
+
   testWidgets('an empty prompt cannot generate, and a brief returns a full speech', (tester) async {
     tester.view.physicalSize = const Size(1280, 2200);
     tester.view.devicePixelRatio = 1;
@@ -109,6 +170,7 @@ void main() {
 
     expect(find.text('Speech Generator'), findsWidgets);
     expect(find.text('What should the speech be about?'), findsOneWidget);
+    expect(find.text('हिन्दी'), findsOneWidget);
     final generate = tester.widget<ElevatedButton>(
       find.widgetWithText(ElevatedButton, 'Generate Speech'),
     );
@@ -132,6 +194,7 @@ void main() {
     expect(find.text('Creating your speech...'), findsOneWidget);
     expect(find.text('Understanding your topic'), findsOneWidget);
     expect(sent?.prompt, 'improving education, roads and employment');
+    expect(sent?.language, 'Hindi');
 
     gate.complete(
       GeneratedSpeech(

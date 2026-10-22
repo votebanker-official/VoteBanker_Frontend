@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -39,11 +40,15 @@ class DomainServiceHost extends InheritedWidget {
 
 /// Asks the VOTE BANKER backend to check domain availability via Openprovider.
 class DomainService {
-  DomainService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+  DomainService({
+    http.Client? client,
+    this.baseUrls = const [],
+    this.timeout = const Duration(seconds: 240),
+  }) : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
+  final Duration timeout;
 
   List<String> get _bases {
     if (baseUrls.isNotEmpty) {
@@ -116,7 +121,7 @@ class DomainService {
               headers: headers,
               body: jsonEncode(payload),
             )
-            .timeout(const Duration(seconds: 60));
+            .timeout(timeout);
         last = response;
         if (response.statusCode == 404) {
           continue;
@@ -131,6 +136,12 @@ class DomainService {
           continue;
         }
         return response;
+      } on TimeoutException {
+        // A slow local Openprovider search must not be replaced by Railway's
+        // login error. Railway is only a fallback when this machine is down.
+        if (!_isRemoteApi(base)) {
+          throw const DomainException('openprovider_timeout');
+        }
       } catch (_) {
         continue;
       }

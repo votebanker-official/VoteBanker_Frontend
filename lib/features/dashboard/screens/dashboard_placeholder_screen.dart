@@ -23,7 +23,12 @@ class DashboardPlaceholderScreen extends StatelessWidget {
     final modules = <_Module>[
       _Module(Icons.person_outline, l10n.cardProfile),
       _Module(Icons.language, l10n.cardDomain),
-      _Module(Icons.share_outlined, l10n.cardSocial),
+      _Module(
+        Icons.share_outlined,
+        l10n.cardSocial,
+        subtitle: l10n.line('socialCardBody'),
+        route: AppRoutes.socialContacts,
+      ),
       _Module(Icons.auto_awesome_outlined, l10n.cardContent),
       _Module(
         Icons.record_voice_over_outlined,

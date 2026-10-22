@@ -45,6 +45,9 @@ void main() {
         }
         expect(find.text(entry.value['welcomeTitle']!), findsOneWidget);
         expect(find.text(entry.value['continueWhatsApp']!), findsOneWidget);
+        expect(find.text(entry.value['continueFacebook']!), findsOneWidget);
+        expect(find.text(entry.value['continueInstagram']!), findsOneWidget);
+        expect(find.text('Continue with Email'), findsNothing);
         expect(find.text(entry.value['appName']!), findsWidgets);
       }
     },
@@ -159,7 +162,7 @@ void main() {
       'Arjun Verma',
     );
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Website name search'), findsOneWidget);
+    expect(find.text('Portfolio Name Search'), findsOneWidget);
 
     await tester.tap(find.text('Search'));
     await tester.pumpAndSettle();
@@ -172,7 +175,7 @@ void main() {
     );
     await tester.ensureVisible(card);
     await tester.tap(
-      find.descendant(of: card, matching: find.text('Select Domain')),
+      find.descendant(of: card, matching: find.text('Select Portfolio Name')),
     );
     await tester.pumpAndSettle();
     expect(find.text('Portfolio Website'), findsOneWidget);
@@ -180,7 +183,7 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
-    expect(find.text('Website name search'), findsOneWidget);
+    expect(find.text('Portfolio Name Search'), findsOneWidget);
     await _tapLabel(tester, 'Back');
     expect(find.text('Leader Profile'), findsOneWidget);
     final profileContext = tester.element(find.text('Leader Profile'));
@@ -191,7 +194,7 @@ void main() {
     );
 
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Website name search'), findsOneWidget);
+    expect(find.text('Portfolio Name Search'), findsOneWidget);
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Portfolio Website'), findsWidgets);
     expect(find.text('Arjun Verma'), findsWidgets);

@@ -130,8 +130,8 @@ class DomainResultCard extends StatelessWidget {
                     onPressed: onAdd,
                     child: Text(
                       actionLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 );

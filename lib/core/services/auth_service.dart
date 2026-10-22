@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/app_config.dart';
+import 'auth_browser.dart';
 
 class AuthException implements Exception {
   const AuthException(this.code, this.message);
@@ -86,6 +88,35 @@ class AuthService {
   /// [channel] is `sms` or `whatsapp`.
   Future<void> sendOtp(String phone, {String channel = 'sms'}) async {
     await _post('/api/auth/otp/send', {'phone': phone, 'channel': channel});
+  }
+
+  /// Opens Facebook or Instagram in the browser. The provider sends the user back here.
+  void startSocial(String provider) {
+    if (!kIsWeb) {
+      throw const AuthException(
+        'social_web_only',
+        'Open VoteBanker in the browser to sign in with Facebook or Instagram.',
+      );
+    }
+    final origin = browserOrigin();
+    final uri = Uri.parse('${AppConfig.apiBaseUrl}/api/auth/oauth/$provider/start')
+        .replace(queryParameters: {'return_to': '$origin/'});
+    redirectBrowser(uri.toString());
+  }
+
+  Future<AuthSession> exchangeSocialTicket(String ticket) async {
+    final body = await _post('/api/auth/oauth/exchange', {'ticket': ticket});
+    final user = body['user'] as Map<String, dynamic>? ?? const {};
+    final result = AuthSession(
+      accessToken: body['access_token'] as String,
+      refreshToken: body['refresh_token'] as String,
+      userId: (user['id'] ?? '') as String,
+      phone: (user['phone'] ?? '') as String,
+      expiresAt: body['expires_at'] as int?,
+    );
+    session = result;
+    await _persist(result);
+    return result;
   }
 
   Future<AuthSession> verifyOtp(String phone, String code) async {
@@ -187,6 +218,10 @@ class AuthService {
             'Ask the VoteBanker team to add it, then try again.';
       case 'too_many_requests':
         return 'Too many attempts. Please wait a few minutes and try again.';
+      case 'social_expired':
+        return 'That sign-in expired. Please try Facebook or Instagram again.';
+      case 'social_not_configured':
+        return 'Facebook and Instagram sign-in are not set up on the server yet.';
       default:
         return 'Something went wrong. Please try again.';
     }

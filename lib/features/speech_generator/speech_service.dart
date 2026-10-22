@@ -29,7 +29,8 @@ class SpeechService {
     if (kDebugMode &&
         !configured.contains('127.0.0.1') &&
         !configured.contains('localhost')) {
-      return [configured, 'http://127.0.0.1:5000'];
+      // The local API is the one that can reach a speech model on this machine.
+      return ['http://127.0.0.1:5000', configured];
     }
     return [configured];
   }
@@ -66,9 +67,13 @@ class SpeechService {
             )
             .timeout(const Duration(seconds: 360));
         last = response;
-        if (response.statusCode != 404) {
-          return response;
+        if (response.statusCode == 404) {
+          continue;
         }
+        if (_isTemplateSpeech(response) && base != _bases.last) {
+          continue;
+        }
+        return response;
       } catch (_) {
         continue;
       }
@@ -86,5 +91,13 @@ class SpeechService {
       return const {};
     }
     return const {};
+  }
+
+  bool _isTemplateSpeech(http.Response response) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return false;
+    }
+    final speech = _json(response)['speech'];
+    return speech is Map && speech['source'] == 'mock';
   }
 }

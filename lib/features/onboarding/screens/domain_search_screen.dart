@@ -169,8 +169,9 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
         return l10n.domainSearchUnreachable;
       case 'openprovider_not_configured':
         return l10n.domainSearchUnavailable;
-      case 'openprovider_access_denied':
       case 'openprovider_auth_failed':
+        return l10n.domainSearchAuthFailed;
+      case 'openprovider_access_denied':
         final ip = _serverIp;
         if (ip != null && ip.isNotEmpty) {
           return l10n.domainSearchAccessDeniedIp.replaceAll('{ip}', ip);
@@ -210,7 +211,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
   }
 
   String _priceLabel(AppLocalizations l10n, DomainSuggestion item) {
-    final amount = item.priceAmount;
+    final amount = customerFacingAmount(item.priceAmount, item.priceCurrency);
     final currency = item.priceCurrency;
     if (amount == null || currency == null || currency.isEmpty) {
       return '';
@@ -220,16 +221,16 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
         .replaceAll('{currency}', currency);
   }
 
-  String? _supplierPriceLabel(AppLocalizations l10n, DomainSuggestion item) {
-    final amount = item.supplierPriceAmount;
-    final currency = item.supplierPriceCurrency;
+  String? _renewalPriceLabel(AppLocalizations l10n, DomainSuggestion item) {
+    final amount = customerFacingAmount(
+      item.renewalPriceAmount,
+      item.renewalPriceCurrency,
+    );
+    final currency = item.renewalPriceCurrency;
     if (amount == null || currency == null || currency.isEmpty) {
       return null;
     }
-    if (item.priceCurrency == currency && item.priceAmount == amount) {
-      return null;
-    }
-    return l10n.supplierPrice
+    return l10n.renewalPrice
         .replaceAll('{price}', _formatMoney(amount, '').trim())
         .replaceAll('{currency}', currency);
   }
@@ -308,10 +309,10 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                 perYear: item.priceAmount == null
                     ? ''
                     : () {
-                        final supplier = _supplierPriceLabel(l10n, item);
-                        return supplier == null
+                        final renewal = _renewalPriceLabel(l10n, item);
+                        return renewal == null
                             ? l10n.perYear
-                            : '${l10n.perYear}\n$supplier';
+                            : '${l10n.perYear}\n$renewal';
                       }(),
                 premiumLabel: item.isPremium ? l10n.premiumDomain : null,
                 actionLabel: draft.selectedDomain == item.name

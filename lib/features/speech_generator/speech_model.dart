@@ -160,9 +160,10 @@ const speechTypeKeys = <String, String>{
 };
 
 const speechLanguageKeys = <String, String>{
+  'Hindi': 'speechLangHi',
+  'Gujarati': 'speechLangGu',
   'English': 'speechLangEn',
   'Kannada': 'speechLangKn',
-  'Hindi': 'speechLangHi',
   'Telugu': 'speechLangTe',
   'Tamil': 'speechLangTa',
   'Malayalam': 'speechLangMl',

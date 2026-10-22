@@ -9,6 +9,7 @@ import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/vrm/models/vrm_voter_record.dart';
+import 'package:votebanker/features/vrm/screens/vrm_get_more_screen.dart';
 import 'package:votebanker/features/vrm/screens/vrm_records_screen.dart';
 import 'package:votebanker/features/vrm/services/vrm_service.dart';
 
@@ -151,6 +152,35 @@ void main() {
     expect(find.text('WhatsApp'), findsOneWidget);
     expect(find.text('Instagram'), findsOneWidget);
     expect(find.text('Facebook'), findsOneWidget);
-    expect(find.text('Pay to Get More Voters'), findsOneWidget);
+    expect(find.text('View more voters'), findsOneWidget);
+  });
+
+  testWidgets('View more voters lists the three priced options', (tester) async {
+    await tester.pumpWidget(
+      ThemeScope(
+        controller: ThemeController(),
+        child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const VrmGetMoreScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Pay ₹100 to get 100 voters'), findsOneWidget);
+    expect(find.text('Pay ₹999 to get 1000 voters'), findsOneWidget);
+    expect(find.text('Pay ₹9999 to get 10000 voters'), findsOneWidget);
+    expect(find.textContaining('rupees'), findsNothing);
+
+    final first = tester.getTopLeft(find.text('Pay ₹100 to get 100 voters'));
+    final second = tester.getTopLeft(find.text('Pay ₹999 to get 1000 voters'));
+    final third = tester.getTopLeft(find.text('Pay ₹9999 to get 10000 voters'));
+    expect(first.dy, lessThan(second.dy));
+    expect(second.dy, lessThan(third.dy));
   });
 }

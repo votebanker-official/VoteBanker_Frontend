@@ -8,6 +8,7 @@ import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_card.dart';
 import '../models/vrm_voter_record.dart';
 import '../services/vrm_service.dart';
+import '../../social_media/social_contact_links.dart';
 
 class VrmRecordsScreen extends StatefulWidget {
   const VrmRecordsScreen({super.key, this.service});
@@ -26,6 +27,7 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
   bool _loading = true;
   String? _error;
   String _activeQuery = '';
+  final Set<String> _dirtyIds = {};
 
   @override
   void initState() {
@@ -74,11 +76,46 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
 
   void _replaceRecord(VrmVoterRecord updated) {
     setState(() {
+      _dirtyIds.remove(updated.id);
       _records = [
         for (final row in _records)
           if (row.id == updated.id) updated else row,
       ];
     });
+  }
+
+  void _setDirty(String id, bool dirty) {
+    final changed = dirty ? _dirtyIds.add(id) : _dirtyIds.remove(id);
+    if (changed && mounted) setState(() {});
+  }
+
+  Future<void> _leave() async {
+    if (_dirtyIds.isEmpty) {
+      AppRouter.back(context, AppRoutes.dashboard);
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.line('vrmUnsavedTitle')),
+        content: Text(l10n.line('vrmUnsavedBody')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.line('vrmStay')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.line('vrmLeave')),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) {
+      setState(() => _dirtyIds.clear());
+      AppRouter.back(context, AppRoutes.dashboard);
+    }
   }
 
   String _message(AppLocalizations l10n, String code) {
@@ -107,7 +144,7 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      onPressed: () => AppRouter.back(context, AppRoutes.dashboard),
+                      onPressed: () => _leave(),
                       icon: const Icon(Icons.arrow_back),
                       tooltip: l10n.back,
                     ),
@@ -210,6 +247,7 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
                                     record: item,
                                     service: _service,
                                     onSaved: _replaceRecord,
+                                    onDirtyChanged: (dirty) => _setDirty(item.id, dirty),
                                   );
                                 },
                               ),
@@ -245,12 +283,14 @@ class _VoterRecordCard extends StatefulWidget {
     required this.record,
     required this.service,
     required this.onSaved,
+    required this.onDirtyChanged,
     super.key,
   });
 
   final VrmVoterRecord record;
   final VrmService service;
   final ValueChanged<VrmVoterRecord> onSaved;
+  final ValueChanged<bool> onDirtyChanged;
 
   @override
   State<_VoterRecordCard> createState() => _VoterRecordCardState();
@@ -262,6 +302,7 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
   late final TextEditingController _facebook;
   bool _saving = false;
   String? _status;
+  bool _reportedDirty = false;
 
   @override
   void initState() {
@@ -269,16 +310,24 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
     _whatsapp = TextEditingController(text: widget.record.whatsappContact ?? '');
     _instagram = TextEditingController(text: widget.record.instagramContact ?? '');
     _facebook = TextEditingController(text: widget.record.facebookContact ?? '');
+    for (final controller in [_whatsapp, _instagram, _facebook]) {
+      controller.addListener(_notifyDirty);
+    }
   }
 
   @override
   void didUpdateWidget(covariant _VoterRecordCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.record.id != widget.record.id) {
+    final sameId = oldWidget.record.id == widget.record.id;
+    final contactsChanged = oldWidget.record.whatsappContact != widget.record.whatsappContact ||
+        oldWidget.record.instagramContact != widget.record.instagramContact ||
+        oldWidget.record.facebookContact != widget.record.facebookContact;
+    if (!sameId || (contactsChanged && !_isDirty)) {
       _whatsapp.text = widget.record.whatsappContact ?? '';
       _instagram.text = widget.record.instagramContact ?? '';
       _facebook.text = widget.record.facebookContact ?? '';
       _status = null;
+      _notifyDirty();
     }
   }
 
@@ -290,8 +339,34 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
     super.dispose();
   }
 
+  bool get _isDirty {
+    return _whatsapp.text.trim() != (widget.record.whatsappContact ?? '') ||
+        _instagram.text.trim() != (widget.record.instagramContact ?? '') ||
+        _facebook.text.trim() != (widget.record.facebookContact ?? '');
+  }
+
+  void _notifyDirty() {
+    final dirty = _isDirty;
+    if (dirty == _reportedDirty) return;
+    _reportedDirty = dirty;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onDirtyChanged(_isDirty);
+    });
+  }
+
+  bool get _contactsValid {
+    return SocialContactLinks.validWhatsapp(_whatsapp.text) &&
+        SocialContactLinks.validProfile(_instagram.text, SocialContactLinks.instagramHosts) &&
+        SocialContactLinks.validProfile(_facebook.text, SocialContactLinks.facebookHosts);
+  }
+
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
+    if (!_contactsValid) {
+      setState(() => _status = l10n.line('vrmContactInvalid'));
+      return;
+    }
     setState(() {
       _saving = true;
       _status = l10n.line('vrmContactSaving');
@@ -314,6 +389,7 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
       final message = switch (error.code) {
         'unauthorized' => l10n.line('vrmContactSignIn'),
         'forbidden' => l10n.line('vrmContactForbidden'),
+        'invalid_contact' => l10n.line('vrmContactInvalid'),
         _ => l10n.line('vrmContactSaveError'),
       };
       setState(() {

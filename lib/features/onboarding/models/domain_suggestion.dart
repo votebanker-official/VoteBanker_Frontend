@@ -6,8 +6,8 @@ class DomainSuggestion {
     required this.status,
     this.priceAmount,
     this.priceCurrency,
-    this.supplierPriceAmount,
-    this.supplierPriceCurrency,
+    this.renewalPriceAmount,
+    this.renewalPriceCurrency,
     this.isPremium = false,
     this.error,
   });
@@ -17,8 +17,8 @@ class DomainSuggestion {
   final String status;
   final double? priceAmount;
   final String? priceCurrency;
-  final double? supplierPriceAmount;
-  final String? supplierPriceCurrency;
+  final double? renewalPriceAmount;
+  final String? renewalPriceCurrency;
   final bool isPremium;
   final String? error;
 
@@ -49,17 +49,17 @@ class DomainSuggestion {
       }
     }
 
-    final supplier = json['supplierPrice'];
-    double? supplierAmount;
-    String? supplierCurrency;
-    if (supplier is Map<String, dynamic>) {
-      final rawAmount = supplier['amount'];
+    final renewal = json['renewalPrice'];
+    double? renewalAmount;
+    String? renewalCurrency;
+    if (renewal is Map<String, dynamic>) {
+      final rawAmount = renewal['amount'];
       if (rawAmount is num) {
-        supplierAmount = rawAmount.toDouble();
+        renewalAmount = rawAmount.toDouble();
       }
-      final rawCurrency = supplier['currency'];
+      final rawCurrency = renewal['currency'];
       if (rawCurrency is String && rawCurrency.trim().isNotEmpty) {
-        supplierCurrency = rawCurrency.trim().toUpperCase();
+        renewalCurrency = rawCurrency.trim().toUpperCase();
       }
     }
 
@@ -69,8 +69,8 @@ class DomainSuggestion {
       status: (json['status'] as String? ?? 'unknown').trim().toLowerCase(),
       priceAmount: amount,
       priceCurrency: currency,
-      supplierPriceAmount: supplierAmount,
-      supplierPriceCurrency: supplierCurrency,
+      renewalPriceAmount: renewalAmount,
+      renewalPriceCurrency: renewalCurrency,
       isPremium: json['isPremium'] == true,
       error: json['error'] as String?,
     );
@@ -86,6 +86,22 @@ const standardDomainExtensions = <String>[
   'ai',
   'io',
   'net',
+];
+
+/// Politician-related TLDs. The API drops any Openprovider does not sell.
+const politicalDomainExtensions = <String>[
+  'leader',
+  'captain',
+  'page',
+  'boss',
+  'neta',
+  'vote',
+  'voto',
+  'voting',
+  'democrat',
+  'republican',
+  'gop',
+  'party',
 ];
 
 /// Extra popular TLDs checked after the standard set.
@@ -110,8 +126,20 @@ const extraDomainExtensions = <String>[
 
 const defaultDomainExtensions = <String>[
   ...standardDomainExtensions,
+  ...politicalDomainExtensions,
   ...extraDomainExtensions,
 ];
+
+/// Openprovider INR amounts stay exact. Anything under ₹1500 is shown as 1500.
+double? customerFacingAmount(double? amount, String? currency) {
+  if (amount == null) {
+    return null;
+  }
+  if ((currency ?? '').trim().toUpperCase() == 'INR' && amount < 1500) {
+    return 1500;
+  }
+  return amount;
+}
 
 /// Keeps letters and digits so "Arjun Verma" becomes "arjunverma".
 String? domainSlug(String query) {
@@ -141,14 +169,21 @@ List<DomainSuggestion> availableDomainsFirst(List<DomainSuggestion> results) {
     final bExt = extensionOf(b.name);
     final aStandard = standardDomainExtensions.indexOf(aExt);
     final bStandard = standardDomainExtensions.indexOf(bExt);
-    final aIsStandard = aStandard != -1;
-    final bIsStandard = bStandard != -1;
+    final aPolitical = politicalDomainExtensions.indexOf(aExt);
+    final bPolitical = politicalDomainExtensions.indexOf(bExt);
+    final aRank = aStandard != -1
+        ? aStandard
+        : aPolitical != -1
+            ? standardDomainExtensions.length + aPolitical
+            : standardDomainExtensions.length + politicalDomainExtensions.length;
+    final bRank = bStandard != -1
+        ? bStandard
+        : bPolitical != -1
+            ? standardDomainExtensions.length + bPolitical
+            : standardDomainExtensions.length + politicalDomainExtensions.length;
 
-    if (aIsStandard != bIsStandard) {
-      return aIsStandard ? -1 : 1;
-    }
-    if (aIsStandard && bIsStandard && aStandard != bStandard) {
-      return aStandard.compareTo(bStandard);
+    if (aRank != bRank) {
+      return aRank.compareTo(bRank);
     }
     if (a.isPremium != b.isPremium) {
       return a.isPremium ? 1 : -1;

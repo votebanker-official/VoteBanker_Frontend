@@ -5,9 +5,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/app_background.dart';
-import '../../../core/widgets/app_card.dart';
 
-/// Placeholder for additional VRM access. No price or purchase claim.
 class VrmGetMoreScreen extends StatelessWidget {
   const VrmGetMoreScreen({super.key});
 
@@ -15,6 +13,11 @@ class VrmGetMoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = context.palette;
+    final offers = [
+      l10n.line('vrmOffer100'),
+      l10n.line('vrmOffer1000'),
+      l10n.line('vrmOffer10000'),
+    ];
 
     return Scaffold(
       backgroundColor: palette.background,
@@ -40,23 +43,25 @@ class VrmGetMoreScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.line('vrmGetMoreBody'),
-                        style: AppTextStyles.body(context),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.line('vrmPricingSoon'),
-                        style: AppTextStyles.muted(context),
-                      ),
-                    ],
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    l10n.line('vrmGetMoreBody'),
+                    style: AppTextStyles.muted(context),
                   ),
                 ),
+                const SizedBox(height: 20),
+                for (final offer in offers) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {},
+                      child: Text(offer, textAlign: TextAlign.center),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ],
             ),
           ),
