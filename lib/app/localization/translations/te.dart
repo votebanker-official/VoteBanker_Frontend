@@ -167,7 +167,7 @@ const teTranslations = <String, String>{
   'socialMeta': 'Meta Business',
   'viewPlans': 'ప్లాన్లు చూడండి',
   'socialLater': 'సోషల్ ప్లాన్లు తర్వాత వస్తాయి. ఇప్పుడు కొనసాగుతోంది.',
-  'vrmTitle': 'VRM సెటప్',
+  'vrmTitle': 'ఓటరు సంబంధ నిర్వహణ',
   'vrmBody':
       'మీరు ఎంచుకునే వరకు ఓటరు సంబంధ నిర్వహణ ఆఫ్‌లో ఉంటుంది. ఇంకా పరిచయాలు భద్రం కాలేదు.',
   'vrmPointContacts': 'పరిచయాలు మరియు ఫాలో-అప్',

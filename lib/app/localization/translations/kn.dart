@@ -168,7 +168,7 @@ const knTranslations = <String, String>{
   'socialMeta': 'Meta Business',
   'viewPlans': 'ಯೋಜನೆಗಳನ್ನು ನೋಡಿ',
   'socialLater': 'ಸಾಮಾಜಿಕ ಯೋಜನೆಗಳು ನಂತರ ಸೇರುತ್ತವೆ. ಈಗ ಮುಂದುವರಿಯುತ್ತಿದೆ.',
-  'vrmTitle': 'VRM ಸಿದ್ಧತೆ',
+  'vrmTitle': 'ಮತದಾರ ಸಂಬಂಧ ನಿರ್ವಹಣೆ',
   'vrmBody':
       'ನೀವು ಆಯ್ಕೆಮಾಡುವವರೆಗೆ ಮತದಾರ ಸಂಬಂಧ ನಿರ್ವಹಣೆ ಆಫ್ ಆಗಿರುತ್ತದೆ. ಇನ್ನೂ ಯಾವ ಸಂಪರ್ಕವೂ ಉಳಿಸಿಲ್ಲ.',
   'vrmPointContacts': 'ಸಂಪರ್ಕಗಳು ಮತ್ತು ಅನುಸರಣೆ',
