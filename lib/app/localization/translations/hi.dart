@@ -134,7 +134,7 @@ const hiTranslations = <String, String>{
   'socialMeta': 'Meta Business',
   'viewPlans': 'प्लान देखें',
   'socialLater': 'सोशल प्लान और कनेक्शन बाद में जुड़ेंगे। अभी आगे बढ़ रहे हैं।',
-  'vrmTitle': 'मतदाता संबंध प्रबंधन सेटअप',
+  'vrmTitle': 'मतदाता संबंध प्रबंधन',
   'vrmBody':
       'मतदाता संबंध प्रबंधन तब तक बंद रहता है जब तक आप इसे चुनें। अभी कोई संपर्क सहेजा नहीं गया है।',
   'vrmPointContacts': 'संपर्क और फ़ॉलो-अप',

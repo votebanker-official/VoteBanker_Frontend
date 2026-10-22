@@ -200,7 +200,7 @@ const enTranslations = <String, String>{
   'viewPlans': 'View Plans',
   'socialLater':
       'Social plans and connections will be added later. Continuing for now.',
-  'vrmTitle': 'Voter Relationship Management Setup',
+  'vrmTitle': 'Voter Relationship Management',
   'vrmBody':
       'Voter relationship management stays off until you choose it. No contacts are stored yet.',
   'vrmPointContacts': 'Contacts and follow-ups',
