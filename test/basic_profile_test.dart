@@ -52,6 +52,8 @@ void main() {
 
     final contact = _textField(tester, 'profileContact');
     expect(contact.keyboardType, TextInputType.phone);
+    expect(contact.decoration?.hintText, 'Enter 10-digit mobile number');
+    expect(find.text('+91'), findsWidgets);
   });
 
   testWidgets('country, state, and district dropdowns stay dependent', (
@@ -139,6 +141,56 @@ void main() {
     expect(draft.preferredLanguage, 'en');
   });
 
+  testWidgets(
+    'Indian contact number field enforces +91 prefix, 10-digit capping, starting digit validation, and paste formatting',
+    (tester) async {
+      await _openProfile(tester);
+
+      // Verify UI components
+      final contactField = _textField(tester, 'profileContact');
+      expect(contactField.decoration?.hintText, 'Enter 10-digit mobile number');
+      expect(contactField.keyboardType, TextInputType.phone);
+      expect(find.text('+91'), findsWidgets);
+      expect(find.byIcon(Icons.phone_outlined), findsWidgets);
+
+      // Formatting: non-numeric characters are stripped
+      await _enter(tester, 'profileContact', '98ab-76 543');
+      expect(_textField(tester, 'profileContact').controller!.text, '9876543');
+
+      // Formatting: typing or entering > 10 digits is capped to 10
+      await _enter(tester, 'profileContact', '9876543210999');
+      expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
+
+      // Formatting: entering with +91 strips prefix to 10 digits
+      await _enter(tester, 'profileContact', '+919876543210');
+      expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
+
+      // Formatting: entering with trunk 0 strips prefix to 10 digits
+      await _enter(tester, 'profileContact', '09876543210');
+      expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
+
+      // Validation: empty contact number rejected on submit
+      await _enter(tester, 'profileContact', '');
+      await _tapLabel(tester, 'Save & Continue');
+      expect(find.text('Enter a valid contact number.'), findsOneWidget);
+
+      // Validation: fewer than 10 digits rejected on submit
+      await _enter(tester, 'profileContact', '98765');
+      await _tapLabel(tester, 'Save & Continue');
+      expect(find.text('Enter a valid contact number.'), findsOneWidget);
+
+      // Validation: 10 digits starting with invalid digit (0–5) rejected on submit
+      await _enter(tester, 'profileContact', '5876543210');
+      await _tapLabel(tester, 'Save & Continue');
+      expect(find.text('Enter a valid contact number.'), findsOneWidget);
+
+      // Validation: 10 digits starting with 6–9 accepted on submit
+      await _enter(tester, 'profileContact', '6876543210');
+      await _tapLabel(tester, 'Save & Continue');
+      expect(find.text('Portfolio Name Search'), findsOneWidget);
+    },
+  );
+
   testWidgets('saved location and language are restored', (tester) async {
     final controller = OnboardingController();
     addTearDown(controller.dispose);
@@ -148,7 +200,8 @@ void main() {
       ..constituency = 'Pune'
       ..preferredLanguage = 'hi'
       ..partNo = '15'
-      ..partName = 'Central';
+      ..partName = 'Central'
+      ..contactNumber = '+91 98765 43210';
 
     await _setSurface(tester, const Size(1280, 900));
     await tester.pumpWidget(VoteBankerApp(controller: controller));
@@ -159,6 +212,7 @@ void main() {
     _expectState(tester, 'Karnataka');
     _expectDistrict(tester, null);
     expect(find.text('हिन्दी'), findsOneWidget);
+    expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
     expect(controller.draft.constituency, isEmpty);
     expect(controller.draft.partNo, '15');
     expect(controller.draft.partName, 'Central');
@@ -220,19 +274,13 @@ void main() {
     tester,
   ) async {
     await _openProfile(tester);
-    await _openDropdown(tester, 'profileParty');
+    expect(find.byKey(const ValueKey('partySearch')), findsNothing);
 
+    await _openDropdown(tester, 'profileParty');
+    expect(find.byKey(const ValueKey('partySearch')), findsOneWidget);
     expect(find.text('National Parties'), findsOneWidget);
     expect(find.text('Regional & State Parties'), findsOneWidget);
     expect(find.byType(Scrollable), findsWidgets);
-
-    final header = tester.widget<DropdownMenuItem<String>>(
-      find.ancestor(
-        of: find.text('National Parties'),
-        matching: find.byType(DropdownMenuItem<String>),
-      ),
-    );
-    expect(header.enabled, isFalse);
 
     for (final party in PartyOption.all) {
       final name = find.text(party.name);
@@ -255,18 +303,54 @@ void main() {
       expect(symbolBox.width, lessThanOrEqualTo(nameBox.left));
     }
 
-    await tester.tapAt(const Offset(8, 8));
-    await tester.pumpAndSettle();
-    _dropdown(tester, 'profileParty').onChanged!('Bharatiya Janata Party');
-    await tester.pumpAndSettle();
-    expect(
-      _dropdown(tester, 'profileParty').initialValue,
-      'Bharatiya Janata Party',
+    // Search partial case-insensitive text
+    await tester.enterText(find.byKey(const ValueKey('partySearch')), 'janata');
+    await tester.pump();
+    expect(find.text('Bharatiya Janata Party'), findsOneWidget);
+    expect(find.text('Janata Dal (United)'), findsOneWidget);
+    expect(find.text('Biju Janata Dal'), findsOneWidget);
+    expect(find.text('Indian National Congress'), findsNothing);
+
+    // Search by abbreviation
+    await tester.enterText(find.byKey(const ValueKey('partySearch')), 'TMC');
+    await tester.pump();
+    expect(find.text('All India Trinamool Congress'), findsOneWidget);
+    expect(find.text('Bharatiya Janata Party'), findsNothing);
+
+    // Clear search
+    expect(find.byKey(const ValueKey('clearPartySearch')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('clearPartySearch')));
+    await tester.pump();
+    expect(find.text('Bharatiya Janata Party'), findsOneWidget);
+    expect(find.text('Indian National Congress'), findsOneWidget);
+
+    // No results found
+    await tester.enterText(
+      find.byKey(const ValueKey('partySearch')),
+      'NonExistentParty123',
     );
+    await tester.pump();
+    expect(find.text('No results found'), findsOneWidget);
+    expect(find.byKey(const ValueKey('noPartiesFound')), findsOneWidget);
+    expect(find.text('Bharatiya Janata Party'), findsNothing);
+
+    // Clear and select
+    await tester.tap(find.byKey(const ValueKey('clearPartySearch')));
+    await tester.pump();
+    await _chooseMenuItem(tester, 'Bharatiya Janata Party');
+    expect(find.byKey(const ValueKey('partySearch')), findsNothing);
+
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('profileParty')),
         matching: find.byType(PartySymbol),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('profileParty')),
+        matching: find.text('Bharatiya Janata Party'),
       ),
       findsOneWidget,
     );
@@ -282,7 +366,83 @@ void main() {
     await tester.pumpAndSettle();
     await _openDropdown(tester, 'profileParty');
     expect(tester.takeException(), isNull);
+    await tester.tapAt(const Offset(8, 8));
+    await tester.pumpAndSettle();
   });
+
+  testWidgets(
+    'designation dropdown supports searching, partial match, clearing, and selecting',
+    (tester) async {
+      await _openProfile(tester);
+      expect(find.byKey(const ValueKey('designationSearch')), findsNothing);
+
+      await _openDropdown(tester, 'profileDesignation');
+      expect(find.byKey(const ValueKey('designationSearch')), findsOneWidget);
+      expect(find.text('MLA'), findsOneWidget);
+      expect(find.text('MP'), findsOneWidget);
+      expect(find.text('Minister'), findsOneWidget);
+      expect(find.text('Chief Minister'), findsOneWidget);
+
+      // Search partial text (case-insensitive)
+      await tester.enterText(
+        find.byKey(const ValueKey('designationSearch')),
+        'min',
+      );
+      await tester.pump();
+      expect(find.text('Minister'), findsOneWidget);
+      expect(find.text('Chief Minister'), findsOneWidget);
+      expect(find.text('MLA'), findsNothing);
+      expect(find.text('MP'), findsNothing);
+
+      // Clear search
+      expect(
+        find.byKey(const ValueKey('clearDesignationSearch')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('clearDesignationSearch')));
+      await tester.pump();
+      expect(find.text('MLA'), findsOneWidget);
+      expect(find.text('Councillor'), findsOneWidget);
+
+      // No results found
+      await tester.enterText(
+        find.byKey(const ValueKey('designationSearch')),
+        'NonExistentDesignation',
+      );
+      await tester.pump();
+      expect(find.text('No results found'), findsOneWidget);
+      expect(find.byKey(const ValueKey('noDesignationsFound')), findsOneWidget);
+      expect(find.text('MLA'), findsNothing);
+
+      // Clear and select
+      await tester.tap(find.byKey(const ValueKey('clearDesignationSearch')));
+      await tester.pump();
+      await _chooseMenuItem(tester, 'Councillor');
+      expect(find.byKey(const ValueKey('designationSearch')), findsNothing);
+
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('profileDesignation')),
+          matching: find.text('Councillor'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        OnboardingScope.of(
+          tester.element(find.text('Leader Profile')),
+        ).draft.designation,
+        'Councillor',
+      );
+
+      await tester.binding.setSurfaceSize(const Size(390, 700));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpAndSettle();
+      await _openDropdown(tester, 'profileDesignation');
+      expect(tester.takeException(), isNull);
+      await tester.tapAt(const Offset(8, 8));
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('state menu prioritizes states and filters by prefix', (
     tester,
@@ -735,9 +895,16 @@ List<String> _menuNames(
 }
 
 Finder _openOptionMenu() {
-  final stateMenu = find.byKey(const ValueKey('stateMenuList'));
-  if (stateMenu.evaluate().isNotEmpty) {
-    return stateMenu;
+  for (final key in [
+    'designationMenuList',
+    'partyMenuList',
+    'stateMenuList',
+    'districtMenuList',
+  ]) {
+    final menu = find.byKey(ValueKey(key));
+    if (menu.evaluate().isNotEmpty) {
+      return menu;
+    }
   }
   return find.byKey(const ValueKey('districtMenuList'));
 }

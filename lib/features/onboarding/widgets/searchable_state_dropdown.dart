@@ -21,6 +21,11 @@ class SearchableStateField extends StatelessWidget {
     required this.noResultsLabel,
     required this.clearSearchLabel,
     this.prepareOptions,
+    this.filterOptions,
+    this.menuContentBuilder,
+    this.selectedWidget,
+    this.prefix,
+    this.showPrefix = true,
     this.searchFieldKey = const ValueKey('stateSearch'),
     this.clearButtonKey = const ValueKey('clearStateSearch'),
     this.emptyMessageKey = const ValueKey('noStatesFound'),
@@ -41,6 +46,17 @@ class SearchableStateField extends StatelessWidget {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options)? prepareOptions;
+  final List<String> Function(List<String> options, String query)? filterOptions;
+  final Widget Function(
+    BuildContext context,
+    List<String> visibleOptions,
+    String? selected,
+    ValueChanged<String> onSelect,
+    AppPalette palette,
+  )? menuContentBuilder;
+  final Widget Function(BuildContext context, String value)? selectedWidget;
+  final Widget? prefix;
+  final bool showPrefix;
   final Key searchFieldKey;
   final Key clearButtonKey;
   final Key emptyMessageKey;
@@ -67,6 +83,8 @@ class SearchableStateField extends StatelessWidget {
         noResultsLabel: noResultsLabel,
         clearSearchLabel: clearSearchLabel,
         prepareOptions: prepareOptions ?? prioritizeStates,
+        filterOptions: filterOptions,
+        menuContentBuilder: menuContentBuilder,
         searchFieldKey: searchFieldKey,
         clearButtonKey: clearButtonKey,
         emptyMessageKey: emptyMessageKey,
@@ -83,6 +101,12 @@ class SearchableStateField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final content =
+        value == null
+            ? const SizedBox.shrink()
+            : (selectedWidget?.call(context, value!) ??
+                Text(value!, maxLines: 1, overflow: TextOverflow.ellipsis));
+
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -95,16 +119,16 @@ class SearchableStateField extends StatelessWidget {
             enabled: enabled,
             hintText: hint,
             errorText: errorText,
-            prefixIcon: Icon(icon, color: palette.textMuted),
+            prefixIcon:
+                showPrefix
+                    ? (prefix ?? Icon(icon, color: palette.textMuted))
+                    : null,
             suffixIcon: Icon(
               Icons.keyboard_arrow_down,
               color: palette.textMuted,
             ),
           ),
-          child:
-              value == null
-                  ? const SizedBox.shrink()
-                  : Text(value!, maxLines: 1, overflow: TextOverflow.ellipsis),
+          child: content,
         ),
       ),
     );
@@ -125,6 +149,8 @@ class _StateMenuRoute extends PopupRoute<String> {
     required this.emptyMessageKey,
     required this.listKey,
     required this.maxHeight,
+    this.filterOptions,
+    this.menuContentBuilder,
   });
 
   final Rect anchor;
@@ -134,6 +160,14 @@ class _StateMenuRoute extends PopupRoute<String> {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options) prepareOptions;
+  final List<String> Function(List<String> options, String query)? filterOptions;
+  final Widget Function(
+    BuildContext context,
+    List<String> visibleOptions,
+    String? selected,
+    ValueChanged<String> onSelect,
+    AppPalette palette,
+  )? menuContentBuilder;
   final Key searchFieldKey;
   final Key clearButtonKey;
   final Key emptyMessageKey;
@@ -167,7 +201,11 @@ class _StateMenuRoute extends PopupRoute<String> {
           ),
         ),
         CustomSingleChildLayout(
-          delegate: _StateMenuLayout(anchor: anchor, maxHeight: maxHeight),
+          delegate: _StateMenuLayout(
+            anchor: anchor,
+            maxHeight: maxHeight,
+            viewInsets: MediaQuery.viewInsetsOf(context),
+          ),
           child: _StateSearchPanel(
             states: states,
             selected: selected,
@@ -175,6 +213,8 @@ class _StateMenuRoute extends PopupRoute<String> {
             noResultsLabel: noResultsLabel,
             clearSearchLabel: clearSearchLabel,
             prepareOptions: prepareOptions,
+            filterOptions: filterOptions,
+            menuContentBuilder: menuContentBuilder,
             searchFieldKey: searchFieldKey,
             clearButtonKey: clearButtonKey,
             emptyMessageKey: emptyMessageKey,
@@ -197,27 +237,34 @@ class _StateMenuRoute extends PopupRoute<String> {
 }
 
 class _StateMenuLayout extends SingleChildLayoutDelegate {
-  _StateMenuLayout({required this.anchor, required this.maxHeight});
+  _StateMenuLayout({
+    required this.anchor,
+    required this.maxHeight,
+    this.viewInsets = EdgeInsets.zero,
+  });
 
   final Rect anchor;
   final double maxHeight;
+  final EdgeInsets viewInsets;
 
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    final availableHeight = constraints.maxHeight - viewInsets.bottom;
     return BoxConstraints(
       minWidth: anchor.width,
       maxWidth: anchor.width,
-      maxHeight: math.max(0, math.min(maxHeight, constraints.maxHeight - 16)),
+      maxHeight: math.max(0, math.min(maxHeight, availableHeight - 16)),
     );
   }
 
   @override
   Offset getPositionForChild(Size size, Size childSize) {
+    final availableBottom = size.height - viewInsets.bottom - 8;
     var top = anchor.bottom + 4;
-    if (top + childSize.height > size.height - 8) {
+    if (top + childSize.height > availableBottom) {
       final above = anchor.top - 4 - childSize.height;
       top =
-          above >= 8 ? above : math.max(8, size.height - childSize.height - 8);
+          above >= 8 ? above : math.max(8, availableBottom - childSize.height);
     }
     var left = anchor.left;
     if (left + childSize.width > size.width - 8) {
@@ -228,7 +275,9 @@ class _StateMenuLayout extends SingleChildLayoutDelegate {
 
   @override
   bool shouldRelayout(covariant _StateMenuLayout oldDelegate) {
-    return anchor != oldDelegate.anchor || maxHeight != oldDelegate.maxHeight;
+    return anchor != oldDelegate.anchor ||
+        maxHeight != oldDelegate.maxHeight ||
+        viewInsets != oldDelegate.viewInsets;
   }
 }
 
@@ -244,6 +293,8 @@ class _StateSearchPanel extends StatefulWidget {
     required this.clearButtonKey,
     required this.emptyMessageKey,
     required this.listKey,
+    this.filterOptions,
+    this.menuContentBuilder,
   });
 
   final List<String> states;
@@ -252,6 +303,14 @@ class _StateSearchPanel extends StatefulWidget {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options) prepareOptions;
+  final List<String> Function(List<String> options, String query)? filterOptions;
+  final Widget Function(
+    BuildContext context,
+    List<String> visibleOptions,
+    String? selected,
+    ValueChanged<String> onSelect,
+    AppPalette palette,
+  )? menuContentBuilder;
   final Key searchFieldKey;
   final Key clearButtonKey;
   final Key emptyMessageKey;
@@ -279,7 +338,10 @@ class _StateSearchPanelState extends State<_StateSearchPanel> {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final visible = statesMatchingPrefix(_ordered, _query.text);
+    final visible = (widget.filterOptions ?? statesMatchingPrefix)(
+      _ordered,
+      _query.text,
+    );
     return Material(
       color: palette.surfaceSecondary,
       elevation: 6,
@@ -338,38 +400,47 @@ class _StateSearchPanelState extends State<_StateSearchPanel> {
                             style: AppTextStyles.muted(context),
                           ),
                         )
-                        : SingleChildScrollView(
-                          key: widget.listKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              for (final state in visible)
-                                InkWell(
-                                  onTap: () => Navigator.of(context).pop(state),
-                                  child: Container(
-                                    alignment: AlignmentDirectional.centerStart,
-                                    constraints: const BoxConstraints(
-                                      minHeight: kMinInteractiveDimension,
+                        : (widget.menuContentBuilder?.call(
+                              context,
+                              visible,
+                              widget.selected,
+                              (state) => Navigator.of(context).pop(state),
+                              palette,
+                            ) ??
+                            SingleChildScrollView(
+                              key: widget.listKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  for (final state in visible)
+                                    InkWell(
+                                      onTap:
+                                          () => Navigator.of(context).pop(state),
+                                      child: Container(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        constraints: const BoxConstraints(
+                                          minHeight: kMinInteractiveDimension,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        color:
+                                            state == widget.selected
+                                                ? palette.accent.withValues(
+                                                  alpha: 0.12,
+                                                )
+                                                : null,
+                                        child: Text(
+                                          state,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    color:
-                                        state == widget.selected
-                                            ? palette.accent.withValues(
-                                              alpha: 0.12,
-                                            )
-                                            : null,
-                                    child: Text(
-                                      state,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+                                ],
+                              ),
+                            )),
               ),
             ],
           );

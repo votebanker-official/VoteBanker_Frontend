@@ -37,18 +37,24 @@ void main() {
       'Rahul Kumar',
     );
     controller.draft.assemblyConstituency = 'Hubballi';
-    tester
-        .widget<DropdownButtonFormField<String>>(
-          find.byKey(const ValueKey('profileParty')),
-        )
-        .onChanged!('Indian National Congress');
-    await tester.pump();
-    tester
-        .widget<DropdownButtonFormField<String>>(
-          find.byKey(const ValueKey('profileDesignation')),
-        )
-        .onChanged!('Constituency Leader');
-    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('profileParty')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Indian National Congress').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('profileDesignation')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Constituency Leader').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey('profileContact')),
+        matching: find.byType(TextField),
+      ),
+      '9876543210',
+    );
+    await tester.pumpAndSettle();
     await _tap(tester, 'Save & Continue');
     expect(find.text('Portfolio Name Search'), findsOneWidget);
     await _tap(tester, 'Skip for now');

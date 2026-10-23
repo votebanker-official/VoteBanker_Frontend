@@ -38,9 +38,7 @@ class BasicProfileScreen extends StatefulWidget {
 class _BasicProfileScreenState extends State<BasicProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   final _contactAnchor = GlobalKey();
-  final _phoneInput = FilteringTextInputFormatter.allow(
-    RegExp(r'[0-9+\-().\s]'),
-  );
+  static const _phoneInput = IndianMobileNumberFormatter();
   final _selection = LocationSelection();
   var _ready = false;
 
@@ -68,7 +66,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     _boothName = TextEditingController(text: draft.boothName);
     _party = TextEditingController(text: draft.party);
     _designation = TextEditingController(text: draft.designation);
-    _contactNumber = TextEditingController(text: draft.contactNumber);
+    _contactNumber = TextEditingController(
+      text: extractIndianNationalNumber(draft.contactNumber),
+    );
     _preferredLanguage =
         ProfileLanguages.supports(draft.preferredLanguage)
             ? draft.preferredLanguage
@@ -131,7 +131,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       }
       if (_contactNumber.text.trim().isEmpty &&
           draft.contactNumber.isNotEmpty) {
-        _contactNumber.text = draft.contactNumber;
+        _contactNumber.text =
+            extractIndianNationalNumber(draft.contactNumber);
       }
       final catalog = _catalog;
       if (catalog != null) {
@@ -281,6 +282,32 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         duration: const Duration(milliseconds: 200),
       );
     });
+  }
+
+  Widget _buildPhonePrefix(BuildContext context) {
+    final palette = context.palette;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(width: 14),
+        Icon(Icons.phone_outlined, color: palette.textMuted),
+        const SizedBox(width: 8),
+        Text(
+          '+91',
+          style: AppTextStyles.body(context).copyWith(
+            color: palette.text,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          width: 1,
+          height: 20,
+          color: palette.border,
+        ),
+        const SizedBox(width: 10),
+      ],
+    );
   }
 
   Future<void> _choosePhotoSource() async {
@@ -440,6 +467,20 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           value: _shown(_designation.text, designations),
           options: designations,
           enabled: true,
+          searchable: true,
+          searchHint: 'Search designation',
+          noResultsLabel: 'No results found',
+          clearSearchLabel: l10n.clearStateSearch,
+          prepareOptions: (options) => options,
+          searchFieldKey: const ValueKey('designationSearch'),
+          clearButtonKey: const ValueKey('clearDesignationSearch'),
+          emptyMessageKey: const ValueKey('noDesignationsFound'),
+          listKey: const ValueKey('designationMenuList'),
+          filterOptions: (options, query) {
+            final q = query.trim().toLowerCase();
+            if (q.isEmpty) return options;
+            return options.where((o) => o.toLowerCase().contains(q)).toList();
+          },
           onChanged: (value) {
             setState(() => _designation.text = value ?? '');
             draft.designation = _designation.text;
@@ -457,6 +498,27 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           nationalPartiesLabel: l10n.nationalParties,
           regionalPartiesLabel: l10n.regionalParties,
           enabled: true,
+          searchable: true,
+          searchHint: 'Search party',
+          noResultsLabel: 'No results found',
+          clearSearchLabel: l10n.clearStateSearch,
+          prepareOptions: (options) => options,
+          searchFieldKey: const ValueKey('partySearch'),
+          clearButtonKey: const ValueKey('clearPartySearch'),
+          emptyMessageKey: const ValueKey('noPartiesFound'),
+          listKey: const ValueKey('partyMenuList'),
+          filterOptions: (options, query) {
+            final q = query.trim().toLowerCase();
+            if (q.isEmpty) return options;
+            return options.where((name) {
+              final party = PartyOption.findByName(name);
+              if (party != null) {
+                return party.name.toLowerCase().contains(q) ||
+                    party.abbreviation.toLowerCase().contains(q);
+              }
+              return name.toLowerCase().contains(q);
+            }).toList();
+          },
           onChanged: (value) {
             setState(() => _party.text = value ?? '');
             draft.party = _party.text;
@@ -558,13 +620,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             child: AppTextField(
               key: const ValueKey('profileContact'),
               label: '${l10n.publicContact} *',
-              hint: l10n.enterMobile,
-              prefixIcon: const Icon(Icons.phone_outlined),
+              hint: 'Enter 10-digit mobile number',
+              prefixIcon: _buildPhonePrefix(context),
               controller: _contactNumber,
               keyboardType: TextInputType.phone,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.telephoneNumber],
-              inputFormatters: [_phoneInput],
+              inputFormatters: const [_phoneInput],
               errorText: _contactError,
               onChanged: (value) {
                 draft.contactNumber = value;
@@ -968,6 +1030,7 @@ class _ProfileDropdown extends StatelessWidget {
     this.noResultsLabel = '',
     this.clearSearchLabel = '',
     this.prepareOptions,
+    this.filterOptions,
     this.searchFieldKey,
     this.clearButtonKey,
     this.emptyMessageKey,
@@ -991,6 +1054,7 @@ class _ProfileDropdown extends StatelessWidget {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options)? prepareOptions;
+  final List<String> Function(List<String> options, String query)? filterOptions;
   final Key? searchFieldKey;
   final Key? clearButtonKey;
   final Key? emptyMessageKey;
@@ -1023,6 +1087,26 @@ class _ProfileDropdown extends StatelessWidget {
             noResultsLabel: noResultsLabel,
             clearSearchLabel: clearSearchLabel,
             prepareOptions: prepareOptions,
+            filterOptions: filterOptions,
+            showPrefix: !showPartySymbols,
+            selectedWidget:
+                showPartySymbols && value != null
+                    ? (context, val) => _PartyOptionLabel(name: val)
+                    : null,
+            menuContentBuilder:
+                showPartySymbols
+                    ? (context, visible, selected, onSelect, palette) =>
+                        _partyMenuContent(
+                          context: context,
+                          visibleOptions: visible,
+                          selected: selected,
+                          onSelect: onSelect,
+                          nationalLabel: nationalPartiesLabel,
+                          regionalLabel: regionalPartiesLabel,
+                          listKey: listKey ?? const ValueKey('partyMenuList'),
+                          palette: palette,
+                        )
+                    : null,
             searchFieldKey: searchFieldKey ?? const ValueKey('stateSearch'),
             clearButtonKey:
                 clearButtonKey ?? const ValueKey('clearStateSearch'),
@@ -1032,7 +1116,7 @@ class _ProfileDropdown extends StatelessWidget {
         else
           DropdownButtonFormField<String>(
             key: fieldKey,
-            value: value,
+            initialValue: value,
             isExpanded: true,
             hint: Text(hint),
             icon: Icon(Icons.keyboard_arrow_down, color: palette.textMuted),
@@ -1090,6 +1174,73 @@ class _PartyOptionLabel extends StatelessWidget {
       ],
     );
   }
+}
+
+Widget _partyMenuContent({
+  required BuildContext context,
+  required List<String> visibleOptions,
+  required String? selected,
+  required ValueChanged<String> onSelect,
+  required String nationalLabel,
+  required String regionalLabel,
+  required Key listKey,
+  required AppPalette palette,
+}) {
+  final visibleSet = visibleOptions.toSet();
+  final saved =
+      visibleOptions
+          .where((name) => PartyOption.findByName(name) == null)
+          .toList();
+  final national =
+      PartyOption.national.where((p) => visibleSet.contains(p.name)).toList();
+  final regional =
+      PartyOption.regional.where((p) => visibleSet.contains(p.name)).toList();
+
+  Widget header(String id, String label) {
+    return Container(
+      key: ValueKey(id),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: palette.textMuted,
+        ),
+      ),
+    );
+  }
+
+  Widget partyItem(String name) {
+    return InkWell(
+      onTap: () => onSelect(name),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        color: name == selected ? palette.accent.withValues(alpha: 0.12) : null,
+        alignment: AlignmentDirectional.centerStart,
+        child: _PartyOptionLabel(name: name),
+      ),
+    );
+  }
+
+  return SingleChildScrollView(
+    key: listKey,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final name in saved) partyItem(name),
+        if (national.isNotEmpty) header('__national_parties__', nationalLabel),
+        for (final party in national) partyItem(party.name),
+        if (regional.isNotEmpty) header('__regional_parties__', regionalLabel),
+        for (final party in regional) partyItem(party.name),
+      ],
+    ),
+  );
 }
 
 List<DropdownMenuItem<String>> _partyMenuItems(
