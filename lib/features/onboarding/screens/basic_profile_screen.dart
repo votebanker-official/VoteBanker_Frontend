@@ -258,7 +258,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       return;
     }
     _commit();
-    AppRouter.open(context, AppRoutes.domain);
+    AppRouter.open(context, AppRoutes.website);
   }
 
   void _revealContact() {
@@ -595,7 +595,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           child: TextButton(
             onPressed: () {
               _commit();
-              AppRouter.open(context, AppRoutes.domain);
+              AppRouter.open(context, AppRoutes.website);
             },
             child: Text(l10n.skipForNow),
           ),

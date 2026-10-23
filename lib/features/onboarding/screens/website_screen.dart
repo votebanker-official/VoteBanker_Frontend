@@ -198,7 +198,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 ),
               ),
               TextButton(
-                onPressed: () => AppRouter.open(context, AppRoutes.social),
+                onPressed: () => AppRouter.open(context, AppRoutes.domain),
                 child: Text(l10n.portfolioSkip),
               ),
             ],
