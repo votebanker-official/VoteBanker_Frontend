@@ -36,13 +36,7 @@ void main() {
       ),
       'Rahul Kumar',
     );
-    await tester.enterText(
-      find.descendant(
-        of: find.byKey(const ValueKey('profileAssembly')),
-        matching: find.byType(TextField),
-      ),
-      'Hubballi',
-    );
+    controller.draft.assemblyConstituency = 'Hubballi';
     tester
         .widget<DropdownButtonFormField<String>>(
           find.byKey(const ValueKey('profileParty')),
@@ -63,16 +57,11 @@ void main() {
     expect(find.text('Rahul Kumar'), findsWidgets);
     expect(find.textContaining('Hubballi'), findsWidgets);
     expect(find.textContaining('Indian National Congress'), findsWidgets);
-    expect(
-      find.byKey(const ValueKey('preview-professional')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const ValueKey('preview-professional')), findsOneWidget);
     expect(find.text('Professional'), findsWidgets);
     expect(find.byIcon(Icons.check_circle), findsWidgets);
 
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('template-official')),
-    );
+    await tester.ensureVisible(find.byKey(const ValueKey('template-official')));
     await tester.tap(find.byKey(const ValueKey('template-official')));
     await tester.pump();
     // Selecting uses the Select Template button inside the card.

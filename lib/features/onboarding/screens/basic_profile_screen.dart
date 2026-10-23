@@ -13,16 +13,20 @@ import '../../../core/services/profile_service.dart';
 import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../data/assembly_constituency.dart';
 import '../data/contact_number.dart';
 import '../data/location_catalog.dart';
+import '../data/state_search.dart';
 import '../data/profile_languages.dart';
 import '../data/profile_options.dart';
 import '../data/location_selection.dart';
 import '../models/onboarding_draft.dart';
 import '../state/onboarding_controller.dart';
 import '../data/political_party.dart';
+import '../widgets/assembly_constituency_field.dart';
 import '../widgets/onboarding_frame.dart';
 import '../widgets/party_symbol.dart';
+import '../widgets/searchable_state_dropdown.dart';
 
 class BasicProfileScreen extends StatefulWidget {
   const BasicProfileScreen({super.key});
@@ -41,7 +45,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   var _ready = false;
 
   late final TextEditingController _leaderName;
-  late final TextEditingController _assemblyConstituency;
   late final TextEditingController _boothNumber;
   late final TextEditingController _boothName;
   late final TextEditingController _party;
@@ -61,9 +64,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
     final draft = OnboardingScope.of(context).draft;
     _leaderName = TextEditingController(text: draft.leaderName);
-    _assemblyConstituency = TextEditingController(
-      text: draft.assemblyConstituency,
-    );
     _boothNumber = TextEditingController(text: draft.boothNumber);
     _boothName = TextEditingController(text: draft.boothName);
     _party = TextEditingController(text: draft.party);
@@ -126,10 +126,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       if (_leaderName.text.trim().isEmpty && draft.leaderName.isNotEmpty) {
         _leaderName.text = draft.leaderName;
       }
-      if (_assemblyConstituency.text.trim().isEmpty &&
-          draft.assemblyConstituency.isNotEmpty) {
-        _assemblyConstituency.text = draft.assemblyConstituency;
-      }
       if (_party.text.trim().isEmpty && draft.party.isNotEmpty) {
         _party.text = draft.party;
       }
@@ -164,7 +160,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   @override
   void dispose() {
     _leaderName.dispose();
-    _assemblyConstituency.dispose();
     _boothNumber.dispose();
     _boothName.dispose();
     _party.dispose();
@@ -188,8 +183,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
     draft
       ..leaderName = nextName
-      ..assemblyConstituency = _assemblyConstituency.text.trim()
-      ..assemblyConstituencyId = null
+      ..assemblyConstituency = draft.assemblyConstituency.trim()
       ..boothNumber = _boothNumber.text.trim()
       ..boothName = _boothName.text.trim()
       ..party = _party.text.trim()
@@ -225,18 +219,32 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   void _selectState(String? value) {
     final draft = OnboardingScope.of(context).draft;
+    final previous = _selection.state;
     setState(() {
       _selection.selectState(value);
       _locationIssue = null;
+      if (_selection.state != previous) {
+        _clearAssembly(draft);
+      }
       _syncLocation(draft);
     });
   }
 
+  void _clearAssembly(OnboardingDraft draft) {
+    draft
+      ..assemblyConstituency = ''
+      ..assemblyConstituencyId = null;
+  }
+
   void _selectDistrict(String? value) {
     final draft = OnboardingScope.of(context).draft;
+    final previous = _selection.district;
     setState(() {
       _selection.selectDistrict(value);
       _locationIssue = null;
+      if (_selection.district != previous) {
+        _clearAssembly(draft);
+      }
       _syncLocation(draft);
     });
   }
@@ -487,6 +495,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 value: _shown(_selection.state, states),
                 options: states,
                 enabled: stateEnabled,
+                searchable: true,
+                searchHint: l10n.searchStates,
+                noResultsLabel: l10n.noStatesFound,
+                clearSearchLabel: l10n.clearStateSearch,
                 errorText:
                     _locationIssue == LocationIssue.state
                         ? l10n.invalidSelection
@@ -502,6 +514,15 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 value: _shown(_selection.district, districts),
                 options: districts,
                 enabled: districtEnabled,
+                searchable: true,
+                searchHint: l10n.searchDistricts,
+                noResultsLabel: l10n.noDistrictsFound,
+                clearSearchLabel: l10n.clearStateSearch,
+                prepareOptions: uniqueNames,
+                searchFieldKey: const ValueKey('districtSearch'),
+                clearButtonKey: const ValueKey('clearDistrictSearch'),
+                emptyMessageKey: const ValueKey('noDistrictsFound'),
+                listKey: const ValueKey('districtMenuList'),
                 errorText:
                     _locationIssue == LocationIssue.district
                         ? l10n.invalidSelection
@@ -609,19 +630,50 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   }
 
   Widget _assemblyField(AppLocalizations l10n, OnboardingDraft draft) {
-    return AppTextField(
-      key: const ValueKey('profileAssembly'),
-      label: '${l10n.assemblyConstituency} *',
-      hint: l10n.enterAssemblyConstituency,
-      prefixIcon: const Icon(Icons.groups_outlined),
-      controller: _assemblyConstituency,
-      textCapitalization: TextCapitalization.words,
-      textInputAction: TextInputAction.next,
-      onChanged: (value) {
-        draft
-          ..assemblyConstituency = value
-          ..assemblyConstituencyId = null;
-      },
+    final districtSelected = _selection.district.isNotEmpty;
+    final saved = draft.assemblyConstituency.trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          '${l10n.assemblyConstituency} *',
+          style: AppTextStyles.label(
+            context,
+          ).copyWith(fontSize: 13, color: context.palette.text),
+        ),
+        const SizedBox(height: 8),
+        AssemblyConstituencyField(
+          fieldKey: const ValueKey('profileAssembly'),
+          value: saved.isEmpty ? null : saved,
+          enabled: districtSelected,
+          stateName: _selection.state,
+          districtName: _selection.district,
+          hint: l10n.selectConstituency,
+          manualHint: l10n.enterAssemblyConstituency,
+          searchHint: l10n.searchConstituencies,
+          noResultsLabel: l10n.noConstituenciesFound,
+          clearSearchLabel: l10n.clearStateSearch,
+          loadingLabel: l10n.loadingAssemblyConstituencies,
+          onLoad:
+              () => AssemblyConstituencies.load(
+                state: _selection.state,
+                district: _selection.district,
+              ),
+          onChanged: (item) {
+            if (item == null) return;
+            setState(() {
+              draft
+                ..assemblyConstituency = item.label
+                ..assemblyConstituencyId = item.id;
+            });
+          },
+          onTyped: (text) {
+            draft
+              ..assemblyConstituency = text
+              ..assemblyConstituencyId = null;
+          },
+        ),
+      ],
     );
   }
 
@@ -911,6 +963,15 @@ class _ProfileDropdown extends StatelessWidget {
     this.showPartySymbols = false,
     this.nationalPartiesLabel = '',
     this.regionalPartiesLabel = '',
+    this.searchable = false,
+    this.searchHint = '',
+    this.noResultsLabel = '',
+    this.clearSearchLabel = '',
+    this.prepareOptions,
+    this.searchFieldKey,
+    this.clearButtonKey,
+    this.emptyMessageKey,
+    this.listKey,
   });
 
   final Key fieldKey;
@@ -925,6 +986,15 @@ class _ProfileDropdown extends StatelessWidget {
   final bool showPartySymbols;
   final String nationalPartiesLabel;
   final String regionalPartiesLabel;
+  final bool searchable;
+  final String searchHint;
+  final String noResultsLabel;
+  final String clearSearchLabel;
+  final List<String> Function(List<String> options)? prepareOptions;
+  final Key? searchFieldKey;
+  final Key? clearButtonKey;
+  final Key? emptyMessageKey;
+  final Key? listKey;
 
   @override
   Widget build(BuildContext context) {
@@ -939,41 +1009,64 @@ class _ProfileDropdown extends StatelessWidget {
           ).copyWith(fontSize: 13, color: palette.text),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          key: fieldKey,
-          value: value,
-          isExpanded: true,
-          hint: Text(hint),
-          icon: Icon(Icons.keyboard_arrow_down, color: palette.textMuted),
-          dropdownColor: palette.surfaceSecondary,
-          menuMaxHeight: MediaQuery.sizeOf(context).height * 0.5,
-          itemHeight: showPartySymbols ? 56 : kMinInteractiveDimension,
-          decoration: InputDecoration(
-            prefixIcon:
-                showPartySymbols ? null : Icon(icon, color: palette.textMuted),
+        if (searchable)
+          SearchableStateField(
+            fieldKey: fieldKey,
+            hint: hint,
+            icon: icon,
+            value: value,
+            options: options,
+            enabled: enabled,
             errorText: errorText,
-          ),
-          items:
-              showPartySymbols
-                  ? _partyMenuItems(
-                    options,
-                    nationalPartiesLabel,
-                    regionalPartiesLabel,
-                    palette,
-                  )
-                  : [
-                    for (final option in options)
-                      DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(
-                          option,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+            onChanged: onChanged,
+            searchHint: searchHint,
+            noResultsLabel: noResultsLabel,
+            clearSearchLabel: clearSearchLabel,
+            prepareOptions: prepareOptions,
+            searchFieldKey: searchFieldKey ?? const ValueKey('stateSearch'),
+            clearButtonKey:
+                clearButtonKey ?? const ValueKey('clearStateSearch'),
+            emptyMessageKey: emptyMessageKey ?? const ValueKey('noStatesFound'),
+            listKey: listKey ?? const ValueKey('stateMenuList'),
+          )
+        else
+          DropdownButtonFormField<String>(
+            key: fieldKey,
+            value: value,
+            isExpanded: true,
+            hint: Text(hint),
+            icon: Icon(Icons.keyboard_arrow_down, color: palette.textMuted),
+            dropdownColor: palette.surfaceSecondary,
+            menuMaxHeight: MediaQuery.sizeOf(context).height * 0.5,
+            itemHeight: showPartySymbols ? 56 : kMinInteractiveDimension,
+            decoration: InputDecoration(
+              prefixIcon:
+                  showPartySymbols
+                      ? null
+                      : Icon(icon, color: palette.textMuted),
+              errorText: errorText,
+            ),
+            items:
+                showPartySymbols
+                    ? _partyMenuItems(
+                      options,
+                      nationalPartiesLabel,
+                      regionalPartiesLabel,
+                      palette,
+                    )
+                    : [
+                      for (final option in options)
+                        DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(
+                            option,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                  ],
-          onChanged: enabled ? onChanged : null,
-        ),
+                    ],
+            onChanged: enabled ? onChanged : null,
+          ),
       ],
     );
   }

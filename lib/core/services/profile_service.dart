@@ -91,6 +91,8 @@ class ProfileService {
       for (final entry in text.entries)
         if (entry.value != null && entry.value!.isNotEmpty)
           entry.key: entry.value,
+      if (draft.assemblyConstituencyId != null)
+        'assembly_constituency_id': draft.assemblyConstituencyId,
       if (draft.socialChannels.isNotEmpty)
         'social_channels': draft.socialChannels.toList(),
       if (draft.vrmRequested) 'vrm_requested': true,
