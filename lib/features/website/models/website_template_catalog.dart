@@ -78,7 +78,11 @@ abstract final class WebsiteTemplateCatalog {
     accentColor: 0xFF2563EB,
   );
 
+  /// Kept for draft ID compatibility. The selection screen offers only
+  /// [professional].
   static const all = [professional, official, community];
+
+  static const selectable = [professional];
 
   static WebsiteTemplateInfo byId(String? id) {
     final normalized = WebsiteTemplates.normalize(id);

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/app.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
+import 'package:votebanker/features/onboarding/widgets/party_symbol.dart';
 import 'package:votebanker/features/website/models/website_builder_draft.dart';
 
 void main() {
@@ -56,81 +57,48 @@ void main() {
     );
     await tester.pumpAndSettle();
     await _tap(tester, 'Save & Continue');
-    expect(find.text('Portfolio Name Search'), findsOneWidget);
-    await _tap(tester, 'Skip for now');
 
-    expect(find.textContaining('Choose Your Website Template'), findsOneWidget);
+    expect(find.textContaining('Your Political Website'), findsOneWidget);
     expect(find.text('Rahul Kumar'), findsWidgets);
     expect(find.textContaining('Hubballi'), findsWidgets);
     expect(find.textContaining('Indian National Congress'), findsWidgets);
+    expect(find.textContaining('Constituency Leader'), findsWidgets);
     expect(find.byKey(const ValueKey('preview-professional')), findsOneWidget);
-    expect(find.text('Professional'), findsWidgets);
-    expect(find.byIcon(Icons.check_circle), findsWidgets);
-
-    await tester.ensureVisible(find.byKey(const ValueKey('template-official')));
-    await tester.tap(find.byKey(const ValueKey('template-official')));
-    await tester.pump();
-    // Selecting uses the Select Template button inside the card.
-    await tester.tap(
+    expect(find.byType(PartySymbol), findsWidgets);
+    expect(find.text('Professional'), findsNothing);
+    expect(find.text('Official'), findsNothing);
+    expect(find.text('Community'), findsNothing);
+    expect(find.text('Make it yours'), findsNothing);
+    expect(find.text('Templates'), findsNothing);
+    expect(find.text('My Website'), findsNothing);
+    expect(find.text('About the Leader'), findsOneWidget);
+    expect(find.text('Vision & Priorities'), findsWidgets);
+    expect(find.text('Achievements & Development Work'), findsOneWidget);
+    expect(find.text('Gallery & Community Updates'), findsOneWidget);
+    expect(find.text('Know My Vision'), findsOneWidget);
+    expect(find.text('Get in Touch'), findsOneWidget);
+    expect(find.byKey(const ValueKey('aboutTheLeader')), findsOneWidget);
+    expect(
       find.descendant(
-        of: find.byKey(const ValueKey('template-official')),
-        matching: find.text('Select Template'),
+        of: find.byKey(const ValueKey('aboutTheLeader')),
+        matching: find.byType(Image),
       ),
+      findsNothing,
     );
-    await tester.pump();
-    expect(find.byKey(const ValueKey('preview-official')), findsOneWidget);
-    expect(find.text('Serving with Responsibility'), findsOneWidget);
-    expect(controller.draft.websiteTemplate, WebsiteTemplates.official);
-
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('template-community')),
-    );
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const ValueKey('template-community')),
-        matching: find.text('Select Template'),
-      ),
-    );
-    await tester.pump();
-    expect(find.byKey(const ValueKey('preview-community')), findsOneWidget);
-    expect(find.text('Growing Together'), findsOneWidget);
-
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('template-professional')),
-    );
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const ValueKey('template-professional')),
-        matching: find.text('Select Template'),
-      ),
-    );
-    await tester.pump();
-    expect(find.text('Building a Better Tomorrow'), findsOneWidget);
-
-    await tester.dragUntilVisible(
-      find.text('My Website'),
-      find.byType(Scrollable).first,
-      const Offset(0, 300),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('My Website'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('editWebsite')), findsOneWidget);
-
-    await tester.tap(find.text('Templates'));
-    await tester.pumpAndSettle();
-    expect(find.text('Make it yours'), findsOneWidget);
+    expect(find.textContaining('9876543210'), findsOneWidget);
+    expect(controller.draft.websiteTemplate, WebsiteTemplates.professional);
+    expect(find.byKey(const ValueKey('continueTemplate')), findsOneWidget);
+    expect(find.byKey(const ValueKey('customizeTemplate')), findsOneWidget);
+    expect(find.byKey(const ValueKey('previewWebsite')), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
-    expect(find.text('Portfolio Name Search'), findsOneWidget);
-    await _tap(tester, 'Back');
     expect(find.text('Leader Profile'), findsOneWidget);
     expect(controller.draft.leaderName, 'Rahul Kumar');
     expect(controller.draft.photoBytes, isNotNull);
+    expect(controller.draft.party, 'Indian National Congress');
 
     await _tap(tester, 'Save & Continue');
-    await _tap(tester, 'Skip for now');
     await _tap(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
   });

@@ -6,9 +6,10 @@ import '../data/political_party.dart';
 
 /// One circular badge. The artwork itself has no outer circle.
 class PartySymbol extends StatelessWidget {
-  const PartySymbol(this.partyName, {super.key});
+  const PartySymbol(this.partyName, {super.key, this.diameter = size});
 
   final String partyName;
+  final double diameter;
 
   static const double size = 40;
   static const double gap = 12;
@@ -17,10 +18,11 @@ class PartySymbol extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final asset = PartyOption.symbolFor(partyName);
+    final pad = diameter <= 32 ? 4.0 : 6.0;
     return Container(
-      width: size,
-      height: size,
-      padding: const EdgeInsets.all(6),
+      width: diameter,
+      height: diameter,
+      padding: EdgeInsets.all(pad),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,

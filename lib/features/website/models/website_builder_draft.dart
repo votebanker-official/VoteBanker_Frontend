@@ -509,6 +509,12 @@ class WebsiteBuilderDraft {
     design.fontKey = defaults.fontKey;
   }
 
+  /// Replaces party branding from the Leader Profile without clearing
+  /// biography, photo, achievements, gallery, or contact fields.
+  void applyPartyFromProfile(String partyName) {
+    party = partyName.trim();
+  }
+
   bool get hasProfilePhoto => profilePhoto.hasImage;
 
   bool get basicInfoComplete =>
