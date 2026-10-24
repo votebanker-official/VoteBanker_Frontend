@@ -81,6 +81,10 @@ const mlTranslations = <String, String>{
   'dashboardSubtitle':
       'നിങ്ങളുടെ VOTE BANKER വർക്ക്‌സ്‌പേസ് ഇവിടെ തുടങ്ങുന്നു.',
   'cardProfile': 'എന്റെ പോർട്ട്ഫോളിയോ',
+  'cardAdministrations': 'ഭരണം',
+  'administrationsCardBody': 'പ്രസംഗം, കത്തുകൾ, ഇവന്റുകൾ എന്നിവയും കൂടുതലും',
+  'administrationsSubtitle':
+      'പ്രസംഗം, കത്തുകൾ, ഇവന്റുകൾ, ക്യാമ്പെയിൻ, അക്കൗണ്ട് ജോലികൾക്കുള്ള ഉപകരണങ്ങൾ.',
   'cardDomain': 'ഡൊമെയ്‌നും വെബ്‌സൈറ്റും',
   'cardSocial': 'സോഷൽ മീഡിയ',
   'socialCardBody': 'VRM-ൽ സേവ് ചെയ്ത WhatsApp, Instagram, Facebook കോൺടാക്റ്റുകൾ.',
@@ -243,6 +247,15 @@ const mlTranslations = <String, String>{
   'secContact': 'ബന്ധപ്പെടൽ',
   'secSocial': 'സോഷ്യൽ ലിങ്കുകൾ',
   'secGallery': 'ഗാലറി',
+  'generateWebsite': 'വെബ്‌സൈറ്റ് ഉണ്ടാക്കുക',
+  'websiteGenerateNeedDescription':
+      'ജനറേറ്റ് ചെയ്യുന്നതിന് മുമ്പ് വ്യക്തി, ബിസിനസ് അല്ലെങ്കിൽ ജോലിയുടെ വിശദ വിവരണം ചേർക്കുക.',
+  'websiteAiNotConfigured':
+      'സെർവറിൽ Website AI ക്രമീകരിച്ചിട്ടില്ല. WEBSITE_AI_API_KEY (അല്ലെങ്കിൽ SPEECH_AI_API_KEY) സജ്ജമാക്കി Retry ചെയ്യുക.',
+  'websiteGenerateUnreachable':
+      'വെബ്‌സൈറ്റ് ജനറേറ്ററിലേക്ക് എത്താനായില്ല. ലോക്കൽ ബാക്കെൻഡ് തുടങ്ങുക അല്ലെങ്കിൽ API URL പരിശോധിക്കുക.',
+  'websiteGenerateFailed': 'വെബ്‌സൈറ്റ് ജനറേഷൻ പരാജയപ്പെട്ടു. സെർവർ ലോഗുകൾ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.',
+  'websiteAiSourceStock': 'ചിത്രങ്ങൾ ഈ വെബ്‌സൈറ്റ് വിഭാഗത്തിന് അനുയോജ്യമായ സ്റ്റോക്ക് ഫോട്ടോകളാണ്.',
   'generatingTitle': 'നിങ്ങളുടെ വെബ്‌സൈറ്റ് തയ്യാറാകുന്നു',
   'generatingBody':
       'ഈ പ്രിവ്യൂ ഈ ഉപകരണത്തിലാണ് ഉണ്ടാകുന്നത്. എഴുത്ത് സേവനം ഇതുവരെ ബന്ധിപ്പിച്ചിട്ടില്ല.',

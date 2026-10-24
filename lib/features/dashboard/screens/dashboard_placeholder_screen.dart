@@ -22,7 +22,6 @@ class DashboardPlaceholderScreen extends StatelessWidget {
     final greeting = name.isEmpty ? l10n.welcomeTitle : l10n.welcomeBack(name);
     final modules = <_Module>[
       _Module(Icons.person_outline, l10n.cardProfile),
-      _Module(Icons.language, l10n.cardDomain),
       _Module(
         Icons.share_outlined,
         l10n.cardSocial,
@@ -31,36 +30,25 @@ class DashboardPlaceholderScreen extends StatelessWidget {
       ),
       _Module(Icons.auto_awesome_outlined, l10n.cardContent),
       _Module(
-        Icons.record_voice_over_outlined,
-        l10n.line('speechCard'),
-        subtitle: l10n.line('speechCardBody'),
-        route: AppRoutes.speech,
-      ),
-      _Module(
-        Icons.mail_outline,
-        l10n.line('letterCard'),
-        subtitle: l10n.line('letterCardBody'),
-        route: AppRoutes.letter,
-      ),
-      _Module(
         Icons.groups_outlined,
         l10n.cardVrm,
         subtitle: l10n.line('vrmRecordsBody'),
         route: AppRoutes.vrmRecords,
       ),
       _Module(Icons.volunteer_activism_outlined, l10n.cardVolunteers),
-      _Module(Icons.event_outlined, l10n.cardEvents),
-      _Module(Icons.assignment_outlined, l10n.cardIssues),
-      _Module(Icons.campaign_outlined, l10n.cardCampaign),
       _Module(Icons.group_outlined, l10n.cardTeam),
-      _Module(Icons.insights_outlined, l10n.cardAnalytics),
       _Module(
         Icons.storefront_outlined,
         l10n.cardMarketplace,
         subtitle: l10n.line('merchOpen'),
         route: AppRoutes.merchandise,
       ),
-      _Module(Icons.receipt_long_outlined, l10n.cardBilling),
+      _Module(
+        Icons.account_balance_outlined,
+        l10n.line('cardAdministrations'),
+        subtitle: l10n.line('administrationsCardBody'),
+        route: AppRoutes.administrations,
+      ),
       _Module(Icons.settings_outlined, l10n.cardSettings),
     ];
 

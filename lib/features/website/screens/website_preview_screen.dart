@@ -8,6 +8,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 import '../models/website_draft.dart';
+import '../services/website_services.dart';
 import '../widgets/website_site_view.dart';
 import '../widgets/website_stage.dart';
 
@@ -20,17 +21,50 @@ class WebsitePreviewScreen extends StatefulWidget {
 
 class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
   int _device = 0;
+  var _rebuilding = false;
+
   Future<void> _rebuild(WebsiteDraft website) async {
-    final services = OnboardingScope.of(context).websiteServices;
-    final preview = await services.generation.generate(website);
-    if (!mounted) {
+    if (_rebuilding) {
       return;
     }
-    setState(() => website.preview = preview);
+    setState(() => _rebuilding = true);
+    final l10n = AppLocalizations.of(context);
+    final services = OnboardingScope.of(context).websiteServices;
+    try {
+      final preview = await services.generation.generate(website);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        website.preview = preview;
+        _rebuilding = false;
+      });
+    } on WebsiteGenerationException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _rebuilding = false);
+      final message = switch (error.code) {
+        'website_ai_not_configured' => l10n.line('websiteAiNotConfigured'),
+        'unreachable' => l10n.line('websiteGenerateUnreachable'),
+        _ => l10n.line('websiteGenerateFailed'),
+      };
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _rebuilding = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.line('websiteGenerateFailed'))),
+      );
+    }
   }
 
   Future<void> _regenerate(WebsiteDraft website) async {
     website.layoutVariant = (website.layoutVariant + 1) % 3;
+    website.regenerateInstruction =
+        'Create a fresh layout variant ${website.layoutVariant}. Keep the same facts and do not invent new claims.';
     await _rebuild(website);
   }
 
@@ -109,7 +143,12 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
 
     return WebsiteStage(
       children: [
-        if (preview != null) ...[
+        if (_rebuilding)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (preview != null) ...[
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -132,9 +171,25 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
             ],
           ),
           const SizedBox(height: 12),
+          if (preview.heroImageSource == 'stock' || preview.source == 'ai')
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(
+                preview.isAiGenerated
+                    ? l10n.line('websiteAiSourceStock')
+                    : l10n.line('websiteAiSourceStock'),
+                style: AppTextStyles.muted(context),
+              ),
+            ),
           Center(
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: _device == 2 ? 390 : _device == 1 ? 768 : double.infinity),
+              constraints: BoxConstraints(
+                maxWidth: _device == 2
+                    ? 390
+                    : _device == 1
+                        ? 768
+                        : double.infinity,
+              ),
               child: WebsiteSiteView(document: preview),
             ),
           ),
@@ -148,22 +203,35 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
           children: [
             _Action(
               label: l10n.line('editWebsite'),
-              onPressed: () async {
-                await Navigator.of(context).pushNamed(AppRoutes.websiteEdit);
-                if (mounted) {
-                  setState(() {});
-                }
-              },
+              onPressed: _rebuilding
+                  ? null
+                  : () async {
+                      await Navigator.of(context).pushNamed(AppRoutes.websiteEdit);
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    },
             ),
-            _Action(label: l10n.line('regenerate'), onPressed: () => _regenerate(website)),
-            _Action(label: l10n.line('changeStyle'), onPressed: () => _chooseStyle(website)),
-            _Action(label: l10n.line('changeLanguage'), onPressed: () => _chooseLanguage(website)),
+            _Action(
+              label: l10n.line('regenerate'),
+              onPressed: _rebuilding ? null : () => _regenerate(website),
+            ),
+            _Action(
+              label: l10n.line('changeStyle'),
+              onPressed: _rebuilding ? null : () => _chooseStyle(website),
+            ),
+            _Action(
+              label: l10n.line('changeLanguage'),
+              onPressed: _rebuilding ? null : () => _chooseLanguage(website),
+            ),
           ],
         ),
         const SizedBox(height: 12),
         PrimaryButton(
           label: l10n.line('continueAction'),
-          onPressed: () => AppRouter.open(context, AppRoutes.websitePurchase),
+          onPressed: _rebuilding
+              ? null
+              : () => AppRouter.open(context, AppRoutes.websitePurchase),
         ),
       ],
     );
@@ -171,10 +239,10 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
 }
 
 class _Action extends StatelessWidget {
-  const _Action({required this.label, required this.onPressed, this.selected = false});
+  const _Action({required this.label, this.onPressed, this.selected = false});
 
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool selected;
 
   @override

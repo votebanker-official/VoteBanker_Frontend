@@ -78,6 +78,10 @@ const teTranslations = <String, String>{
   'dashboard': 'డాష్‌బోర్డ్',
   'dashboardSubtitle': 'మీ VOTE BANKER కార్యస్థలం ఇక్కడ నుండి మొదలవుతుంది.',
   'cardProfile': 'నా పోర్ట్‌ఫోలియో',
+  'cardAdministrations': 'పరిపాలన',
+  'administrationsCardBody': 'ప్రసంగం, లేఖలు, ఈవెంట్‌లు మరియు మరిన్ని',
+  'administrationsSubtitle':
+      'ప్రసంగం, లేఖలు, ఈవెంట్‌లు, ప్రచారం మరియు ఖాతా పనుల కోసం సాధనాలు.',
   'cardDomain': 'డొమైన్ మరియు వెబ్‌సైట్',
   'cardSocial': 'సోషల్ మీడియా',
   'socialCardBody': 'VRMలో సేవ్ చేసిన WhatsApp, Instagram మరియు Facebook పరిచయాలు.',
@@ -238,6 +242,15 @@ const teTranslations = <String, String>{
   'secContact': 'సంప్రదింపు',
   'secSocial': 'సోషల్ లింకులు',
   'secGallery': 'గ్యాలరీ',
+  'generateWebsite': 'వెబ్‌సైట్ సృష్టించండి',
+  'websiteGenerateNeedDescription':
+      'సృష్టించే ముందు వ్యక్తి, వ్యాపారం లేదా పని యొక్క పూర్తి వివరణను జోడించండి.',
+  'websiteAiNotConfigured':
+      'సర్వర్‌లో Website AI కాన్ఫిగర్ కాలేదు. WEBSITE_AI_API_KEY (లేదా SPEECH_AI_API_KEY) సెట్ చేసి Retry చేయండి.',
+  'websiteGenerateUnreachable':
+      'వెబ్‌సైట్ జనరేటర్‌ను చేరుకోలేకపోయాం. లోకల్ బ్యాకెండ్ ప్రారంభించండి లేదా API URL తనిఖీ చేయండి.',
+  'websiteGenerateFailed': 'వెబ్‌సైట్ జనరేషన్ విఫలమైంది. సర్వర్ లాగ్‌లు చూసి మళ్లీ ప్రయత్నించండి.',
+  'websiteAiSourceStock': 'చిత్రాలు ఈ వెబ్‌సైట్ వర్గానికి సరిపోయే స్టాక్ ఫోటోలు.',
   'generatingTitle': 'మీ వెబ్‌సైట్ సిద్ధమవుతోంది',
   'generatingBody':
       'ఈ ప్రివ్యూ ఈ పరికరంలోనే తయారవుతుంది. రచనా సేవ ఇంకా కలవలేదు.',

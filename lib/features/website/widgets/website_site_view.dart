@@ -146,6 +146,19 @@ class _Palette {
         radius: 0,
         display: 56,
       ),
+      'professional' => const _Palette(
+        canvas: Color(0xFFF7F9FC),
+        band: Color(0xFFE8EEF7),
+        ink: Color(0xFF15233B),
+        muted: Color(0xFF5A6B84),
+        primary: Color(0xFF1D4ED8),
+        onPrimary: Colors.white,
+        accent: Color(0xFFF08A24),
+        heroA: Color(0xFF16356E),
+        heroB: Color(0xFF3B6FBF),
+        radius: 14,
+        display: 60,
+      ),
       _ => const _Palette(
         canvas: Color(0xFFF5F7FB),
         band: Color(0xFFE7EEF8),
@@ -317,6 +330,7 @@ class _HeroBlock extends StatelessWidget {
       palette: palette,
       height: wide ? 460 : 300,
       bytes: document.portrait,
+      networkUrl: document.heroImageUrl,
     );
 
     if (document.heroLayout == 'split' || document.heroLayout == 'editorial') {
@@ -470,6 +484,7 @@ class _Visual extends StatelessWidget {
     required this.palette,
     required this.height,
     this.bytes,
+    this.networkUrl = '',
     this.caption = '',
   });
 
@@ -477,41 +492,78 @@ class _Visual extends StatelessWidget {
   final _Palette palette;
   final double height;
   final Uint8List? bytes;
+  final String networkUrl;
   final String caption;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(palette.radius.clamp(0, 28)),
-      child: SizedBox(
-        height: height,
+    final radius = BorderRadius.circular(palette.radius.clamp(0, 28));
+    Widget child;
+    if (bytes != null) {
+      child = Image.memory(
+        bytes!,
+        fit: BoxFit.cover,
         width: double.infinity,
-        child: bytes == null
-            ? DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [palette.heroA, palette.heroB],
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(_iconFor(document.websiteType), color: Colors.white.withValues(alpha: 0.92), size: height > 240 ? 72 : 40),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        caption.isEmpty ? document.siteTitle : caption,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: height > 240 ? 28 : 18, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : Image.memory(bytes!, fit: BoxFit.cover, width: double.infinity, height: height),
+        height: height,
+      );
+    } else if (networkUrl.startsWith('https://')) {
+      child = Image.network(
+        networkUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: height,
+        errorBuilder: (_, __, ___) => _fallback(),
+        loadingBuilder: (context, image, progress) {
+          if (progress == null) {
+            return image;
+          }
+          return ColoredBox(
+            color: palette.band,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+      );
+    } else {
+      child = _fallback();
+    }
+
+    return ClipRRect(
+      borderRadius: radius,
+      child: SizedBox(height: height, width: double.infinity, child: child),
+    );
+  }
+
+  Widget _fallback() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [palette.heroA, palette.heroB],
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _iconFor(document.websiteType),
+            color: Colors.white.withValues(alpha: 0.92),
+            size: height > 240 ? 72 : 40,
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              caption.isEmpty ? document.siteTitle : caption,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: height > 240 ? 28 : 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -545,9 +597,28 @@ class _SectionBlock extends StatelessWidget {
             section.heading,
             style: TextStyle(color: palette.ink, fontSize: width >= 760 ? 36 : 28, fontWeight: FontWeight.w700, letterSpacing: -0.6),
           ),
+          if (section.subtitle.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              section.subtitle,
+              style: TextStyle(color: palette.muted, fontSize: 16, height: 1.45),
+            ),
+          ],
           const SizedBox(height: 8),
           Container(width: 48, height: 3, color: palette.accent),
           const SizedBox(height: 22),
+          if (section.imageUrl.startsWith('https://') &&
+              section.type != WebsiteSectionType.gallery &&
+              section.type != WebsiteSectionType.hero) ...[
+            _Visual(
+              document: document,
+              palette: palette,
+              height: width >= 760 ? 280 : 200,
+              networkUrl: section.imageUrl,
+              caption: section.heading,
+            ),
+            const SizedBox(height: 22),
+          ],
           _body(context, inner),
         ],
       ),
@@ -563,10 +634,21 @@ class _SectionBlock extends StatelessWidget {
           WebsiteSectionType.menu,
           WebsiteSectionType.portfolio,
           WebsiteSectionType.priorities,
+          WebsiteSectionType.projects,
+          WebsiteSectionType.achievements,
         }.contains(section.type);
 
     if (cards) {
-      return _Cards(items: section.items, palette: palette, width: inner);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (section.content.isNotEmpty) ...[
+            _Prose(section: section, palette: palette),
+            const SizedBox(height: 18),
+          ],
+          _Cards(items: section.items, palette: palette, width: inner),
+        ],
+      );
     }
     if (section.type == WebsiteSectionType.gallery) {
       return _Gallery(document: document, section: section, palette: palette, width: inner);

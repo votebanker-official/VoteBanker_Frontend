@@ -1,3 +1,10 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+
+import '../../../core/config/app_config.dart';
+import '../../../core/services/auth_service.dart';
 import '../models/website_document.dart';
 import '../models/website_draft.dart';
 import 'website_content_planner.dart';
@@ -17,7 +24,6 @@ class SpeechCapture {
 class MockSpeechToTextService implements SpeechToTextService {
   @override
   Future<SpeechCapture> listen({required String languageCode}) async {
-    // TODO: Send audio to the VOTE BANKER backend. Do not put a provider key in the app.
     return const SpeechCapture(connected: false);
   }
 }
@@ -49,17 +55,191 @@ class MockContentTranslationService implements ContentTranslationService {
     if (value.isEmpty || fromLanguage == toLanguage) {
       return TranslatedText(text: value, pending: false);
     }
-    // TODO: Ask the VOTE BANKER backend to translate. This preview keeps the original words.
     return TranslatedText(text: value, pending: true);
   }
 }
 
+class WebsiteGenerationException implements Exception {
+  const WebsiteGenerationException(
+    this.code, {
+    this.hint,
+    this.requiredEnv = const [],
+    this.detail,
+  });
+
+  final String code;
+  final String? hint;
+  final List<String> requiredEnv;
+  final String? detail;
+}
+
 abstract class WebsiteGenerationService {
-  /// Later: POST /api/website/generate with inputLanguage, websiteLanguage,
-  /// description, answers, selectedSections, and style.
   Future<WebsiteDocument> generate(WebsiteDraft draft);
 }
 
+/// Calls POST /api/websites/generate. Secrets stay on the backend.
+class ApiWebsiteGenerationService implements WebsiteGenerationService {
+  ApiWebsiteGenerationService({
+    http.Client? client,
+    this.baseUrls = const [],
+    this.timeout = const Duration(seconds: 360),
+  }) : _client = client ?? http.Client();
+
+  final http.Client _client;
+  final List<String> baseUrls;
+  final Duration timeout;
+
+  List<String> get _bases {
+    if (baseUrls.isNotEmpty) {
+      return baseUrls;
+    }
+    final configured = AppConfig.apiBaseUrl;
+    if (kDebugMode &&
+        !configured.contains('127.0.0.1') &&
+        !configured.contains('localhost')) {
+      return ['http://127.0.0.1:5000', configured];
+    }
+    return [configured];
+  }
+
+  @override
+  Future<WebsiteDocument> generate(WebsiteDraft draft) async {
+    final response = await _send(_payload(draft));
+    if (response == null) {
+      throw const WebsiteGenerationException('unreachable');
+    }
+    final body = _json(response);
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        body['success'] == true) {
+      final document = body['document'];
+      if (document is Map<String, dynamic>) {
+        return WebsiteDocument.fromJson(
+          document,
+          portrait: draft.photos.isNotEmpty ? draft.photos.first : null,
+          logo: draft.logo,
+          gallery: List<Uint8List>.from(draft.photos),
+        );
+      }
+      throw const WebsiteGenerationException('bad_response');
+    }
+
+    final required = body['requiredEnv'];
+    throw WebsiteGenerationException(
+      body['error'] as String? ?? 'generation_failed',
+      hint: body['hint'] as String?,
+      detail: body['detail'] as String?,
+      requiredEnv: required is List
+          ? [
+              for (final item in required)
+                if (item is String) item,
+            ]
+          : const [],
+    );
+  }
+
+  Map<String, dynamic> _payload(WebsiteDraft draft) {
+    return {
+      'description': draft.description.trim().isNotEmpty
+          ? draft.description.trim()
+          : [
+              draft.introduction,
+              draft.about,
+              draft.vision,
+              draft.mission,
+              draft.priorities,
+              draft.achievements,
+            ].where((value) => value.trim().isNotEmpty).join(' '),
+      'templateId': draft.templateId,
+      'style': draft.style,
+      'websiteLanguage': draft.websiteLanguage,
+      'inputLanguage': draft.inputLanguage,
+      'layoutVariant': draft.layoutVariant,
+      'selectedSections': draft.sections.toList(),
+      'regenerateInstruction': draft.regenerateInstruction,
+      'facts': {
+        'fullName': draft.fullName,
+        'publicTitle': draft.publicTitle,
+        'organization': draft.organization,
+        'about': draft.about,
+        'vision': draft.vision,
+        'mission': draft.mission,
+        'achievements': draft.achievements,
+        'priorities': draft.priorities,
+        'phone': draft.phone,
+        'email': draft.email,
+        'address': draft.address,
+        'socialLinks': draft.socialLinks,
+        'callToAction': draft.callToAction,
+        'publicContact': draft.publicContact,
+        'eventsNote': draft.eventsNote,
+      },
+    };
+  }
+
+  Future<http.Response?> _send(Map<String, dynamic> payload) async {
+    http.Response? last;
+    for (final base in _bases) {
+      try {
+        final headers = <String, String>{'Content-Type': 'application/json'};
+        final token = AuthService.instance.session?.accessToken;
+        if (token != null && token.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $token';
+        }
+        final response = await _client
+            .post(
+              Uri.parse('$base/api/websites/generate'),
+              headers: headers,
+              body: jsonEncode(payload),
+            )
+            .timeout(timeout);
+        last = response;
+        if (response.statusCode == 404) {
+          continue;
+        }
+        // Prefer a configured local model over Railway when Railway is not set up.
+        if (kDebugMode &&
+            _isRemoteApi(base) &&
+            _isConfigOrAuthFailure(response) &&
+            base != _bases.last) {
+          continue;
+        }
+        return response;
+      } catch (_) {
+        continue;
+      }
+    }
+    return last;
+  }
+
+  bool _isRemoteApi(String base) {
+    final lower = base.toLowerCase();
+    return !lower.contains('127.0.0.1') && !lower.contains('localhost');
+  }
+
+  bool _isConfigOrAuthFailure(http.Response response) {
+    if (response.statusCode != 503 && response.statusCode != 502) {
+      return false;
+    }
+    final error = _json(response)['error'];
+    return error == 'website_ai_not_configured' ||
+        error == 'website_ai_failed';
+  }
+
+  Map<String, dynamic> _json(http.Response response) {
+    try {
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+    } catch (_) {
+      return const {};
+    }
+    return const {};
+  }
+}
+
+/// Local planner only. Used by tests and as an explicit offline fallback.
 class MockWebsiteGenerationService implements WebsiteGenerationService {
   MockWebsiteGenerationService(this.translation);
 
@@ -67,7 +247,6 @@ class MockWebsiteGenerationService implements WebsiteGenerationService {
 
   @override
   Future<WebsiteDocument> generate(WebsiteDraft draft) async {
-    // TODO: Replace this mock with POST /api/website/generate. Do not put a provider key here.
     var pending = false;
 
     Future<String> convert(String value) async {
@@ -123,6 +302,8 @@ class MockWebsiteGenerationService implements WebsiteGenerationService {
       portrait: planned.portrait,
       logo: planned.logo,
       gallery: planned.gallery,
+      templateId: draft.templateId,
+      source: 'local',
     );
   }
 }
@@ -141,7 +322,6 @@ class PaymentAttempt {
 class MockPaymentService implements PaymentService {
   @override
   Future<PaymentAttempt> startWebsitePurchase() async {
-    // TODO: Call the VOTE BANKER backend payment API. Do not mark this as paid.
     return const PaymentAttempt(connected: false);
   }
 }
@@ -163,19 +343,16 @@ class PublishAttempt {
 class MockWebsitePublishingService implements WebsitePublishingService {
   @override
   Future<PublishAttempt> connectDomain() async {
-    // TODO: Call the domain provider through the VOTE BANKER backend.
     return const PublishAttempt(connected: false);
   }
 
   @override
   Future<PublishAttempt> usePlatformDomain() async {
-    // TODO: Reserve a VOTE BANKER domain through the backend.
     return const PublishAttempt(connected: false);
   }
 
   @override
   Future<PublishAttempt> publish() async {
-    // TODO: Publish only after the backend confirms payment and domain setup.
     return const PublishAttempt(connected: false);
   }
 }
@@ -191,10 +368,7 @@ class WebsiteServices {
        translation = translation ?? MockContentTranslationService(),
        payment = payment ?? MockPaymentService(),
        publishing = publishing ?? MockWebsitePublishingService(),
-       generation = generation ??
-           MockWebsiteGenerationService(
-             translation ?? MockContentTranslationService(),
-           );
+       generation = generation ?? ApiWebsiteGenerationService();
 
   final SpeechToTextService speech;
   final ContentTranslationService translation;

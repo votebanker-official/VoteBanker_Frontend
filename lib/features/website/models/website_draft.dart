@@ -3,12 +3,14 @@ import 'dart:typed_data';
 import '../../onboarding/models/onboarding_draft.dart';
 import 'website_document.dart';
 
-/// Session-only website answers. A repository can replace this when the API exists.
+/// Session website answers. Generated documents can also be persisted via the API.
 class WebsiteDraft {
   String style = 'public';
+  String templateId = 'professional';
   String description = '';
   String inputLanguage = 'en';
   String websiteLanguage = 'en';
+  String regenerateInstruction = '';
   bool languagesReady = false;
   bool sectionsReady = false;
 
@@ -65,6 +67,12 @@ class WebsiteDraft {
       'issue' => {'home', 'about', 'requests', 'contact'},
       _ => {'home', 'about', 'vision', 'contact'},
     };
+  }
+
+  void applyTemplate(String? template) {
+    if (template != null && template.isNotEmpty) {
+      templateId = template;
+    }
   }
 
   void applyStyle(String? style) {

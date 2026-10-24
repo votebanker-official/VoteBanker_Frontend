@@ -78,6 +78,10 @@ const knTranslations = <String, String>{
   'dashboard': 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
   'dashboardSubtitle': 'ನಿಮ್ಮ VOTE BANKER ಕಾರ್ಯಸ್ಥಳ ಇಲ್ಲಿಂದ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ.',
   'cardProfile': 'ನನ್ನ ಪೋರ್ಟ್‌ಫೋಲಿಯೋ',
+  'cardAdministrations': 'ಆಡಳಿತ',
+  'administrationsCardBody': 'ಭಾಷಣ, ಪತ್ರಗಳು, ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ಇನ್ನಷ್ಟು',
+  'administrationsSubtitle':
+      'ಭಾಷಣ, ಪತ್ರಗಳು, ಕಾರ್ಯಕ್ರಮಗಳು, ಪ್ರಚಾರ ಮತ್ತು ಖಾತೆ ಕೆಲಸಕ್ಕಾಗಿ ಸಾಧನಗಳು.',
   'cardDomain': 'ಡೊಮೇನ್ ಮತ್ತು ವೆಬ್‌ಸೈಟ್',
   'cardSocial': 'ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ',
   'socialCardBody': 'VRM ನಲ್ಲಿ ಉಳಿಸಿದ WhatsApp, Instagram ಮತ್ತು Facebook ಸಂಪರ್ಕಗಳು.',
@@ -239,6 +243,15 @@ const knTranslations = <String, String>{
   'secContact': 'ಸಂಪರ್ಕ',
   'secSocial': 'ಸಾಮಾಜಿಕ ಲಿಂಕ್‌ಗಳು',
   'secGallery': 'ಗ್ಯಾಲರಿ',
+  'generateWebsite': 'ವೆಬ್‌ಸೈಟ್ ರಚಿಸಿ',
+  'websiteGenerateNeedDescription':
+      'ರಚಿಸುವ ಮುನ್ನ ವ್ಯಕ್ತಿ, ವ್ಯಾಪಾರ ಅಥವಾ ಕೆಲಸದ ಪೂರ್ಣ ವಿವರ ಸೇರಿಸಿ.',
+  'websiteAiNotConfigured':
+      'ಸರ್ವರ್‌ನಲ್ಲಿ Website AI ಸಂರಚಿತವಾಗಿಲ್ಲ. WEBSITE_AI_API_KEY (ಅಥವಾ SPEECH_AI_API_KEY) ಹೊಂದಿಸಿ, ನಂತರ Retry ಮಾಡಿ.',
+  'websiteGenerateUnreachable':
+      'ವೆಬ್‌ಸೈಟ್ ಜನರೇಟರ್ ತಲುಪಲಾಗಲಿಲ್ಲ. ಸ್ಥಳೀಯ ಬ್ಯಾಕೆಂಡ್ ಪ್ರಾರಂಭಿಸಿ ಅಥವಾ API URL ಪರಿಶೀಲಿಸಿ.',
+  'websiteGenerateFailed': 'ವೆಬ್‌ಸೈಟ್ ರಚನೆ ವಿಫಲವಾಗಿದೆ. ಸರ್ವರ್ ಲಾಗ್‌ಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.',
+  'websiteAiSourceStock': 'ಚಿತ್ರಗಳು ಈ ವೆಬ್‌ಸೈಟ್ ವರ್ಗಕ್ಕೆ ಹೊಂದುವ ಸ್ಟಾಕ್ ಫೋಟೋಗಳು.',
   'generatingTitle': 'ನಿಮ್ಮ ವೆಬ್‌ಸೈಟ್ ಸಿದ್ಧವಾಗುತ್ತಿದೆ',
   'generatingBody':
       'ಈ ಮುನ್ನೋಟ ಈ ಸಾಧನದಲ್ಲೇ ಆಗುತ್ತದೆ. ಬರವಣಿಗೆ ಸೇವೆ ಇನ್ನೂ ಸಂಪರ್ಕವಾಗಿಲ್ಲ.',

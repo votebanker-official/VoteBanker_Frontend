@@ -10,6 +10,7 @@ import '../../../core/widgets/primary_button.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 import '../../onboarding/widgets/onboarding_frame.dart';
 import '../models/website_draft.dart';
+import '../services/website_services.dart';
 
 class WebsiteEditScreen extends StatefulWidget {
   const WebsiteEditScreen({super.key});
@@ -104,12 +105,34 @@ class _WebsiteEditScreenState extends State<WebsiteEditScreen> {
       ..address = _address.text.trim()
       ..socialLinks = _social.text.trim()
       ..callToAction = _action.text.trim();
+    final l10n = AppLocalizations.of(context);
     final services = OnboardingScope.of(context).websiteServices;
-    _website.preview = await services.generation.generate(_website);
-    if (!mounted) {
-      return;
+    _website.regenerateInstruction =
+        'Preserve the edited facts below. Refresh wording and layout without inventing new claims.';
+    try {
+      _website.preview = await services.generation.generate(_website);
+      if (!mounted) {
+        return;
+      }
+      AppRouter.back(context, AppRoutes.websitePreview);
+    } on WebsiteGenerationException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final message = switch (error.code) {
+        'website_ai_not_configured' => l10n.line('websiteAiNotConfigured'),
+        'unreachable' => l10n.line('websiteGenerateUnreachable'),
+        _ => l10n.line('websiteGenerateFailed'),
+      };
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.line('websiteGenerateFailed'))),
+      );
     }
-    AppRouter.back(context, AppRoutes.websitePreview);
   }
 
   Future<void> _pickLogo() async {

@@ -79,6 +79,10 @@ const hiTranslations = <String, String>{
   'dashboard': 'डैशबोर्ड',
   'dashboardSubtitle': 'आपका VOTE BANKER कार्यक्षेत्र यहीं से शुरू होता है।',
   'cardProfile': 'मेरा पोर्टफोलियो',
+  'cardAdministrations': 'प्रशासन',
+  'administrationsCardBody': 'भाषण, पत्र, कार्यक्रम और अधिक',
+  'administrationsSubtitle':
+      'भाषण, पत्र, कार्यक्रम, अभियान और खाता कार्यों के लिए उपकरण।',
   'cardDomain': 'डोमेन और वेबसाइट',
   'cardSocial': 'सोशल मीडिया',
   'socialCardBody': 'VRM में सहेजे गए WhatsApp, Instagram और Facebook संपर्क।',
@@ -238,6 +242,15 @@ const hiTranslations = <String, String>{
   'secContact': 'संपर्क',
   'secSocial': 'सोशल लिंक',
   'secGallery': 'गैलरी',
+  'generateWebsite': 'वेबसाइट बनाएँ',
+  'websiteGenerateNeedDescription':
+      'जनरेट करने से पहले व्यक्ति, व्यवसाय या काम का पूरा विवरण जोड़ें।',
+  'websiteAiNotConfigured':
+      'सर्वर पर Website AI कॉन्फ़िगर नहीं है। WEBSITE_AI_API_KEY (या SPEECH_AI_API_KEY) सेट करें, फिर Retry करें।',
+  'websiteGenerateUnreachable':
+      'वेबसाइट जनरेटर तक नहीं पहुँच सके। लोकल बैकएंड चालू करें या API URL जाँचें।',
+  'websiteGenerateFailed': 'वेबसाइट जनरेशन विफल रही। सर्वर लॉग जाँचें और फिर कोशिश करें।',
+  'websiteAiSourceStock': 'छवियाँ इस वेबसाइट श्रेणी से मेल खाती स्टॉक फ़ोटो हैं।',
   'generatingTitle': 'आपकी वेबसाइट तैयार हो रही है',
   'generatingBody':
       'यह पूर्वावलोकन इसी डिवाइस पर बनता है। लेखन सेवा अभी नहीं जुड़ी है।',

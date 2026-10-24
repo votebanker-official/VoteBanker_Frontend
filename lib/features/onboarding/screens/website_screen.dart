@@ -84,12 +84,18 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     session.draft.websiteTemplate = template;
     session.portfolio.selectTemplate(template);
     session.websiteBuilder.selectTemplate(template);
+    session.website.applyTemplate(template);
     session.website.applyStyle(WebsiteTemplates.styleId(template));
     session.website.seedFromProfile(session.draft);
     final photo = session.draft.photoBytes;
     if (photo != null && session.website.photos.isEmpty) {
       session.website.photos.add(photo);
     }
+  }
+
+  void _openAiFlow() {
+    _prepare();
+    AppRouter.open(context, AppRoutes.websiteInfo);
   }
 
   PortfolioProfileFacts _facts(OnboardingController session) {
@@ -276,15 +282,15 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             const SizedBox(height: 18),
             PrimaryButton(
               key: const ValueKey('continueTemplate'),
-              label: l10n.line('portfolioCustomizeTemplate'),
-              icon: Icons.arrow_forward,
-              onPressed: () => _openBuilder(continueOnboarding: true),
+              label: l10n.line('generateWebsite'),
+              icon: Icons.auto_awesome,
+              onPressed: _openAiFlow,
             ),
             const SizedBox(height: 8),
             OutlinedButton(
               key: const ValueKey('customizeTemplate'),
               onPressed: () => _openBuilder(continueOnboarding: true),
-              child: Text(l10n.line('portfolioContinue')),
+              child: Text(l10n.line('portfolioCustomizeTemplate')),
             ),
             const SizedBox(height: 8),
             TextButton(

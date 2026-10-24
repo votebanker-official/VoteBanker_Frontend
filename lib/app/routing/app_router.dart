@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/services/profile_service.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
+import '../../features/dashboard/screens/administrations_screen.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
 import '../../features/merchandise/screens/merchandise_screen.dart';
 import '../../features/letter_generator/letter_generator_screen.dart';
@@ -49,6 +50,7 @@ abstract final class AppRoutes {
   static const socialContacts = '/social-media';
   static const ready = '/ready';
   static const dashboard = '/dashboard';
+  static const administrations = '/administrations';
   static const merchandise = '/merchandise';
   static const speech = '/speech';
   static const letter = '/letter';
@@ -78,6 +80,7 @@ abstract final class AppRouter {
       AppRoutes.socialContacts => const SocialMediaScreen(),
       AppRoutes.ready => const ReadyScreen(),
       AppRoutes.dashboard => const DashboardPlaceholderScreen(),
+      AppRoutes.administrations => const AdministrationsScreen(),
       AppRoutes.merchandise => const MerchandiseScreen(),
       AppRoutes.speech => const SpeechGeneratorScreen(),
       AppRoutes.letter => const LetterGeneratorScreen(),

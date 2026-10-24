@@ -81,6 +81,10 @@ const taTranslations = <String, String>{
   'dashboard': 'டாஷ்போர்டு',
   'dashboardSubtitle': 'உங்கள் VOTE BANKER பணியிடம் இங்கே தொடங்குகிறது.',
   'cardProfile': 'என் போர்ட்ஃபோலியோ',
+  'cardAdministrations': 'நிர்வாகம்',
+  'administrationsCardBody': 'பேச்சு, கடிதங்கள், நிகழ்வுகள் மற்றும் மேலும்',
+  'administrationsSubtitle':
+      'பேச்சு, கடிதங்கள், நிகழ்வுகள், பிரச்சாரம் மற்றும் கணக்குப் பணிகளுக்கான கருவிகள்.',
   'cardDomain': 'டொமைன் மற்றும் வலைத்தளம்',
   'cardSocial': 'சமூக ஊடகம்',
   'socialCardBody': 'VRM-இல் சேமித்த WhatsApp, Instagram, Facebook தொடர்புகள்.',
@@ -244,6 +248,15 @@ const taTranslations = <String, String>{
   'secContact': 'தொடர்பு',
   'secSocial': 'சமூக இணைப்புகள்',
   'secGallery': 'படத்தொகுப்பு',
+  'generateWebsite': 'வலைத்தளம் உருவாக்கு',
+  'websiteGenerateNeedDescription':
+      'உருவாக்கும் முன் நபர், வணிகம் அல்லது பணியின் முழு விளக்கத்தைச் சேர்க்கவும்.',
+  'websiteAiNotConfigured':
+      'சேவையகத்தில் Website AI அமைக்கப்படவில்லை. WEBSITE_AI_API_KEY (அல்லது SPEECH_AI_API_KEY) அமைத்து Retry செய்யவும்.',
+  'websiteGenerateUnreachable':
+      'வலைத்தள உருவாக்கியை அடைய முடியவில்லை. உள்ளூர் பின்நிலையைத் தொடங்கவும் அல்லது API URL-ஐச் சரிபார்க்கவும்.',
+  'websiteGenerateFailed': 'வலைத்தள உருவாக்கம் தோல்வியடைந்தது. சேவையகப் பதிவுகளைச் சரிபார்த்து மீண்டும் முயலவும்.',
+  'websiteAiSourceStock': 'படங்கள் இந்த வலைத்தள வகைக்குப் பொருந்தும் ஸ்டாக் புகைப்படங்கள்.',
   'generatingTitle': 'உங்கள் வலைத்தளம் தயாராகிறது',
   'generatingBody':
       'இந்த முன்னோட்டம் இந்த சாதனத்திலேயே உருவாகிறது. எழுத்து சேவை இன்னும் இணையவில்லை.',

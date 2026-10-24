@@ -224,7 +224,7 @@ void main() {
     expect(find.text('Portfolio Website'), findsOneWidget);
     expect(find.text(enTranslations['portfolioGetWebsite']!), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('continueTemplate')));
+    await tester.tap(find.byKey(const ValueKey('customizeTemplate')));
     await tester.pumpAndSettle();
     expect(find.text('Website Details'), findsOneWidget);
 

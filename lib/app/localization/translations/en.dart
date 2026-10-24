@@ -77,6 +77,10 @@ const enTranslations = <String, String>{
   'dashboard': 'Dashboard',
   'dashboardSubtitle': 'Your VOTE BANKER workspace starts here.',
   'cardProfile': 'My Portfolio',
+  'cardAdministrations': 'Administrations',
+  'administrationsCardBody': 'Speech, letters, events, and more',
+  'administrationsSubtitle':
+      'Tools for speeches, letters, events, campaigns, and account work.',
   'cardDomain': 'Domain & Website',
   'cardSocial': 'Social Media',
   'socialCardBody': 'WhatsApp, Instagram, and Facebook contacts saved in VRM.',
@@ -304,14 +308,24 @@ const enTranslations = <String, String>{
   'secContact': 'Contact',
   'secSocial': 'Social links',
   'secGallery': 'Gallery',
+  'generateWebsite': 'Generate Website',
   'generatingTitle': 'Your website is being prepared',
   'generatingBody':
-      'This preview is created on this device. A writing service is not connected yet.',
-  'genStyle': 'Website style selected',
-  'genInfo': 'Your information collected',
-  'genLanguage': 'Language selected',
-  'genContent': 'Preparing website content',
-  'genPreview': 'Building website preview',
+      'The VOTE BANKER server is writing a complete website from your description and selected template.',
+  'websiteGenerateNeedDescription':
+      'Add a fuller description of the person, business, or work before generating.',
+  'websiteAiNotConfigured':
+      'Website AI is not configured on the server. Set WEBSITE_AI_API_KEY (or SPEECH_AI_API_KEY) on the backend, then retry. This app will not pretend generation succeeded.',
+  'websiteGenerateUnreachable':
+      'Could not reach the website generator. Start the local backend or check the API URL, then retry.',
+  'websiteGenerateFailed':
+      'Website generation failed. Check the server logs and retry.',
+  'websiteAiSourceStock': 'Images are curated stock photos matched to this website category.',
+  'genStyle': 'Applying selected template style',
+  'genInfo': 'Reading your portfolio details',
+  'genLanguage': 'Preparing website language',
+  'genContent': 'Writing website sections with AI',
+  'genPreview': 'Building the live preview',
   'previewTitle': 'Website preview',
   'previewBody': 'Review the pages before you decide to publish.',
   'previewNameFallback': 'Your name',

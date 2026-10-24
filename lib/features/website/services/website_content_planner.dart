@@ -281,6 +281,9 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
     portrait: portrait,
     logo: draft.logo,
     gallery: gallery,
+    templateId: draft.templateId,
+    designDirection: draft.style,
+    source: 'local',
   );
 }
 
