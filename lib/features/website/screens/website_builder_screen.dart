@@ -162,7 +162,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
     if (draft.constituency.isEmpty) {
       draft.constituency = session.draft.assemblyConstituency.trim();
     }
-    if (draft.party.isEmpty) draft.party = session.draft.party.trim();
+    draft.applyPartyFromProfile(session.draft.party);
     if (draft.district.isEmpty) draft.district = session.draft.district.trim();
     if (draft.state.isEmpty) draft.state = session.draft.state.trim();
     if (draft.phone.isEmpty) draft.phone = session.draft.contactNumber.trim();
@@ -1393,7 +1393,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
             Navigator.of(context).pop();
           },
           icon: const Icon(Icons.dashboard_customize_outlined),
-          label: const Text('Change template'),
+          label: const Text('Back to website preview'),
         ),
       ],
     );

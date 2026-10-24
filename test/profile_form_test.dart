@@ -8,22 +8,97 @@ import 'package:votebanker/features/onboarding/data/state_search.dart';
 import 'package:votebanker/features/onboarding/models/onboarding_draft.dart';
 
 void main() {
-  test('contact number accepts empty, national, and international values', () {
-    expect(isValidContactNumber(''), isTrue);
-    expect(isValidContactNumber('   '), isTrue);
+  test('contact number accepts only valid 10-digit Indian mobile numbers', () {
+    // Valid 10-digit Indian numbers starting with 6, 7, 8, or 9
     expect(isValidContactNumber('9876543210'), isTrue);
+    expect(isValidContactNumber('8123456789'), isTrue);
+    expect(isValidContactNumber('7012345678'), isTrue);
+    expect(isValidContactNumber('6901234567'), isTrue);
     expect(isValidContactNumber('98765 43210'), isTrue);
-    expect(isValidContactNumber('09876543210'), isTrue);
-    expect(isValidContactNumber('+1 415 555 2671'), isTrue);
-    expect(isValidContactNumber('+1 (415) 555-2671'), isTrue);
-    expect(isValidContactNumber('+44 20 7946 0958'), isTrue);
-    expect(isValidContactNumber('+44.20.7946.0958'), isTrue);
-    expect(isValidContactNumber('0044 20 7946 0958'), isTrue);
 
+    // Existing saved formats with +91 or trunk 0
+    expect(isValidContactNumber('+919876543210'), isTrue);
+    expect(isValidContactNumber('+91 98765 43210'), isTrue);
+    expect(isValidContactNumber('09876543210'), isTrue);
+
+    // Empty or blank input (required field)
+    expect(isValidContactNumber(''), isFalse);
+    expect(isValidContactNumber('   '), isFalse);
+
+    // Fewer than 10 digits
     expect(isValidContactNumber('12345'), isFalse);
+    expect(isValidContactNumber('98765'), isFalse);
+    expect(isValidContactNumber('987654321'), isFalse);
+
+    // More than 10 digits
+    expect(isValidContactNumber('98765432101'), isFalse);
+    expect(isValidContactNumber('9876543210123'), isFalse);
+
+    // Invalid starting digits (must start with 6, 7, 8, or 9)
+    expect(isValidContactNumber('5876543210'), isFalse);
+    expect(isValidContactNumber('1234567890'), isFalse);
+    expect(isValidContactNumber('0123456789'), isFalse);
+    expect(isValidContactNumber('2345678901'), isFalse);
+    expect(isValidContactNumber('3456789012'), isFalse);
+    expect(isValidContactNumber('4567890123'), isFalse);
+
+    // Non-numeric input
     expect(isValidContactNumber('abc'), isFalse);
+    expect(isValidContactNumber('98765abcde'), isFalse);
     expect(isValidContactNumber('+123'), isFalse);
     expect(isValidContactNumber('++14155552671'), isFalse);
+
+    // International numbers outside India
+    expect(isValidContactNumber('+1 415 555 2671'), isFalse);
+    expect(isValidContactNumber('+44 20 7946 0958'), isFalse);
+  });
+
+  test('extractIndianNationalNumber extracts 10 digits without country code duplication', () {
+    expect(extractIndianNationalNumber('+919876543210'), '9876543210');
+    expect(extractIndianNationalNumber('+91 98765 43210'), '9876543210');
+    expect(extractIndianNationalNumber('09876543210'), '9876543210');
+    expect(extractIndianNationalNumber('9876543210'), '9876543210');
+    expect(extractIndianNationalNumber('919876543210'), '9876543210');
+    expect(extractIndianNationalNumber(''), '');
+  });
+
+  test('IndianMobileNumberFormatter enforces digitsOnly, 10-digit limit, and handles paste', () {
+    const formatter = IndianMobileNumberFormatter();
+
+    // Normal typing of digits
+    final typed = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      const TextEditingValue(text: '98765'),
+    );
+    expect(typed.text, '98765');
+
+    // Reject non-numeric characters
+    final withLetters = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      const TextEditingValue(text: 'abc98765xyz'),
+    );
+    expect(withLetters.text, '98765');
+
+    // Caps at 10 digits
+    final overLimit = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      const TextEditingValue(text: '9876543210999'),
+    );
+    expect(overLimit.text, '9876543210');
+
+    // Pasting number with +91 country code prefix
+    final pastedWithCountryCode = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      const TextEditingValue(text: '+91 98765 43210'),
+    );
+    expect(pastedWithCountryCode.text, '9876543210');
+
+    // Pasting number with trunk 0 prefix
+    final pastedWithTrunk = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      const TextEditingValue(text: '09876543210'),
+    );
+    expect(pastedWithTrunk.text, '9876543210');
   });
 
   test('country and state changes clear the child selections', () {

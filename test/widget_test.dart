@@ -162,6 +162,11 @@ void main() {
       'Arjun Verma',
     );
     await _tapLabel(tester, 'Save & Continue');
+    expect(find.text('Your Political Website'), findsOneWidget);
+
+    // Website screen back opens domain search for portfolio name selection.
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
     expect(find.text('Portfolio Name Search'), findsOneWidget);
 
     await tester.tap(find.text('Search'));
@@ -178,7 +183,7 @@ void main() {
       find.descendant(of: card, matching: find.text('Select Portfolio Name')),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Your Political Website'), findsOneWidget);
     expect(find.text('Arjun Verma'), findsWidgets);
 
     await tester.tap(find.byIcon(Icons.arrow_back));
@@ -194,11 +199,7 @@ void main() {
     );
 
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Portfolio Name Search'), findsOneWidget);
-    await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Portfolio Website'), findsWidgets);
-    expect(find.text('Arjun Verma'), findsWidgets);
-
+    expect(find.text('Your Political Website'), findsOneWidget);
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
 

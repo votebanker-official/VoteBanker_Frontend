@@ -219,9 +219,9 @@ const enTranslations = <String, String>{
   'wbSignInRequired': 'Sign in to publish your website.',
   'wbPublishFailed':
       'Could not publish right now. Check your connection and try again.',
-  'chooseWebsiteTemplate': 'Choose Your Website Template',
+  'chooseWebsiteTemplate': 'Your Political Website',
   'chooseWebsiteTemplateBody':
-      'Select a template and fill in the details to create your personalized political leader website.',
+      'Preview your professional leader website with your profile photo, party branding, and public details. Continue to fill in Website Details.',
   'socialTitle': 'Social Media Setup',
   'socialBody':
       'Connect your social media accounts to increase your reach and engagement.',
