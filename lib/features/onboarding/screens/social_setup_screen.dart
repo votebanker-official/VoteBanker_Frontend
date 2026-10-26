@@ -51,6 +51,18 @@ class SocialSetupScreen extends StatelessWidget {
     final form = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (Navigator.of(context).canPop())
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              tooltip: l10n.back,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              onPressed: () => AppRouter.popIfPossible(context),
+              icon: const Icon(Icons.arrow_back),
+            ),
+          ),
         OnboardingHeader(
           compact: true,
           title: l10n.socialTitle,

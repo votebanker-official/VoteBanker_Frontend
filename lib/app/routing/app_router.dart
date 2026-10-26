@@ -126,4 +126,17 @@ abstract final class AppRouter {
     }
     navigator.pushReplacementNamed(fallbackRoute);
   }
+
+  /// Returns to the previous route. Does nothing when this screen is the root,
+  /// and ignores a second tap while the route is already leaving.
+  static void popIfPossible(BuildContext context) {
+    final current = ModalRoute.of(context);
+    if (current != null && !current.isCurrent) {
+      return;
+    }
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+  }
 }

@@ -69,6 +69,26 @@ class DashboardPlaceholderScreen extends StatelessWidget {
                     padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 0),
                     child: Row(
                       children: [
+                        if (Navigator.of(context).canPop()) ...[
+                          IconButton(
+                            tooltip: l10n.back,
+                            visualDensity: VisualDensity.compact,
+                            style: IconButton.styleFrom(
+                              foregroundColor: context.palette.accent,
+                              backgroundColor: context.palette.accent
+                                  .withValues(alpha: 0.12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              minimumSize: const Size(40, 40),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: EdgeInsets.zero,
+                            ),
+                            onPressed: () => AppRouter.popIfPossible(context),
+                            icon: const Icon(Icons.arrow_back),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         ClipOval(
                           child: Image.asset(
                             AppAssets.logo,
