@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
@@ -8,9 +10,9 @@ import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 import '../models/website_builder_draft.dart';
+import '../services/website_builder_api.dart';
 import '../services/website_builder_store.dart';
 import '../widgets/website_builder_preview.dart';
-import '../widgets/website_site_view.dart';
 import '../widgets/website_stage.dart';
 
 class WebsitePurchaseScreen extends StatefulWidget {
@@ -23,20 +25,61 @@ class WebsitePurchaseScreen extends StatefulWidget {
 class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
   var _method = 'upi';
   var _busy = false;
+  var _publishing = false;
+  String? _publishError;
 
-  Future<void> _purchase(BuildContext context) async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncBuilderFromProfile();
+  }
+
+  void _syncBuilderFromProfile() {
+    final session = OnboardingScope.of(context);
+    final draft = session.draft;
+    final builder = session.websiteBuilder;
+    builder.applyPartyFromProfile(draft.party);
+    if (builder.fullName.trim().isEmpty) {
+      builder.fullName = draft.leaderName.trim();
+    }
+    if (builder.designation.trim().isEmpty) {
+      builder.designation = draft.designation.trim();
+    }
+    if (builder.constituency.trim().isEmpty) {
+      builder.constituency = draft.assemblyConstituency.trim();
+    }
+    if (builder.district.trim().isEmpty) {
+      builder.district = draft.district.trim();
+    }
+    if (builder.state.trim().isEmpty) {
+      builder.state = draft.state.trim();
+    }
+    if (builder.phone.trim().isEmpty) {
+      builder.phone = draft.contactNumber.trim();
+    }
+    if (!builder.profilePhoto.hasImage && draft.photoBytes != null) {
+      builder.profilePhoto = MediaRef(base64: base64Encode(draft.photoBytes!));
+    }
+  }
+
+  Future<void> _purchase() async {
     final l10n = AppLocalizations.of(context);
     final session = OnboardingScope.of(context);
     final builder = session.websiteBuilder;
+    _syncBuilderFromProfile();
     final reasons = builder.publishBlockingReasons();
     if (reasons.isNotEmpty) {
+      setState(() => _publishError = reasons.first);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(reasons.first)),
       );
       return;
     }
 
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _publishError = null;
+    });
     builder.status = WebsiteStatus.pendingPayment;
     await WebsiteBuilderStore.instance.saveNow(builder);
 
@@ -45,38 +88,77 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
     setState(() => _busy = false);
 
     if (!attempt.connected) {
-      ScaffoldMessenger.of(this.context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.line('paymentLater'))),
       );
-      // Do not mark paid or published from the client.
-      AppRouter.open(this.context, AppRoutes.websitePublish);
+    }
+    AppRouter.open(context, AppRoutes.websitePublish);
+  }
+
+  Future<void> _publish() async {
+    final l10n = AppLocalizations.of(context);
+    final session = OnboardingScope.of(context);
+    final builder = session.websiteBuilder;
+    _syncBuilderFromProfile();
+    final reasons = builder.publishBlockingReasons();
+    if (reasons.isNotEmpty) {
+      setState(() => _publishError = reasons.first);
       return;
     }
 
-    AppRouter.open(this.context, AppRoutes.websitePublish);
+    setState(() {
+      _publishing = true;
+      _publishError = null;
+    });
+    await WebsiteBuilderStore.instance.saveNow(builder);
+    final result = await WebsiteBuilderApi.instance.publish(builder);
+    if (!mounted) return;
+    setState(() => _publishing = false);
+
+    if (result.error != null) {
+      setState(() {
+        _publishError = switch (result.error) {
+          'payment_required' => l10n.line('wbPaymentRequired'),
+          'sign_in_required' => l10n.line('wbSignInRequired'),
+          'validation_failed' => builder.publishBlockingReasons().join(' '),
+          _ => l10n.line('wbPublishFailed'),
+        };
+      });
+      return;
+    }
+    if (result.draft != null) {
+      session.websiteBuilder = result.draft!;
+      await WebsiteBuilderStore.instance.saveLocal(result.draft!);
+    }
+    if (!mounted) return;
+    AppRouter.open(context, AppRoutes.websitePublish);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final session = OnboardingScope.of(context);
-    final preview = session.website.preview;
     final builder = session.websiteBuilder;
     final palette = context.palette;
+    final busy = _busy || _publishing;
 
     return WebsiteStage(
       children: [
-        if (builder.fullName.trim().isNotEmpty ||
-            builder.shortIntro.trim().isNotEmpty)
-          WebsiteBuilderPreview(draft: builder, compact: true)
-        else if (preview != null) ...[
-          WebsiteSiteView(document: preview),
-        ],
-        const SizedBox(height: 22),
-        Text(l10n.line('purchaseTitle'), style: AppTextStyles.headline(context)),
+        Text(
+          l10n.line('purchaseTitle'),
+          style: AppTextStyles.headline(context),
+        ),
         const SizedBox(height: 6),
-        Text(l10n.line('purchaseBody'), style: AppTextStyles.muted(context)),
+        Text(
+          l10n.line('purchaseBody'),
+          style: AppTextStyles.muted(context),
+        ),
         const SizedBox(height: 16),
+        KeyedSubtree(
+          key: const ValueKey('purchaseWebsitePreview'),
+          child: WebsiteBuilderPreview(draft: builder),
+        ),
+        const SizedBox(height: 18),
         DecoratedBox(
           decoration: BoxDecoration(
             color: palette.surface,
@@ -88,11 +170,15 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.line('wbPlanTitle'),
-                    style: AppTextStyles.headline(context)),
+                Text(
+                  l10n.line('wbPlanTitle'),
+                  style: AppTextStyles.headline(context),
+                ),
                 const SizedBox(height: 6),
-                Text(l10n.line('wbPlanBody'),
-                    style: AppTextStyles.muted(context)),
+                Text(
+                  l10n.line('wbPlanBody'),
+                  style: AppTextStyles.muted(context),
+                ),
                 const SizedBox(height: 10),
                 Text(
                   '₹999',
@@ -103,7 +189,10 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        Text('Payment method', style: AppTextStyles.headline(context)),
+        Text(
+          l10n.line('paymentMethod'),
+          style: AppTextStyles.headline(context),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -116,26 +205,43 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
               ChoiceChip(
                 label: Text(entry.$2),
                 selected: _method == entry.$1,
-                onSelected: (_) => setState(() => _method = entry.$1),
+                onSelected: busy
+                    ? null
+                    : (_) => setState(() => _method = entry.$1),
               ),
           ],
         ),
-        const SizedBox(height: 8),
-        const SizedBox(height: 8),
+        if (_publishError != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            _publishError!,
+            style: AppTextStyles.body(context).copyWith(color: palette.danger),
+          ),
+        ],
+        const SizedBox(height: 16),
         PrimaryButton(
-          label: _busy ? l10n.line('wbSaving') : 'Pay Now',
-          onPressed: _busy ? null : () => _purchase(context),
+          key: const ValueKey('payWebsite'),
+          label: busy ? l10n.line('wbSaving') : l10n.portfolioGetWebsite,
+          onPressed: busy ? null : _purchase,
+        ),
+        const SizedBox(height: 8),
+        SecondaryButton(
+          key: const ValueKey('publishWebsite'),
+          label: l10n.line('wbPublish'),
+          onPressed: busy ? () {} : _publish,
         ),
         const SizedBox(height: 8),
         Text(
-          'Secure & Encrypted Payments',
+          l10n.line('securePayments'),
           textAlign: TextAlign.center,
           style: AppTextStyles.muted(context),
         ),
         const SizedBox(height: 10),
         SecondaryButton(
           label: l10n.line('continueEditing'),
-          onPressed: () => AppRouter.back(context, AppRoutes.website),
+          onPressed: busy
+              ? () {}
+              : () => AppRouter.open(context, AppRoutes.website),
         ),
       ],
     );

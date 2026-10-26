@@ -38,10 +38,17 @@ class WebsiteStage extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: AppBreakpoints.dashboardMaxWidth),
-                    child: ListView(
+                    constraints: const BoxConstraints(
+                      maxWidth: AppBreakpoints.dashboardMaxWidth,
+                    ),
+                    // Column (not ListView) so pay/publish actions below a tall
+                    // preview are always built and reachable by scroll.
+                    child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
-                      children: children,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: children,
+                      ),
                     ),
                   ),
                 ),

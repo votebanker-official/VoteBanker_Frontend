@@ -578,4 +578,6 @@ const hiTranslations = <String, String>{
   'portfolioNavVisionFull': 'दृष्टि और प्राथमिकताएँ',
   'portfolioIntroPlaceholder': 'वेबसाइट विवरण में परिचय जोड़ने पर यहाँ पेशेवर परिचय दिखेगा।',
   'portfolioKnowMyVision': 'मेरा विज़न जानें',
+  'paymentMethod': 'भुगतान विधि',
+  'securePayments': 'सुरक्षित और एन्क्रिप्टेड भुगतान',
 };

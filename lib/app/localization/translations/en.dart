@@ -593,4 +593,6 @@ const enTranslations = <String, String>{
       'Camera is unavailable. Allow camera permission and try again.',
   'portfolioIntroPlaceholder': 'A professional introduction appears here once you add it in Website Details.',
   'portfolioKnowMyVision': 'Know My Vision',
+  'paymentMethod': 'Payment method',
+  'securePayments': 'Secure & Encrypted Payments',
 };

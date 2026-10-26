@@ -591,4 +591,6 @@ const mlTranslations = <String, String>{
   'portfolioNavVisionFull': 'ദർശനവും മുൻഗണനകളും',
   'portfolioIntroPlaceholder': 'വെബ്‌സൈറ്റ് വിവരങ്ങളിൽ അവതരണം ചേർത്താൽ ഇവിടെ പ്രൊഫഷണൽ അവതരണം കാണാം.',
   'portfolioKnowMyVision': 'എന്റെ കാഴ്ചപ്പാട് അറിയുക',
+  'paymentMethod': 'പേയ്‌മെന്റ് രീതി',
+  'securePayments': 'സുരക്ഷിതവും എൻക്രിപ്റ്റ് ചെയ്തതുമായ പേയ്‌മെന്റുകൾ',
 };

@@ -592,4 +592,6 @@ const taTranslations = <String, String>{
   'portfolioNavVisionFull': 'பார்வை & முன்னுரிமைகள்',
   'portfolioIntroPlaceholder': 'இணையதள விவரங்களில் அறிமுகம் சேர்த்ததும் இங்கே தொழில்முறை அறிமுகம் தோன்றும்.',
   'portfolioKnowMyVision': 'என் தொலைநோக்கை அறியுங்கள்',
+  'paymentMethod': 'கட்டண முறை',
+  'securePayments': 'பாதுகாப்பான மற்றும் குறியாக்கப்பட்ட பணம்செலுத்தல்கள்',
 };

@@ -583,4 +583,6 @@ const teTranslations = <String, String>{
   'portfolioNavVisionFull': 'దృష్టి & ప్రాధాన్యతలు',
   'portfolioIntroPlaceholder': 'వెబ్‌సైట్ వివరాల్లో పరిచయం జోడించిన తర్వాత ఇక్కడ వృత్తిపరమైన పరిచయం కనిపిస్తుంది.',
   'portfolioKnowMyVision': 'నా దృష్టిని తెలుసుకోండి',
+  'paymentMethod': 'చెల్లింపు విధానం',
+  'securePayments': 'సురక్షిత మరియు ఎన్‌క్రిప్టెడ్ చెల్లింపులు',
 };

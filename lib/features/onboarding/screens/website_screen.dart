@@ -282,11 +282,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             onPressed: _previewWebsite,
             child: Text(l10n.line('portfolioPreviewTemplate')),
           ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => AppRouter.open(context, AppRoutes.social),
-            child: Text(l10n.skipForNow),
-          ),
         ],
       ),
     );

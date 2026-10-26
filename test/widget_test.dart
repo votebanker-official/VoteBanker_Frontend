@@ -183,28 +183,26 @@ void main() {
       find.descendant(of: card, matching: find.text('Select Portfolio Name')),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Portfolio Template'), findsOneWidget);
+    expect(find.text('Your website is ready'), findsOneWidget);
+    expect(find.byKey(const ValueKey('purchaseWebsitePreview')), findsOneWidget);
     expect(find.text('Arjun Verma'), findsWidgets);
+    await tester.ensureVisible(find.byKey(const ValueKey('payWebsite')));
+    expect(find.textContaining('₹999'), findsWidgets);
+    await tester.ensureVisible(find.byKey(const ValueKey('publishWebsite')));
+    expect(find.byKey(const ValueKey('publishWebsite')), findsOneWidget);
 
-    final websiteContext = tester.element(find.text('Portfolio Template'));
-    final draft = OnboardingScope.of(websiteContext).draft;
+    final purchaseContext = tester.element(find.text('Your website is ready'));
+    final draft = OnboardingScope.of(purchaseContext).draft;
     expect(draft.fullName, 'Arjun Verma');
     expect(draft.selectedDomain, 'arjunverma.com');
 
-    // Back from a nested domain push returns to the website with state intact.
+    await _tapLabel(tester, 'Continue editing');
+    await tester.pumpAndSettle();
+    expect(find.text('Portfolio Template'), findsOneWidget);
+
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.text('Portfolio Name Search'), findsOneWidget);
-    await _tapLabel(tester, 'Back');
-    expect(find.text('Portfolio Template'), findsOneWidget);
-    expect(find.text('Arjun Verma'), findsWidgets);
-    expect(
-      OnboardingScope.of(tester.element(find.text('Portfolio Template')))
-          .draft
-          .selectedDomain,
-      'arjunverma.com',
-    );
-
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
 

@@ -151,12 +151,17 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
   void _select(String domain) {
     OnboardingScope.of(context).selectDomain(domain);
     _commit();
-    AppRouter.open(context, AppRoutes.website);
+    AppRouter.open(context, AppRoutes.websitePurchase);
   }
 
-  void _continueToWebsite() {
+  void _continueToPurchase() {
     _commit();
-    AppRouter.open(context, AppRoutes.website);
+    AppRouter.open(context, AppRoutes.websitePurchase);
+  }
+
+  void _skipDomain() {
+    _commit();
+    AppRouter.open(context, AppRoutes.social);
   }
 
   String _errorMessage(AppLocalizations l10n, String code) {
@@ -367,9 +372,9 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
               AppRouter.back(context, AppRoutes.profile);
             },
             primaryLabel: l10n.next,
-            onPrimary: _continueToWebsite,
+            onPrimary: _continueToPurchase,
             skipLabel: l10n.skipForNow,
-            onSkip: _continueToWebsite,
+            onSkip: _skipDomain,
           ),
         ],
       ),

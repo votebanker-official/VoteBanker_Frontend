@@ -582,4 +582,6 @@ const knTranslations = <String, String>{
   'portfolioNavVisionFull': 'ದೃಷ್ಟಿ ಮತ್ತು ಆದ್ಯತೆಗಳು',
   'portfolioIntroPlaceholder': 'ವೆಬ್‌ಸೈಟ್ ವಿವರಗಳಲ್ಲಿ ಪರಿಚಯ ಸೇರಿಸಿದ ನಂತರ ಇಲ್ಲಿ ವೃತ್ತಿಪರ ಪರಿಚಯ ಕಾಣಿಸುತ್ತದೆ.',
   'portfolioKnowMyVision': 'ನನ್ನ ದೃಷ್ಟಿಕೋನ ತಿಳಿಯಿರಿ',
+  'paymentMethod': 'ಪಾವತಿ ವಿಧಾನ',
+  'securePayments': 'ಸುರಕ್ಷಿತ ಮತ್ತು ಎನ್‌ಕ್ರಿಪ್ಟೆಡ್ ಪಾವತಿಗಳು',
 };
