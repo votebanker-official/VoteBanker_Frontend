@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/app.dart';
+import 'package:votebanker/app/localization/translations/hi.dart';
 import 'package:votebanker/app/localization/translations/kn.dart';
 import 'package:votebanker/features/onboarding/data/assembly_constituency.dart';
 import 'package:votebanker/features/onboarding/data/location_catalog.dart';
@@ -126,14 +127,14 @@ void main() {
 
     expect(find.text('Enter a valid contact number.'), findsOneWidget);
     expect(find.text('Leader Profile'), findsOneWidget);
-    expect(find.text('Your Political Website'), findsNothing);
+    expect(find.text('Portfolio Template'), findsNothing);
 
     await _enter(tester, 'profileContact', '9876543210');
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Your Political Website'), findsOneWidget);
+    expect(find.text('Portfolio Template'), findsOneWidget);
 
     final draft = OnboardingScope.of(
-      tester.element(find.text('Your Political Website')),
+      tester.element(find.text('Portfolio Template')),
     ).draft;
     expect(draft.publicContact, '9876543210');
     expect(draft.partNo, '12/A');
@@ -187,7 +188,7 @@ void main() {
       // Validation: 10 digits starting with 6–9 accepted on submit
       await _enter(tester, 'profileContact', '6876543210');
       await _tapLabel(tester, 'Save & Continue');
-      expect(find.text('Your Political Website'), findsOneWidget);
+      expect(find.text('Portfolio Template'), findsOneWidget);
     },
   );
 
@@ -206,11 +207,18 @@ void main() {
     await _setSurface(tester, const Size(1280, 900));
     await tester.pumpWidget(VoteBankerApp(controller: controller));
     await tester.pumpAndSettle();
-    await _tapLabel(tester, 'Skip for now');
+    // Preferred language is applied to MaterialApp on startup.
+    await _tapLabel(tester, hiTranslations['skipForNow']!);
 
     expect(_dropdown(tester, 'profileCountry').initialValue, 'India');
     _expectState(tester, 'Karnataka');
-    _expectDistrict(tester, null);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('profileDistrict')),
+        matching: find.text(hiTranslations['selectDistrict']!),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('हिन्दी'), findsOneWidget);
     expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
     expect(controller.draft.constituency, isEmpty);

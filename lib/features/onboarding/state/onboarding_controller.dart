@@ -26,7 +26,18 @@ class OnboardingController {
     }
     draft.selectedLanguage = code;
     draft.preferredLanguage = code;
-    locale.value = Locale(code);
+    if (locale.value.languageCode != code) {
+      locale.value = Locale(code);
+    }
+  }
+
+  /// Apply [draft.preferredLanguage] (e.g. after profile restore) to the live UI.
+  void syncLocaleFromDraft() {
+    final raw = draft.preferredLanguage.trim().isNotEmpty
+        ? draft.preferredLanguage.trim()
+        : draft.selectedLanguage.trim();
+    if (raw.isEmpty) return;
+    setLanguageCode(raw);
   }
 
   void selectDomain(String domain) {

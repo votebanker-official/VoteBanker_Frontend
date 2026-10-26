@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -161,11 +161,11 @@ void main() {
       find.byType(TextField).hitTestable().first,
       'Arjun Verma',
     );
-    await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Your Political Website'), findsOneWidget);
+    await _tapLabel(tester, 'Skip for now');
+    expect(find.text('Portfolio Template'), findsOneWidget);
 
-    // Website screen back opens domain search for portfolio name selection.
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    // Header Skip opens domain search for portfolio name selection.
+    await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.text('Portfolio Name Search'), findsOneWidget);
 
@@ -183,23 +183,28 @@ void main() {
       find.descendant(of: card, matching: find.text('Select Portfolio Name')),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Your Political Website'), findsOneWidget);
+    expect(find.text('Portfolio Template'), findsOneWidget);
     expect(find.text('Arjun Verma'), findsWidgets);
 
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    final websiteContext = tester.element(find.text('Portfolio Template'));
+    final draft = OnboardingScope.of(websiteContext).draft;
+    expect(draft.fullName, 'Arjun Verma');
+    expect(draft.selectedDomain, 'arjunverma.com');
+
+    // Back from a nested domain push returns to the website with state intact.
+    await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.text('Portfolio Name Search'), findsOneWidget);
     await _tapLabel(tester, 'Back');
-    expect(find.text('Leader Profile'), findsOneWidget);
-    final profileContext = tester.element(find.text('Leader Profile'));
-    expect(OnboardingScope.of(profileContext).draft.fullName, 'Arjun Verma');
+    expect(find.text('Portfolio Template'), findsOneWidget);
+    expect(find.text('Arjun Verma'), findsWidgets);
     expect(
-      OnboardingScope.of(profileContext).draft.selectedDomain,
+      OnboardingScope.of(tester.element(find.text('Portfolio Template')))
+          .draft
+          .selectedDomain,
       'arjunverma.com',
     );
 
-    await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Your Political Website'), findsOneWidget);
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
 
@@ -221,21 +226,13 @@ void main() {
 
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Skip for now');
-    await _tapLabel(tester, 'Next');
-    expect(find.text('Portfolio Website'), findsOneWidget);
+    expect(find.text('Portfolio Template'), findsOneWidget);
     expect(find.text(enTranslations['portfolioGetWebsite']!), findsNothing);
+    expect(find.byKey(const ValueKey('customizeTemplate')), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('customizeTemplate')));
+    await tester.tap(find.byKey(const ValueKey('continueTemplate')));
     await tester.pumpAndSettle();
-    expect(find.text('Website Details'), findsOneWidget);
-
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), 'Meera Rao');
-    await tester.enterText(fields.at(1), 'Clean streets for River Ward');
-    await tester.enterText(fields.at(2), 'Community organizer for River Ward.');
-    await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Social Media Setup'), findsOneWidget);
-    expect(find.text(enTranslations['websiteOffer']!), findsNothing);
+    expect(find.text('Tell us about your website'), findsOneWidget);
   });
 
   testWidgets('narrow malayalam layout does not overflow', (tester) async {
@@ -255,6 +252,11 @@ void main() {
     expect(find.text(mlTranslations['basicProfile']!), findsOneWidget);
 
     await _tapLabel(tester, mlTranslations['skipForNow']!);
+    expect(find.text(mlTranslations['chooseWebsiteTemplate']!), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text(mlTranslations['portfolioSkip']!));
+    await tester.pumpAndSettle();
     expect(find.text(mlTranslations['domainTitle']!), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).hitTestable(), 'Arjun Verma');
@@ -262,10 +264,6 @@ void main() {
     await tester.tap(find.text(mlTranslations['domainSearch']!));
     await tester.pumpAndSettle();
     expect(find.text('arjunverma.com'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    await _tapLabel(tester, mlTranslations['skipForNow']!);
-    expect(find.text(mlTranslations['websiteTitle']!), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

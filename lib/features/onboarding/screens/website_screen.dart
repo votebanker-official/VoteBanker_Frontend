@@ -211,15 +211,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 height: 420,
                 child: WebsiteBuilderPreview(draft: draft),
               ),
-              const SizedBox(height: 12),
-              PrimaryButton(
-                label: AppLocalizations.of(context)
-                    .line('portfolioCustomizeTemplate'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  _openBuilder(continueOnboarding: true);
-                },
-              ),
             ],
           ),
         );
@@ -284,12 +275,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             label: l10n.line('generateWebsite'),
             icon: Icons.auto_awesome,
             onPressed: _openAiFlow,
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const ValueKey('customizeTemplate'),
-            onPressed: () => _openBuilder(continueOnboarding: true),
-            child: Text(l10n.line('portfolioCustomizeTemplate')),
           ),
           const SizedBox(height: 8),
           OutlinedButton(

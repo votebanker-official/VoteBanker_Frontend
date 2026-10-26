@@ -13,11 +13,7 @@ class LanguageSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final session = OnboardingScope.of(context);
-    final saved = session.draft.preferredLanguage;
-    final code =
-        ProfileLanguages.supports(saved)
-            ? saved
-            : Localizations.localeOf(context).languageCode;
+    final code = Localizations.localeOf(context).languageCode;
     final palette = context.palette;
     final current = _languageFor(code);
 

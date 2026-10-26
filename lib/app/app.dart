@@ -29,6 +29,13 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
   final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
+  void initState() {
+    super.initState();
+    // Restore UI language from a pre-seeded or previously saved draft.
+    _controller.syncLocaleFromDraft();
+  }
+
+  @override
   void dispose() {
     if (_ownsController) {
       _controller.dispose();

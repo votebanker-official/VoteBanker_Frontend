@@ -107,6 +107,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     final boothNumber = _boothNumber.text;
     final boothName = _boothName.text;
     ProfileService.applyProfile(draft, profile);
+    OnboardingScope.of(context).syncLocaleFromDraft();
+    if (ProfileLanguages.supports(draft.preferredLanguage)) {
+      _preferredLanguage = draft.preferredLanguage;
+    }
     final photoUrl = draft.profilePhotoUrl;
     if (photoUrl.isNotEmpty &&
         draft.photoBytes == null &&

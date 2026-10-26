@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/localization/app_localizations.dart';
 import '../../onboarding/data/political_party.dart';
 import '../../onboarding/widgets/party_symbol.dart';
 import '../models/website_builder_draft.dart';
@@ -23,9 +24,11 @@ class LeaderPortfolioSite extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final partyName = draft.party.trim();
-    final displayName =
-        draft.fullName.trim().isEmpty ? 'Your name' : draft.fullName.trim();
+    final displayName = draft.fullName.trim().isEmpty
+        ? l10n.line('portfolioYourName')
+        : draft.fullName.trim();
     final designation = draft.officialDesignation.trim().isNotEmpty
         ? draft.officialDesignation.trim()
         : draft.designation.trim();
@@ -40,8 +43,7 @@ class LeaderPortfolioSite extends StatelessWidget {
       draft.aboutLeader,
     ].map((value) => value.trim()).firstWhere(
           (value) => value.isNotEmpty,
-          orElse: () =>
-              'Add your biography in Website Details. This section stays text only.',
+          orElse: () => l10n.line('portfolioBioPlaceholder'),
         );
     final vision = [
       draft.goalsVision,
@@ -83,14 +85,19 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const nav = [
-      'Home',
-      'About',
-      'Vision & Priorities',
-      'Achievements',
-      'Gallery',
-      'Contact',
+    final l10n = AppLocalizations.of(context);
+    final home = l10n.portfolioNavHome;
+    final nav = [
+      home,
+      l10n.portfolioNavAbout,
+      l10n.line('portfolioNavVisionFull'),
+      l10n.line('portfolioNavAchievements'),
+      l10n.portfolioNavGallery,
+      l10n.portfolioNavContact,
     ];
+    final partyLabel = partyName.isEmpty
+        ? l10n.line('portfolioPoliticalParty')
+        : partyName;
     return ColoredBox(
       color: Colors.white,
       child: Padding(
@@ -103,7 +110,7 @@ class _Header extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    partyName.isEmpty ? 'Political party' : partyName,
+                    partyLabel,
                     key: const ValueKey('websitePartyName'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -114,24 +121,36 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (!compact)
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: LeaderPortfolioSite._blue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      child: Text(
-                        'Join Our Mission',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                if (!compact) ...[
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: LeaderPortfolioSite._blue,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            l10n.line('portfolioJoinMission'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
+                ],
               ],
             ),
             const SizedBox(height: 8),
@@ -146,8 +165,8 @@ class _Header extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight:
-                          label == 'Home' ? FontWeight.w700 : FontWeight.w500,
-                      color: label == 'Home'
+                          label == home ? FontWeight.w700 : FontWeight.w500,
+                      color: label == home
                           ? LeaderPortfolioSite._blue
                           : LeaderPortfolioSite._muted,
                     ),
@@ -180,6 +199,7 @@ class _Hero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ColoredBox(
       color: const Color(0xFFE8F0FB),
       child: Padding(
@@ -240,7 +260,7 @@ class _Hero extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         intro.isEmpty
-                            ? 'A professional introduction appears here once you add it in Website Details.'
+                            ? l10n.line('portfolioIntroPlaceholder')
                             : intro,
                         style: const TextStyle(
                           fontSize: 13,
@@ -254,14 +274,14 @@ class _Hero extends StatelessWidget {
                           color: LeaderPortfolioSite._blue,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
                           ),
                           child: Text(
-                            'Know My Vision',
-                            style: TextStyle(
+                            l10n.line('portfolioKnowMyVision'),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
@@ -285,7 +305,9 @@ class _Hero extends StatelessWidget {
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 160),
                     child: Text(
-                      partyName.isEmpty ? 'Political party' : partyName,
+                      partyName.isEmpty
+                          ? l10n.line('portfolioPoliticalParty')
+                          : partyName,
                       textAlign: TextAlign.right,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -313,15 +335,16 @@ class _AboutLeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       key: const ValueKey('aboutTheLeader'),
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'About the Leader',
-            style: TextStyle(
+          Text(
+            l10n.line('portfolioAboutLeader'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: LeaderPortfolioSite._navy,
@@ -349,14 +372,15 @@ class _Vision extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Vision & Priorities',
-            style: TextStyle(
+          Text(
+            l10n.line('portfolioVisionPriorities'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: LeaderPortfolioSite._navy,
@@ -364,9 +388,12 @@ class _Vision extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           if (items.isEmpty)
-            const Text(
-              'Share your vision, priorities, and development agenda in Website Details.',
-              style: TextStyle(fontSize: 14, color: LeaderPortfolioSite._muted),
+            Text(
+              l10n.line('portfolioVisionPlaceholder'),
+              style: const TextStyle(
+                fontSize: 14,
+                color: LeaderPortfolioSite._muted,
+              ),
             )
           else
             for (final item in items)
@@ -395,15 +422,16 @@ class _Work extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final empty = achievements.isEmpty && projects.isEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Achievements & Development Work',
-            style: TextStyle(
+          Text(
+            l10n.line('portfolioAchievementsWork'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: LeaderPortfolioSite._navy,
@@ -411,9 +439,12 @@ class _Work extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           if (empty)
-            const Text(
-              'Achievements and development projects appear here when you add them.',
-              style: TextStyle(fontSize: 14, color: LeaderPortfolioSite._muted),
+            Text(
+              l10n.line('portfolioAchievementsPlaceholder'),
+              style: const TextStyle(
+                fontSize: 14,
+                color: LeaderPortfolioSite._muted,
+              ),
             )
           else ...[
             for (final item in achievements)
@@ -454,15 +485,16 @@ class _GalleryAndUpdates extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final empty = gallery.isEmpty && updates.isEmpty && events.isEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Gallery & Community Updates',
-            style: TextStyle(
+          Text(
+            l10n.line('portfolioGalleryUpdates'),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: LeaderPortfolioSite._navy,
@@ -470,9 +502,12 @@ class _GalleryAndUpdates extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           if (empty)
-            const Text(
-              'Saved photos, captions, and public updates appear here when available.',
-              style: TextStyle(fontSize: 14, color: LeaderPortfolioSite._muted),
+            Text(
+              l10n.line('portfolioGalleryPlaceholder'),
+              style: const TextStyle(
+                fontSize: 14,
+                color: LeaderPortfolioSite._muted,
+              ),
             )
           else ...[
             if (gallery.isNotEmpty)
@@ -531,6 +566,7 @@ class _Contact extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final phone = draft.phone.trim();
     final email = draft.email.trim();
     return ColoredBox(
@@ -540,9 +576,9 @@ class _Contact extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Get in Touch',
-              style: TextStyle(
+            Text(
+              l10n.line('portfolioGetInTouch'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
@@ -551,7 +587,7 @@ class _Contact extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               phone.isEmpty
-                  ? 'A public contact number appears here when you add one.'
+                  ? l10n.line('portfolioContactPlaceholder')
                   : phone,
               style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
@@ -569,7 +605,9 @@ class _Contact extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    partyName.isEmpty ? 'Political party' : partyName,
+                    partyName.isEmpty
+                        ? l10n.line('portfolioPoliticalParty')
+                        : partyName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

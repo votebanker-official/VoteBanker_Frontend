@@ -198,6 +198,22 @@ const enTranslations = <String, String>{
   'portfolioTagline': 'Tagline',
   'portfolioSave': 'Save website',
   'portfolioEditWebsite': 'Edit Website',
+  'portfolioAboutLeader': 'About the Leader',
+  'portfolioVisionPriorities': 'Vision & Priorities',
+  'portfolioAchievementsWork': 'Achievements & Development Work',
+  'portfolioGalleryUpdates': 'Gallery & Community Updates',
+  'portfolioGetInTouch': 'Get in Touch',
+  'portfolioBioPlaceholder': 'Add your biography in Website Details. This section stays text only.',
+  'portfolioVisionPlaceholder':
+      'Share your vision, priorities, and development agenda in Website Details.',
+  'portfolioAchievementsPlaceholder': 'Achievements and development projects appear here when you add them.',
+  'portfolioGalleryPlaceholder': 'Saved photos, captions, and public updates appear here when available.',
+  'portfolioContactPlaceholder': 'A public contact number appears here when you add one.',
+  'portfolioPoliticalParty': 'Political party',
+  'portfolioYourName': 'Your name',
+  'portfolioJoinMission': 'Join Our Mission',
+  'portfolioNavAchievements': 'Achievements',
+  'portfolioNavVisionFull': 'Vision & Priorities',
   'portfolioSkip': 'Skip',
   'portfolioNotReady':
       'Your website is ready to customize with the selected template.',
@@ -219,9 +235,9 @@ const enTranslations = <String, String>{
   'wbSignInRequired': 'Sign in to publish your website.',
   'wbPublishFailed':
       'Could not publish right now. Check your connection and try again.',
-  'chooseWebsiteTemplate': 'Your Political Website',
+  'chooseWebsiteTemplate': 'Portfolio Template',
   'chooseWebsiteTemplateBody':
-      'Preview your professional leader website with your profile photo, party branding, and public details. Continue to fill in Website Details.',
+      'Preview your professional portfolio site with your profile photo, party branding, and public details. Continue to fill in Website Details.',
   'socialTitle': 'Social Media Setup',
   'socialBody':
       'Connect your social media accounts to increase your reach and engagement.',
@@ -572,4 +588,9 @@ const enTranslations = <String, String>{
   'profileStep': '1 of 4',
   'selectFromAlbum': 'Select from album',
   'takeSelfie': 'Take selfie',
+  'capturePhoto': 'Capture',
+  'cameraUnavailable':
+      'Camera is unavailable. Allow camera permission and try again.',
+  'portfolioIntroPlaceholder': 'A professional introduction appears here once you add it in Website Details.',
+  'portfolioKnowMyVision': 'Know My Vision',
 };

@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -58,7 +58,7 @@ void main() {
     await tester.pumpAndSettle();
     await _tap(tester, 'Save & Continue');
 
-    expect(find.textContaining('Your Political Website'), findsOneWidget);
+    expect(find.textContaining('Portfolio Template'), findsOneWidget);
     expect(find.text('Rahul Kumar'), findsWidgets);
     expect(find.textContaining('Hubballi'), findsWidgets);
     expect(find.textContaining('Indian National Congress'), findsWidgets);
@@ -88,7 +88,6 @@ void main() {
     expect(find.textContaining('9876543210'), findsOneWidget);
     expect(controller.draft.websiteTemplate, WebsiteTemplates.professional);
     expect(find.byKey(const ValueKey('continueTemplate')), findsOneWidget);
-    expect(find.byKey(const ValueKey('customizeTemplate')), findsOneWidget);
     expect(find.byKey(const ValueKey('previewWebsite')), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.arrow_back));
@@ -98,7 +97,7 @@ void main() {
     expect(controller.draft.photoBytes, isNotNull);
     expect(controller.draft.party, 'Indian National Congress');
 
-    await _tap(tester, 'Save & Continue');
+    await _tap(tester, 'Skip for now');
     await _tap(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
   });
