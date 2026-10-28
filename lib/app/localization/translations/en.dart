@@ -82,9 +82,9 @@ const enTranslations = <String, String>{
   'administrationsSubtitle':
       'Tools for speeches, letters, events, campaigns, and account work.',
   'cardDomain': 'Domain & Website',
-  'cardSocial': 'Social Media',
+  'cardSocial': 'Saved Voters',
   'socialCardBody': 'WhatsApp, Instagram, and Facebook contacts saved in VRM.',
-  'socialMediaTitle': 'Social Media',
+  'socialMediaTitle': 'Saved Voters',
   'socialMediaEmpty':
       'No social contact details have been saved yet. Add WhatsApp, Instagram, or Facebook details to voter records in VRM, and they will appear here.',
   'socialWhatsappSection': 'WhatsApp Contacts',

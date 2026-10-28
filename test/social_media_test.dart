@@ -123,7 +123,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.text('Social Media'), findsOneWidget);
+    expect(find.text('Saved Voters'), findsOneWidget);
     expect(find.text('WhatsApp Contacts'), findsOneWidget);
     expect(find.text('Instagram Profiles'), findsOneWidget);
     expect(find.text('Facebook Profiles'), findsNothing);

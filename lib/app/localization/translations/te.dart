@@ -83,9 +83,9 @@ const teTranslations = <String, String>{
   'administrationsSubtitle':
       'ప్రసంగం, లేఖలు, ఈవెంట్‌లు, ప్రచారం మరియు ఖాతా పనుల కోసం సాధనాలు.',
   'cardDomain': 'డొమైన్ మరియు వెబ్‌సైట్',
-  'cardSocial': 'సోషల్ మీడియా',
+  'cardSocial': 'సేవ్ చేసిన ఓటర్లు',
   'socialCardBody': 'VRMలో సేవ్ చేసిన WhatsApp, Instagram మరియు Facebook పరిచయాలు.',
-  'socialMediaTitle': 'సోషల్ మీడియా',
+  'socialMediaTitle': 'సేవ్ చేసిన ఓటర్లు',
   'socialMediaEmpty':
       'ఇంకా సోషల్ పరిచయాలు సేవ్ కాలేదు. VRM ఓటరు రికార్డులో WhatsApp, Instagram లేదా Facebook జోడించండి, అవి ఇక్కడ కనిపిస్తాయి.',
   'socialWhatsappSection': 'WhatsApp పరిచయాలు',

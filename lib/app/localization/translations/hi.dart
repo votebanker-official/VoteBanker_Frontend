@@ -84,9 +84,9 @@ const hiTranslations = <String, String>{
   'administrationsSubtitle':
       'भाषण, पत्र, कार्यक्रम, अभियान और खाता कार्यों के लिए उपकरण।',
   'cardDomain': 'डोमेन और वेबसाइट',
-  'cardSocial': 'सोशल मीडिया',
+  'cardSocial': 'सहेजे गए मतदाता',
   'socialCardBody': 'VRM में सहेजे गए WhatsApp, Instagram और Facebook संपर्क।',
-  'socialMediaTitle': 'सोशल मीडिया',
+  'socialMediaTitle': 'सहेजे गए मतदाता',
   'socialMediaEmpty':
       'अभी कोई सामाजिक संपर्क सहेजा नहीं गया है। VRM मतदाता रिकॉर्ड में WhatsApp, Instagram या Facebook जोड़ें, वे यहाँ दिखेंगे।',
   'socialWhatsappSection': 'WhatsApp संपर्क',

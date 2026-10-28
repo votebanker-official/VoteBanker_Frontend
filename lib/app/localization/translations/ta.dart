@@ -86,9 +86,9 @@ const taTranslations = <String, String>{
   'administrationsSubtitle':
       'பேச்சு, கடிதங்கள், நிகழ்வுகள், பிரச்சாரம் மற்றும் கணக்குப் பணிகளுக்கான கருவிகள்.',
   'cardDomain': 'டொமைன் மற்றும் வலைத்தளம்',
-  'cardSocial': 'சமூக ஊடகம்',
+  'cardSocial': 'சேமித்த வாக்காளர்கள்',
   'socialCardBody': 'VRM-இல் சேமித்த WhatsApp, Instagram, Facebook தொடர்புகள்.',
-  'socialMediaTitle': 'சமூக ஊடகம்',
+  'socialMediaTitle': 'சேமித்த வாக்காளர்கள்',
   'socialMediaEmpty':
       'இன்னும் சமூக தொடர்புகள் சேமிக்கப்படவில்லை. VRM வாக்காளர் பதிவில் WhatsApp, Instagram அல்லது Facebook சேர்க்கவும், அவை இங்கே தோன்றும்.',
   'socialWhatsappSection': 'WhatsApp தொடர்புகள்',

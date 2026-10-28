@@ -83,9 +83,9 @@ const knTranslations = <String, String>{
   'administrationsSubtitle':
       'ಭಾಷಣ, ಪತ್ರಗಳು, ಕಾರ್ಯಕ್ರಮಗಳು, ಪ್ರಚಾರ ಮತ್ತು ಖಾತೆ ಕೆಲಸಕ್ಕಾಗಿ ಸಾಧನಗಳು.',
   'cardDomain': 'ಡೊಮೇನ್ ಮತ್ತು ವೆಬ್‌ಸೈಟ್',
-  'cardSocial': 'ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ',
+  'cardSocial': 'ಉಳಿಸಿದ ಮತದಾರರು',
   'socialCardBody': 'VRM ನಲ್ಲಿ ಉಳಿಸಿದ WhatsApp, Instagram ಮತ್ತು Facebook ಸಂಪರ್ಕಗಳು.',
-  'socialMediaTitle': 'ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ',
+  'socialMediaTitle': 'ಉಳಿಸಿದ ಮತದಾರರು',
   'socialMediaEmpty':
       'ಇನ್ನೂ ಯಾವ ಸಾಮಾಜಿಕ ಸಂಪರ್ಕವೂ ಉಳಿಸಿಲ್ಲ. VRM ಮತದಾರ ದಾಖಲೆಯಲ್ಲಿ WhatsApp, Instagram ಅಥವಾ Facebook ಸೇರಿಸಿ, ಅವು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.',
   'socialWhatsappSection': 'WhatsApp ಸಂಪರ್ಕಗಳು',

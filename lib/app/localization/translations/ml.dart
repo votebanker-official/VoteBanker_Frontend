@@ -86,9 +86,9 @@ const mlTranslations = <String, String>{
   'administrationsSubtitle':
       'പ്രസംഗം, കത്തുകൾ, ഇവന്റുകൾ, ക്യാമ്പെയിൻ, അക്കൗണ്ട് ജോലികൾക്കുള്ള ഉപകരണങ്ങൾ.',
   'cardDomain': 'ഡൊമെയ്‌നും വെബ്‌സൈറ്റും',
-  'cardSocial': 'സോഷൽ മീഡിയ',
+  'cardSocial': 'സേവ് ചെയ്ത വോട്ടർമാർ',
   'socialCardBody': 'VRM-ൽ സേവ് ചെയ്ത WhatsApp, Instagram, Facebook കോൺടാക്റ്റുകൾ.',
-  'socialMediaTitle': 'സോഷൽ മീഡിയ',
+  'socialMediaTitle': 'സേവ് ചെയ്ത വോട്ടർമാർ',
   'socialMediaEmpty':
       'ഇതുവരെ സോഷ്യൽ കോൺടാക്റ്റുകൾ സേവ് ചെയ്തിട്ടില്ല. VRM വോട്ടർ രേഖയിൽ WhatsApp, Instagram അല്ലെങ്കിൽ Facebook ചേർക്കുക, അവ ഇവിടെ കാണും.',
   'socialWhatsappSection': 'WhatsApp കോൺടാക്റ്റുകൾ',
