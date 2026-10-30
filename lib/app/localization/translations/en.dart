@@ -331,6 +331,7 @@ const enTranslations = <String, String>{
   'cardEvents': 'Events',
   'cardIssues': 'Public Issues',
   'cardTeam': 'My Team',
+  'teamCardBody': 'Manage your team members, assign roles, and track their progress.',
   'cardAnalytics': 'Analytics',
   'cardMarketplace': 'Marketplace',
   'comingLater': 'Coming later',

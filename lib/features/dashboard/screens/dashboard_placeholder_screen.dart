@@ -211,7 +211,12 @@ class _DashboardPlaceholderScreenState extends State<DashboardPlaceholderScreen>
         subtitle: l10n.line('vrmRecordsBody'),
         route: AppRoutes.vrmRecords,
       ),
-      _Module(Icons.group_outlined, l10n.cardTeam),
+      _Module(
+        Icons.group_outlined,
+        l10n.cardTeam,
+        subtitle: l10n.line('teamCardBody'),
+        route: AppRoutes.team,
+      ),
       _Module(
         Icons.storefront_outlined,
         l10n.cardMarketplace,
