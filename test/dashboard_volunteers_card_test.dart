@@ -39,7 +39,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Volunteers'), findsWidgets);
+    expect(find.text('My Volunteers'), findsWidgets);
     expect(find.text('Manage Volunteers'), findsNothing);
     expect(find.text('Total Volunteers'), findsNothing);
     expect(find.text('Unassigned'), findsNothing);
@@ -47,7 +47,7 @@ void main() {
     expect(find.text('Saved Voters'), findsWidgets);
     expect(find.text('AI Content Studio'), findsWidgets);
     expect(find.text('My Voters'), findsWidgets);
-    expect(find.text('Team'), findsWidgets);
+    expect(find.text('My Team'), findsWidgets);
     expect(find.text('Marketplace'), findsWidgets);
     expect(find.textContaining('Administrations'), findsWidgets);
     expect(find.text('Settings'), findsWidgets);
