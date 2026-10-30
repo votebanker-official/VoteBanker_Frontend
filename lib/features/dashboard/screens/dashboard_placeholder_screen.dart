@@ -192,6 +192,12 @@ class _DashboardPlaceholderScreenState extends State<DashboardPlaceholderScreen>
         subtitle: l10n.line('socialCardBody'),
         route: AppRoutes.socialContacts,
       ),
+      _Module(
+        Icons.share_outlined,
+        l10n.line('smiNav'),
+        subtitle: l10n.line('smiCardBody'),
+        route: AppRoutes.socialIntegration,
+      ),
       _Module(Icons.auto_awesome_outlined, l10n.cardContent),
       _Module(
         Icons.groups_outlined,

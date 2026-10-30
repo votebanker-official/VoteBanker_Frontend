@@ -47,7 +47,7 @@ void main() {
           expect(find.text('My Portfolio'), findsWidgets);
           expect(find.text('Saved Voters'), findsWidgets);
           expect(find.text('My Voters'), findsWidgets);
-          expect(find.text('Social Media'), findsNothing);
+          expect(find.text('Social Media'), findsWidgets);
         },
       );
     }
