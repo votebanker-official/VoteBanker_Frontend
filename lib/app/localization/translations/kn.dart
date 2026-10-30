@@ -584,4 +584,7 @@ const knTranslations = <String, String>{
   'portfolioKnowMyVision': 'ನನ್ನ ದೃಷ್ಟಿಕೋನ ತಿಳಿಯಿರಿ',
   'paymentMethod': 'ಪಾವತಿ ವಿಧಾನ',
   'securePayments': 'ಸುರಕ್ಷಿತ ಮತ್ತು ಎನ್‌ಕ್ರಿಪ್ಟೆಡ್ ಪಾವತಿಗಳು',
+  'merchAddPhoto': 'ನಿಮ್ಮ ಫೋಟೋ ಸೇರಿಸಿ',
+  'merchChangePhoto': 'ಫೋಟೋ ಬದಲಾಯಿಸಿ',
+  'merchRemovePhoto': 'ಫೋಟೋ ತೆಗೆದುಹಾಕಿ',
 };

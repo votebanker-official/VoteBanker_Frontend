@@ -652,4 +652,7 @@ const enTranslations = <String, String>{
   'portfolioKnowMyVision': 'Know My Vision',
   'paymentMethod': 'Payment method',
   'securePayments': 'Secure & Encrypted Payments',
+  'merchAddPhoto': 'Add your photo',
+  'merchChangePhoto': 'Change photo',
+  'merchRemovePhoto': 'Remove photo',
 };

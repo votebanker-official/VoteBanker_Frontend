@@ -580,4 +580,7 @@ const hiTranslations = <String, String>{
   'portfolioKnowMyVision': 'मेरा विज़न जानें',
   'paymentMethod': 'भुगतान विधि',
   'securePayments': 'सुरक्षित और एन्क्रिप्टेड भुगतान',
+  'merchAddPhoto': 'अपनी फ़ोटो जोड़ें',
+  'merchChangePhoto': 'फ़ोटो बदलें',
+  'merchRemovePhoto': 'फ़ोटो हटाएँ',
 };

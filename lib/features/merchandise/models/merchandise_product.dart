@@ -40,6 +40,7 @@ class MerchandiseOrder {
     required this.status,
     this.size = '',
     this.color = '',
+    this.campaignPhoto = '',
   });
 
   final String id;
@@ -49,6 +50,7 @@ class MerchandiseOrder {
   final String status;
   final String size;
   final String color;
+  final String campaignPhoto;
 
   factory MerchandiseOrder.fromJson(Map<String, dynamic> json) {
     return MerchandiseOrder(
@@ -59,6 +61,7 @@ class MerchandiseOrder {
       status: json['status'] as String? ?? 'requested',
       size: json['size'] as String? ?? '',
       color: json['color'] as String? ?? '',
+      campaignPhoto: json['campaign_photo'] as String? ?? '',
     );
   }
 }

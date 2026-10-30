@@ -585,4 +585,7 @@ const teTranslations = <String, String>{
   'portfolioKnowMyVision': 'నా దృష్టిని తెలుసుకోండి',
   'paymentMethod': 'చెల్లింపు విధానం',
   'securePayments': 'సురక్షిత మరియు ఎన్‌క్రిప్టెడ్ చెల్లింపులు',
+  'merchAddPhoto': 'మీ ఫోటోను జోడించండి',
+  'merchChangePhoto': 'ఫోటో మార్చండి',
+  'merchRemovePhoto': 'ఫోటో తొలగించండి',
 };

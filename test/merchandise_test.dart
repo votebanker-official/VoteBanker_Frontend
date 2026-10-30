@@ -75,6 +75,8 @@ void main() {
     final preview = tester.widget<Text>(find.byKey(const Key('merchPreviewLine')));
     expect(preview.data, 'River Ward meetings');
     expect(find.text('LIVE PREVIEW'), findsOneWidget);
+    expect(find.text('Add your photo'), findsOneWidget);
+    expect(find.byKey(const ValueKey('merchAddPhoto')), findsOneWidget);
     await tester.enterText(find.byType(TextField).at(1), 'Meera Rao');
     final save = find.text('Save design request');
     await tester.ensureVisible(save);
@@ -85,6 +87,7 @@ void main() {
     expect(saved?['campaign_line'], 'River Ward meetings');
     expect(saved?['contact_name'], 'Meera Rao');
     expect(saved?['product_slug'], 'cap');
+    expect(saved?.containsKey('campaign_photo'), isFalse);
     expect(find.textContaining('nothing is charged'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

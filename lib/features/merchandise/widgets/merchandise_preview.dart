@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
@@ -16,6 +18,7 @@ class MerchandiseLivePreview extends StatelessWidget {
     required this.previewLabel,
     required this.standardLabel,
     required this.qtyLabel,
+    this.photoBytes,
     super.key,
   });
 
@@ -28,6 +31,7 @@ class MerchandiseLivePreview extends StatelessWidget {
   final String previewLabel;
   final String standardLabel;
   final String qtyLabel;
+  final Uint8List? photoBytes;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +41,7 @@ class MerchandiseLivePreview extends StatelessWidget {
     final fill = merchandiseFill(color);
     final ink = fill.computeLuminance() < 0.45 ? Colors.white : const Color(0xFF1C2430);
     final colorLabel = color.isEmpty ? standardLabel : color;
+    final hasPhoto = photoBytes != null && photoBytes!.isNotEmpty;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -67,18 +72,40 @@ class MerchandiseLivePreview extends StatelessWidget {
                     shown,
                     key: const Key('merchPreviewLine'),
                     textAlign: TextAlign.center,
-                    maxLines: vertical ? 1 : 4,
+                    maxLines: vertical ? 1 : (hasPhoto ? 2 : 4),
                     softWrap: !vertical,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: ink.withValues(alpha: typed.isEmpty ? 0.72 : 1),
-                      fontSize: vertical ? 13 : 16,
+                      fontSize: vertical ? 13 : (hasPhoto ? 13 : 16),
                       height: 1.25,
                       letterSpacing: vertical ? 1.2 : 0,
                       fontStyle: FontStyle.italic,
                       fontWeight: FontWeight.w600,
                     ),
                   );
+                  final printContent = vertical
+                      ? RotatedBox(quarterTurns: 3, child: label)
+                      : hasPhoto
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.memory(
+                                      photoBytes!,
+                                      key: const Key('merchPreviewPhoto'),
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                label,
+                              ],
+                            )
+                          : label;
                   return Stack(
                     children: [
                       CustomPaint(
@@ -87,11 +114,7 @@ class MerchandiseLivePreview extends StatelessWidget {
                       ),
                       Positioned.fromRect(
                         rect: bounds,
-                        child: Center(
-                          child: vertical
-                              ? RotatedBox(quarterTurns: 3, child: label)
-                              : label,
-                        ),
+                        child: Center(child: printContent),
                       ),
                     ],
                   );

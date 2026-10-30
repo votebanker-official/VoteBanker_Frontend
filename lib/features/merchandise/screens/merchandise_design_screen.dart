@@ -1,9 +1,14 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/profile_service.dart';
 import '../../../core/services/theme_controller.dart';
 import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -34,6 +39,8 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
   final _name = TextEditingController();
   final _phone = TextEditingController();
   final _notes = TextEditingController();
+  final _picker = ImagePicker();
+  Uint8List? _photoBytes;
   var _quantity = 1;
   var _size = '';
   var _color = '';
@@ -99,6 +106,7 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       'contact_name': name,
       'contact_phone': _phone.text.trim(),
       'notes': _notes.text.trim(),
+      if (_photoBytes != null) 'campaign_photo': base64Encode(_photoBytes!),
     };
 
     setState(() {
@@ -140,6 +148,40 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
     }
   }
 
+  Future<void> _pickPhoto() async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        imageQuality: 80,
+        requestFullMetadata: false,
+      );
+      if (file == null) {
+        return;
+      }
+      final bytes = await file.readAsBytes();
+      if (!mounted) {
+        return;
+      }
+      if (bytes.length > ProfileService.maxPhotoBytes ||
+          ProfileService.photoContentType(bytes) == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.photoError)),
+        );
+        return;
+      }
+      setState(() => _photoBytes = bytes);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.photoError)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
@@ -161,14 +203,18 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
                 quantity: _quantity,
                 size: _size,
                 color: _color,
+                photoBytes: _photoBytes,
                 onLine: (value) => setState(() {}),
                 onQuantity: (value) => setState(() => _quantity = value),
                 onSize: (value) => setState(() => _size = value),
                 onColor: (value) => setState(() => _color = value),
+                onPickPhoto: _pickPhoto,
+                onRemovePhoto: () => setState(() => _photoBytes = null),
               );
               final preview = _PreviewColumn(
                 product: product,
                 line: _line.text,
+                photoBytes: _photoBytes,
                 size: _size,
                 color: _color,
                 quantity: _quantity,
@@ -390,10 +436,13 @@ class _FormCard extends StatelessWidget {
     required this.quantity,
     required this.size,
     required this.color,
+    required this.photoBytes,
     required this.onLine,
     required this.onQuantity,
     required this.onSize,
     required this.onColor,
+    required this.onPickPhoto,
+    required this.onRemovePhoto,
   });
 
   final MerchandiseProduct product;
@@ -404,10 +453,13 @@ class _FormCard extends StatelessWidget {
   final int quantity;
   final String size;
   final String color;
+  final Uint8List? photoBytes;
   final ValueChanged<String> onLine;
   final ValueChanged<int> onQuantity;
   final ValueChanged<String> onSize;
   final ValueChanged<String> onColor;
+  final VoidCallback onPickPhoto;
+  final VoidCallback onRemovePhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -442,6 +494,12 @@ class _FormCard extends StatelessWidget {
               hint: l10n.line('merchCampaignHint'),
               textCapitalization: TextCapitalization.sentences,
               onChanged: onLine,
+            ),
+            const SizedBox(height: 12),
+            _PrintPhotoPicker(
+              photoBytes: photoBytes,
+              onPick: onPickPhoto,
+              onRemove: onRemovePhoto,
             ),
             const SizedBox(height: 14),
             Row(
@@ -746,10 +804,93 @@ class _ColorChip extends StatelessWidget {
   }
 }
 
+class _PrintPhotoPicker extends StatelessWidget {
+  const _PrintPhotoPicker({
+    required this.photoBytes,
+    required this.onPick,
+    required this.onRemove,
+  });
+
+  final Uint8List? photoBytes;
+  final VoidCallback onPick;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final palette = context.palette;
+    final hasPhoto = photoBytes != null;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.surfaceSecondary,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: palette.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 64,
+                height: 64,
+                child: hasPhoto
+                    ? Image.memory(
+                        photoBytes!,
+                        key: const ValueKey('merchPrintPhoto'),
+                        fit: BoxFit.cover,
+                      )
+                    : ColoredBox(
+                        color: palette.surfaceHighlight,
+                        child: Icon(
+                          Icons.add_a_photo_outlined,
+                          color: palette.textMuted,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    key: const ValueKey('merchAddPhoto'),
+                    onPressed: onPick,
+                    icon: Icon(
+                      hasPhoto ? Icons.photo_camera_back_outlined : Icons.add_a_photo_outlined,
+                      size: 18,
+                    ),
+                    label: Text(
+                      hasPhoto
+                          ? l10n.line('merchChangePhoto')
+                          : l10n.line('merchAddPhoto'),
+                    ),
+                  ),
+                  if (hasPhoto)
+                    OutlinedButton.icon(
+                      key: const ValueKey('merchRemovePhoto'),
+                      onPressed: onRemove,
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: Text(l10n.line('merchRemovePhoto')),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _PreviewColumn extends StatelessWidget {
   const _PreviewColumn({
     required this.product,
     required this.line,
+    required this.photoBytes,
     required this.size,
     required this.color,
     required this.quantity,
@@ -761,6 +902,7 @@ class _PreviewColumn extends StatelessWidget {
 
   final MerchandiseProduct product;
   final String line;
+  final Uint8List? photoBytes;
   final String size;
   final String color;
   final int quantity;
@@ -778,6 +920,7 @@ class _PreviewColumn extends StatelessWidget {
         MerchandiseLivePreview(
           product: product,
           line: line,
+          photoBytes: photoBytes,
           hint: l10n.line('merchCampaignHint'),
           size: size,
           color: color,

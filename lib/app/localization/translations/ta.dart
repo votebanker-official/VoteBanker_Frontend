@@ -594,4 +594,7 @@ const taTranslations = <String, String>{
   'portfolioKnowMyVision': 'என் தொலைநோக்கை அறியுங்கள்',
   'paymentMethod': 'கட்டண முறை',
   'securePayments': 'பாதுகாப்பான மற்றும் குறியாக்கப்பட்ட பணம்செலுத்தல்கள்',
+  'merchAddPhoto': 'உங்கள் புகைப்படத்தைச் சேர்க்கவும்',
+  'merchChangePhoto': 'புகைப்படத்தை மாற்றவும்',
+  'merchRemovePhoto': 'புகைப்படத்தை நீக்கவும்',
 };

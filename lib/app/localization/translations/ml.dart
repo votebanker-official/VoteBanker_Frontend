@@ -593,4 +593,7 @@ const mlTranslations = <String, String>{
   'portfolioKnowMyVision': 'എന്റെ കാഴ്ചപ്പാട് അറിയുക',
   'paymentMethod': 'പേയ്‌മെന്റ് രീതി',
   'securePayments': 'സുരക്ഷിതവും എൻക്രിപ്റ്റ് ചെയ്തതുമായ പേയ്‌മെന്റുകൾ',
+  'merchAddPhoto': 'നിങ്ങളുടെ ഫോട്ടോ ചേർക്കുക',
+  'merchChangePhoto': 'ഫോട്ടോ മാറ്റുക',
+  'merchRemovePhoto': 'ഫോട്ടോ നീക്കം ചെയ്യുക',
 };
