@@ -18,6 +18,7 @@ import '../../features/onboarding/screens/social_setup_screen.dart';
 import '../../features/onboarding/screens/vrm_setup_screen.dart';
 import '../../features/vrm/screens/vrm_get_more_screen.dart';
 import '../../features/vrm/screens/vrm_records_screen.dart';
+import '../../features/volunteers/screens/volunteer_management_screen.dart';
 import '../../features/social_media/social_media_screen.dart';
 import '../../features/onboarding/screens/website_screen.dart';
 import '../../features/website/screens/website_edit_screen.dart';
@@ -47,6 +48,7 @@ abstract final class AppRoutes {
   static const vrm = '/vrm';
   static const vrmRecords = '/vrm/records';
   static const vrmGetMore = '/vrm/get-more';
+  static const volunteers = '/volunteers';
   static const socialContacts = '/social-media';
   static const ready = '/ready';
   static const dashboard = '/dashboard';
@@ -77,6 +79,7 @@ abstract final class AppRouter {
       AppRoutes.vrm => const VrmSetupScreen(),
       AppRoutes.vrmRecords => const VrmRecordsScreen(),
       AppRoutes.vrmGetMore => const VrmGetMoreScreen(),
+      AppRoutes.volunteers => const VolunteerManagementScreen(),
       AppRoutes.socialContacts => const SocialMediaScreen(),
       AppRoutes.ready => const ReadyScreen(),
       AppRoutes.dashboard => const DashboardPlaceholderScreen(),

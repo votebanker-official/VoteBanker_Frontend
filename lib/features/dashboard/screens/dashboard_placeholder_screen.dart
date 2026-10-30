@@ -58,6 +58,7 @@ class _DashboardPlaceholderScreenState extends State<DashboardPlaceholderScreen>
                     child: _Sidebar(
                       colors: colors,
                       modules: modules,
+                      selectedRoute: AppRoutes.dashboard,
                       onNavigate: () => Navigator.of(context).pop(),
                     ),
                   ),
@@ -68,7 +69,11 @@ class _DashboardPlaceholderScreenState extends State<DashboardPlaceholderScreen>
                 if (wide)
                   SizedBox(
                     width: 248,
-                    child: _Sidebar(colors: colors, modules: modules),
+                    child: _Sidebar(
+                      colors: colors,
+                      modules: modules,
+                      selectedRoute: AppRoutes.dashboard,
+                    ),
                   ),
                 Expanded(
                   child: Column(
@@ -190,11 +195,16 @@ class _DashboardPlaceholderScreenState extends State<DashboardPlaceholderScreen>
       _Module(Icons.auto_awesome_outlined, l10n.cardContent),
       _Module(
         Icons.groups_outlined,
+        l10n.cardVolunteers,
+        subtitle: l10n.line('volCardBody'),
+        route: AppRoutes.volunteers,
+      ),
+      _Module(
+        Icons.groups_outlined,
         l10n.cardVrm,
         subtitle: l10n.line('vrmRecordsBody'),
         route: AppRoutes.vrmRecords,
       ),
-      _Module(Icons.volunteer_activism_outlined, l10n.cardVolunteers),
       _Module(Icons.group_outlined, l10n.cardTeam),
       _Module(
         Icons.storefront_outlined,
@@ -217,11 +227,13 @@ class _Sidebar extends StatelessWidget {
   const _Sidebar({
     required this.colors,
     required this.modules,
+    this.selectedRoute = AppRoutes.dashboard,
     this.onNavigate,
   });
 
   final DashboardColors colors;
   final List<_Module> modules;
+  final String selectedRoute;
   final VoidCallback? onNavigate;
 
   @override
@@ -272,7 +284,13 @@ class _Sidebar extends StatelessWidget {
                   colors: colors,
                   icon: Icons.space_dashboard_outlined,
                   label: l10n.dashboard,
-                  selected: true,
+                  selected: selectedRoute == AppRoutes.dashboard,
+                  onTap: selectedRoute == AppRoutes.dashboard
+                      ? null
+                      : () {
+                          onNavigate?.call();
+                          AppRouter.replace(context, AppRoutes.dashboard);
+                        },
                 ),
                 const SizedBox(height: 4),
                 for (final module in modules) ...[
@@ -280,10 +298,13 @@ class _Sidebar extends StatelessWidget {
                     colors: colors,
                     icon: module.icon,
                     label: module.title,
+                    selected: module.route != null &&
+                        module.route == selectedRoute,
                     onTap: module.route == null
                         ? null
                         : () {
                             onNavigate?.call();
+                            if (module.route == selectedRoute) return;
                             AppRouter.open(context, module.route!);
                           },
                   ),
