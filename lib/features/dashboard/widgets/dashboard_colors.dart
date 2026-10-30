@@ -22,8 +22,7 @@ class DashboardColors {
   Color get accent => isDark ? const Color(0xFF2EC8FF) : const Color(0xFF0A68D6);
   Color get accentSoft =>
       accent.withValues(alpha: isDark ? 0.16 : 0.10);
-  Color get selected =>
-      isDark ? const Color(0xFF12C47A) : const Color(0xFF0E9F6E);
+  Color get selected => accent;
   Color get onSelected => Colors.white;
   Color get field => isDark ? const Color(0xFF0E1C30) : const Color(0xFFF4F8FC);
   Color get shadow => isDark ? const Color(0x66000000) : const Color(0x140A2744);

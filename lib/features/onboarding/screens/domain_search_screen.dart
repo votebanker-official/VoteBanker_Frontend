@@ -276,10 +276,18 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                   label: _searching ? l10n.domainSearching : l10n.domainSearch,
                   onPressed: _searching ? null : _search,
                 ),
+                if (!typed && !_searching && _errorCode == null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.domainEmpty,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.muted(context),
+                  ),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           if (_searching)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
@@ -298,13 +306,11 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                 child: Text(l10n.domainRetry),
               ),
             ),
-          ] else if (!typed)
-            Text(l10n.domainEmpty, style: AppTextStyles.muted(context))
-          else if (_lastSearched == null)
+          ] else if (typed && _lastSearched == null)
             Text(l10n.domainSearchHint, style: AppTextStyles.muted(context))
-          else if (visibleResults.isEmpty)
+          else if (typed && visibleResults.isEmpty)
             Text(l10n.domainNoResults, style: AppTextStyles.muted(context))
-          else ...[
+          else if (typed) ...[
             for (final item in visibleResults) ...[
               DomainResultCard(
                 domain: item.name,
@@ -330,41 +336,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
               const SizedBox(height: 10),
             ],
           ],
-          const SizedBox(height: 14),
-          AppCard(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: palette.secondary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.verified_outlined,
-                    color: palette.secondary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.whiteLabelTitle,
-                        style: AppTextStyles.label(context),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(l10n.whiteLabelBody, style: AppTextStyles.muted(context)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 8),
           OnboardingActions(
             backLabel: l10n.back,
             onBack: () {
