@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../app/theme/app_theme.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
@@ -75,7 +78,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       if (query.isEmpty) return true;
       final blob = [
         member.fullName,
-        member.mobile,
+        member.whatsappNumber,
+        member.facebookUrl,
+        member.instagramUrl,
         member.email,
         member.designation,
         member.role,
@@ -119,23 +124,26 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _MemberDialog(
-        existing: existing,
-        onSubmit: (draft) async {
-          if (existing == null) {
-            await _repository.create(draft.toJson());
-          } else {
-            await _repository.update(existing.id, draft.toJson());
-          }
-          final members = await _repository.list();
-          if (!mounted) return;
-          setState(() {
-            _members = members;
-            _loaded = true;
-            _error = null;
-          });
-          saved = true;
-        },
+      builder: (context) => Theme(
+        data: AppTheme.dark(),
+        child: _MemberDialog(
+          existing: existing,
+          onSubmit: (draft) async {
+            if (existing == null) {
+              await _repository.create(draft.toJson());
+            } else {
+              await _repository.update(existing.id, draft.toJson());
+            }
+            final members = await _repository.list();
+            if (!mounted) return;
+            setState(() {
+              _members = members;
+              _loaded = true;
+              _error = null;
+            });
+            saved = true;
+          },
+        ),
       ),
     );
     if (saved && mounted) {
@@ -190,11 +198,13 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       case 'unauthorized':
         return 'Sign in to manage your team.';
       case 'duplicate_mobile':
-        return 'A team member with this mobile number already exists.';
+        return 'A team member with this WhatsApp number already exists.';
       case 'invalid_phone':
-        return 'Enter a valid mobile number.';
-      case 'invalid_email':
-        return 'Enter a valid email address.';
+        return 'Enter a valid WhatsApp number.';
+      case 'invalid_facebook_url':
+        return 'Enter a valid Facebook profile URL.';
+      case 'invalid_instagram_url':
+        return 'Enter a valid Instagram profile URL.';
       case 'unreachable':
         return 'Could not reach the team service. Please try again.';
       case 'team_members_not_ready':
@@ -919,7 +929,7 @@ class _MemberTable extends StatelessWidget {
       return _MessageCard(
         colors: colors,
         title: 'No matching team members',
-        body: 'Try a different name, mobile number, designation, or status.',
+        body: 'Try a different name, WhatsApp number, designation, or status.',
       );
     }
     return DecoratedBox(
@@ -940,33 +950,46 @@ class _MemberTable extends StatelessWidget {
               ],
             );
           }
-          return Column(
-            children: [
-              _MemberRow(
-                colors: colors,
-                heading: true,
-                cells: const [
-                  'Profile',
-                  'Name',
-                  'Mobile',
-                  'Email',
-                  'Designation',
-                  'Role',
-                  'Location',
-                  'Status',
-                  'Actions',
-                ],
-              ),
-              for (final member in members)
+          const minWidth = 1100.0;
+          final tableWidth = constraints.maxWidth < minWidth ? minWidth : constraints.maxWidth;
+          final table = SizedBox(
+            width: tableWidth,
+            child: Column(
+              children: [
                 _MemberRow(
                   colors: colors,
-                  member: member,
-                  onView: () => onView(member),
-                  onEdit: () => onEdit(member),
-                  onDelete: () => onDelete(member),
+                  heading: true,
+                  cells: const [
+                    'Profile',
+                    'Name',
+                    'WhatsApp',
+                    'Facebook',
+                    'Instagram',
+                    'Designation',
+                    'Role',
+                    'Location',
+                    'Status',
+                    'Actions',
+                  ],
                 ),
-            ],
+                for (final member in members)
+                  _MemberRow(
+                    colors: colors,
+                    member: member,
+                    onView: () => onView(member),
+                    onEdit: () => onEdit(member),
+                    onDelete: () => onDelete(member),
+                  ),
+              ],
+            ),
           );
+          if (tableWidth > constraints.maxWidth) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: table,
+            );
+          }
+          return table;
         },
       ),
     );
@@ -1018,16 +1041,17 @@ class _MemberRow extends StatelessWidget {
         children: [
           SizedBox(width: 52, child: heading ? cell(cells[0]) : _Avatar(name: person!.fullName)),
           Expanded(flex: 3, child: cell(heading ? cells[1] : person!.fullName, strong: !heading)),
-          Expanded(flex: 3, child: cell(heading ? cells[2] : person!.mobile)),
-          Expanded(flex: 4, child: cell(heading ? cells[3] : (person!.email.isEmpty ? '—' : person.email))),
-          Expanded(flex: 3, child: cell(heading ? cells[4] : (person!.designation.isEmpty ? '—' : person.designation))),
-          Expanded(flex: 3, child: cell(heading ? cells[5] : person!.role)),
-          Expanded(flex: 3, child: cell(heading ? cells[6] : (person!.location.isEmpty ? '—' : person.location))),
-          SizedBox(width: 92, child: heading ? cell(cells[7]) : _StatusChip(status: person!.status)),
+          Expanded(flex: 3, child: cell(heading ? cells[2] : person!.whatsappNumber)),
+          Expanded(flex: 5, child: heading ? cell(cells[3]) : _ProfileLink(url: person!.facebookUrl, style: style)),
+          Expanded(flex: 5, child: heading ? cell(cells[4]) : _ProfileLink(url: person!.instagramUrl, style: style)),
+          Expanded(flex: 2, child: cell(heading ? cells[5] : (person!.designation.isEmpty ? '—' : person.designation))),
+          Expanded(flex: 2, child: cell(heading ? cells[6] : person!.role)),
+          Expanded(flex: 2, child: cell(heading ? cells[7] : (person!.location.isEmpty ? '—' : person.location))),
+          SizedBox(width: 92, child: heading ? cell(cells[8]) : _StatusChip(status: person!.status)),
           SizedBox(
             width: 132,
             child: heading
-                ? cell(cells[8])
+                ? cell(cells[9])
                 : _Actions(onView: onView!, onEdit: onEdit!, onDelete: onDelete!),
           ),
         ],
@@ -1066,7 +1090,18 @@ class _MemberCard extends StatelessWidget {
               children: [
                 Text(member.fullName, style: TextStyle(color: colors.text, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                Text('${member.mobile} · ${member.role}', style: TextStyle(color: colors.muted, fontSize: 13)),
+                Text('${member.whatsappNumber} · ${member.role}', style: TextStyle(color: colors.muted, fontSize: 13)),
+                const SizedBox(height: 4),
+                if (member.facebookUrl.trim().isNotEmpty)
+                  _ProfileLink(
+                    url: member.facebookUrl,
+                    style: TextStyle(color: colors.muted, fontSize: 13),
+                  ),
+                if (member.instagramUrl.trim().isNotEmpty)
+                  _ProfileLink(
+                    url: member.instagramUrl,
+                    style: TextStyle(color: colors.muted, fontSize: 13),
+                  ),
                 if (member.designation.isNotEmpty || member.location.isNotEmpty)
                   Text(
                     [member.designation, member.location].where((part) => part.isNotEmpty).join(' · '),
@@ -1082,6 +1117,54 @@ class _MemberCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ProfileLink extends StatelessWidget {
+  const _ProfileLink({
+    required this.url,
+    required this.style,
+    this.emptyLabel = '',
+  });
+
+  final String url;
+  final TextStyle style;
+  final String emptyLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    if (url.trim().isEmpty) {
+      return Text(
+        emptyLabel,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      );
+    }
+    return Tooltip(
+      message: url,
+      child: InkWell(
+        onTap: () => _openProfile(url),
+        child: Text(
+          url,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: style.copyWith(decoration: TextDecoration.underline),
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _openProfile(String url) async {
+  final uri = Uri.tryParse(url.trim());
+  if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) return;
+  try {
+    await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+      webOnlyWindowName: '_blank',
+    );
+  } catch (_) {}
 }
 
 class _Avatar extends StatelessWidget {
@@ -1217,8 +1300,9 @@ class _MemberDialog extends StatefulWidget {
 
 class _MemberDialogState extends State<_MemberDialog> {
   late final TextEditingController _name;
-  late final TextEditingController _mobile;
-  late final TextEditingController _email;
+  late final TextEditingController _whatsappNumber;
+  late final TextEditingController _facebookUrl;
+  late final TextEditingController _instagramUrl;
   late final TextEditingController _designation;
   late final TextEditingController _location;
   String? _role;
@@ -1232,8 +1316,9 @@ class _MemberDialogState extends State<_MemberDialog> {
     super.initState();
     final existing = widget.existing;
     _name = TextEditingController(text: existing?.fullName ?? '');
-    _mobile = TextEditingController(text: existing?.mobile ?? '');
-    _email = TextEditingController(text: existing?.email ?? '');
+    _whatsappNumber = TextEditingController(text: existing?.whatsappNumber ?? '');
+    _facebookUrl = TextEditingController(text: existing?.facebookUrl ?? '');
+    _instagramUrl = TextEditingController(text: existing?.instagramUrl ?? '');
     _designation = TextEditingController(text: existing?.designation ?? '');
     _location = TextEditingController(text: existing?.location ?? '');
     _role = existing?.role;
@@ -1244,8 +1329,9 @@ class _MemberDialogState extends State<_MemberDialog> {
   @override
   void dispose() {
     _name.dispose();
-    _mobile.dispose();
-    _email.dispose();
+    _whatsappNumber.dispose();
+    _facebookUrl.dispose();
+    _instagramUrl.dispose();
     _designation.dispose();
     _location.dispose();
     super.dispose();
@@ -1254,18 +1340,23 @@ class _MemberDialogState extends State<_MemberDialog> {
   Future<void> _submit() async {
     if (_saving) return;
     final name = _name.text.trim();
-    final mobile = _mobile.text.trim();
-    final email = _email.text.trim();
+    final whatsappNumber = _whatsappNumber.text.trim();
+    final facebookUrl = _normalizeProfileUrl(_facebookUrl.text);
+    final instagramUrl = _normalizeProfileUrl(_instagramUrl.text);
     if (name.isEmpty) {
       setState(() => _error = 'Enter the full name.');
       return;
     }
-    if (!RegExp(r'^\+?[0-9][0-9\s-]{6,18}$').hasMatch(mobile)) {
-      setState(() => _error = 'Enter a valid mobile number.');
+    if (!RegExp(r'^\+?[0-9][0-9\s-]{6,18}$').hasMatch(whatsappNumber)) {
+      setState(() => _error = 'Enter a valid WhatsApp number.');
       return;
     }
-    if (email.isNotEmpty && !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
-      setState(() => _error = 'Enter a valid email address.');
+    if (!_validProfileUrl(facebookUrl, _facebookHosts)) {
+      setState(() => _error = 'Enter a valid Facebook profile URL.');
+      return;
+    }
+    if (!_validProfileUrl(instagramUrl, _instagramHosts)) {
+      setState(() => _error = 'Enter a valid Instagram profile URL.');
       return;
     }
     if (_role == null) {
@@ -1274,8 +1365,9 @@ class _MemberDialogState extends State<_MemberDialog> {
     }
     final draft = _MemberDraft(
       fullName: name,
-      mobile: mobile,
-      email: email,
+      whatsappNumber: whatsappNumber,
+      facebookUrl: facebookUrl,
+      instagramUrl: instagramUrl,
       designation: _designation.text.trim(),
       location: _location.text.trim(),
       role: _role!,
@@ -1309,11 +1401,13 @@ class _MemberDialogState extends State<_MemberDialog> {
       case 'unauthorized':
         return 'Sign in to manage your team.';
       case 'duplicate_mobile':
-        return 'A team member with this mobile number already exists.';
+        return 'A team member with this WhatsApp number already exists.';
       case 'invalid_phone':
-        return 'Enter a valid mobile number.';
-      case 'invalid_email':
-        return 'Enter a valid email address.';
+        return 'Enter a valid WhatsApp number.';
+      case 'invalid_facebook_url':
+        return 'Enter a valid Facebook profile URL.';
+      case 'invalid_instagram_url':
+        return 'Enter a valid Instagram profile URL.';
       case 'not_found':
         return 'The team service is not available on the API server yet.';
       case 'unreachable':
@@ -1326,11 +1420,15 @@ class _MemberDialogState extends State<_MemberDialog> {
   @override
   Widget build(BuildContext context) {
     final editing = widget.existing != null;
+    final colors = DashboardColors.of(context);
+    final labelStyle = TextStyle(color: colors.text, fontWeight: FontWeight.w700, fontSize: 13, height: 1.2);
     return Dialog(
-      insetPadding: const EdgeInsets.all(20),
+      backgroundColor: colors.card,
+      surfaceTintColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: const BoxConstraints(maxWidth: 680),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
           child: Column(
@@ -1339,23 +1437,33 @@ class _MemberDialogState extends State<_MemberDialog> {
             children: [
               Text(
                 editing ? 'Edit Team Member' : 'Add Team Member',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                style: TextStyle(color: colors.text, fontSize: 22, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 16),
-              _field(_name, 'Full Name', key: const Key('team-name')),
-              _field(_mobile, 'Mobile Number', key: const Key('team-mobile'), keyboard: TextInputType.phone),
-              _field(_email, 'Email Address', key: const Key('team-email'), keyboard: TextInputType.emailAddress),
-              _field(_designation, 'Designation', key: const Key('team-designation')),
-              _field(_location, 'Location', key: const Key('team-location')),
+              _field(colors, _name, 'Full Name', key: const Key('team-name')),
+              _field(
+                colors,
+                _whatsappNumber,
+                'WhatsApp Number',
+                key: const Key('team-whatsapp'),
+                hint: 'Enter WhatsApp Number',
+                prefix: _BrandIcon(_Brand.whatsapp, color: colors.text),
+                keyboard: TextInputType.phone,
+              ),
+              _field(colors, _designation, 'Designation', key: const Key('team-designation')),
+              _field(colors, _location, 'Location', key: const Key('team-location')),
               _dropdown(
+                colors: colors,
                 label: 'Assign Role',
                 fieldKey: const Key('team-role'),
                 value: _role,
+                hint: 'Select Role',
                 items: _roles,
                 onChanged: (value) => setState(() => _role = value),
               ),
               if (editing)
                 _dropdown(
+                  colors: colors,
                   label: 'Status',
                   fieldKey: const Key('team-status'),
                   value: _status,
@@ -1363,8 +1471,9 @@ class _MemberDialogState extends State<_MemberDialog> {
                   itemLabel: (value) => value[0].toUpperCase() + value.substring(1),
                   onChanged: (value) => setState(() => _status = value ?? 'pending'),
                 ),
-              const SizedBox(height: 14),
-              const Text('Access Permissions', style: TextStyle(fontWeight: FontWeight.w700)),
+              _socialFields(colors),
+              const SizedBox(height: 2),
+              Text('Access Permissions', style: labelStyle.copyWith(fontSize: 14)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -1374,40 +1483,58 @@ class _MemberDialogState extends State<_MemberDialog> {
                     FilterChip(
                       label: Text(permission),
                       selected: _selectedPermissions.contains(permission),
-                      selectedColor: const Color(0xFFDCEBFF),
-                      checkmarkColor: _blue,
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedPermissions.add(permission);
-                          } else {
-                            _selectedPermissions.remove(permission);
-                          }
-                        });
-                      },
+                      showCheckmark: false,
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+                      backgroundColor: colors.field,
+                      selectedColor: _blue.withValues(alpha: colors.isDark ? 0.28 : 0.16),
+                      labelStyle: TextStyle(color: colors.text, fontWeight: FontWeight.w600, fontSize: 13),
+                      side: BorderSide(
+                        color: _selectedPermissions.contains(permission)
+                            ? _blue
+                            : const Color(0xFFD7E6F5),
+                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+                      onSelected: _saving
+                          ? null
+                          : (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedPermissions.add(permission);
+                                } else {
+                                  _selectedPermissions.remove(permission);
+                                }
+                              });
+                            },
                     ),
                 ],
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: Color(0xFFDC2626))),
+                Text(_error!, style: const TextStyle(color: Color(0xFFFF6B7A))),
               ],
               const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton(
-                    onPressed: _saving ? null : () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 10),
-                  FilledButton(
-                    key: const Key('team-send'),
-                    style: FilledButton.styleFrom(backgroundColor: _blue),
-                    onPressed: _saving ? null : _submit,
-                    child: Text(_saving ? 'Saving…' : (editing ? 'Save' : 'Send Invitation')),
-                  ),
-                ],
+              Align(
+                alignment: Alignment.centerRight,
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton(
+                      onPressed: _saving ? null : () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    FilledButton(
+                      key: const Key('team-send'),
+                      style: FilledButton.styleFrom(backgroundColor: _blue),
+                      onPressed: _saving ? null : _submit,
+                      child: Text(_saving ? 'Saving…' : (editing ? 'Save' : 'Send Invitation')),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1416,10 +1543,52 @@ class _MemberDialogState extends State<_MemberDialog> {
     );
   }
 
+  Widget _socialFields(DashboardColors colors) {
+    final facebook = _field(
+      colors,
+      _facebookUrl,
+      'Facebook',
+      key: const Key('team-facebook'),
+      hint: 'Enter Facebook Profile URL',
+      prefix: _BrandIcon(_Brand.facebook, color: colors.text),
+      keyboard: TextInputType.url,
+    );
+    final instagram = _field(
+      colors,
+      _instagramUrl,
+      'Instagram',
+      key: const Key('team-instagram'),
+      hint: 'Enter Instagram Profile URL',
+      prefix: const _BrandIcon(_Brand.instagram),
+      keyboard: TextInputType.url,
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 480) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [facebook, instagram],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: facebook),
+            const SizedBox(width: 12),
+            Expanded(child: instagram),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _field(
+    DashboardColors colors,
     TextEditingController controller,
     String label, {
     Key? key,
+    String? hint,
+    Widget? prefix,
     TextInputType? keyboard,
   }) {
     return Padding(
@@ -1427,15 +1596,22 @@ class _MemberDialogState extends State<_MemberDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2)),
+          Text(
+            label,
+            style: TextStyle(color: colors.text, fontWeight: FontWeight.w700, fontSize: 13, height: 1.2),
+          ),
           const SizedBox(height: 6),
           TextField(
             key: key,
             controller: controller,
             keyboardType: keyboard,
             enabled: !_saving,
-            style: const TextStyle(fontSize: 15, height: 1.3),
-            decoration: _inputDecoration(),
+            style: TextStyle(color: colors.text, fontSize: 15, height: 1.3),
+            decoration: _inputDecoration(
+              colors: colors,
+              hint: hint,
+              prefix: prefix,
+            ),
           ),
         ],
       ),
@@ -1443,11 +1619,13 @@ class _MemberDialogState extends State<_MemberDialog> {
   }
 
   Widget _dropdown({
+    required DashboardColors colors,
     required String label,
     required Key fieldKey,
     required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
+    String? hint,
     String Function(String value)? itemLabel,
   }) {
     return Padding(
@@ -1455,13 +1633,20 @@ class _MemberDialogState extends State<_MemberDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2)),
+          Text(
+            label,
+            style: TextStyle(color: colors.text, fontWeight: FontWeight.w700, fontSize: 13, height: 1.2),
+          ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             key: fieldKey,
             initialValue: value,
             isExpanded: true,
-            decoration: _inputDecoration(),
+            hint: hint == null ? null : Text(hint, style: TextStyle(color: colors.muted, fontSize: 15)),
+            dropdownColor: colors.card,
+            iconEnabledColor: colors.muted,
+            style: TextStyle(color: colors.text, fontSize: 15),
+            decoration: _inputDecoration(colors: colors),
             items: [
               for (final item in items)
                 DropdownMenuItem(
@@ -1485,10 +1670,12 @@ class _MemberDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rows = [
-      'Mobile',
-      member.mobile,
-      'Email',
-      member.email.isEmpty ? '—' : member.email,
+      'WhatsApp',
+      member.whatsappNumber,
+      'Facebook',
+      member.facebookUrl,
+      'Instagram',
+      member.instagramUrl,
       'Designation',
       member.designation.isEmpty ? '—' : member.designation,
       'Location',
@@ -1515,7 +1702,10 @@ class _MemberDetails extends StatelessWidget {
               for (var i = 0; i < rows.length; i += 2) ...[
                 Text(rows[i], style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
                 const SizedBox(height: 2),
-                Text(rows[i + 1]),
+                if (rows[i] == 'Facebook' || rows[i] == 'Instagram')
+                  _ProfileLink(url: rows[i + 1], style: const TextStyle(fontSize: 14, color: _blue))
+                else
+                  Text(rows[i + 1]),
                 const SizedBox(height: 8),
               ],
               Align(
@@ -1533,8 +1723,9 @@ class _MemberDetails extends StatelessWidget {
 class _MemberDraft {
   const _MemberDraft({
     required this.fullName,
-    required this.mobile,
-    required this.email,
+    required this.whatsappNumber,
+    required this.facebookUrl,
+    required this.instagramUrl,
     required this.designation,
     required this.location,
     required this.role,
@@ -1543,8 +1734,9 @@ class _MemberDraft {
   });
 
   final String fullName;
-  final String mobile;
-  final String email;
+  final String whatsappNumber;
+  final String facebookUrl;
+  final String instagramUrl;
   final String designation;
   final String location;
   final String role;
@@ -1554,8 +1746,10 @@ class _MemberDraft {
   Map<String, dynamic> toJson() {
     return {
       'fullName': fullName,
-      'mobile': mobile,
-      'email': email,
+      'whatsappNumber': whatsappNumber,
+      'mobile': whatsappNumber,
+      'facebookUrl': facebookUrl,
+      'instagramUrl': instagramUrl,
       'designation': designation,
       'location': location,
       'role': role,
@@ -1565,21 +1759,119 @@ class _MemberDraft {
   }
 }
 
-InputDecoration _inputDecoration() {
-  return const InputDecoration(
+const _facebookHosts = {
+  'facebook.com',
+  'www.facebook.com',
+  'm.facebook.com',
+  'fb.com',
+  'www.fb.com',
+  'm.fb.com',
+};
+
+const _instagramHosts = {
+  'instagram.com',
+  'www.instagram.com',
+};
+
+String _normalizeProfileUrl(String raw) {
+  final text = raw.trim();
+  if (text.isEmpty) return '';
+  final lower = text.toLowerCase();
+  if (lower.startsWith('http://') || lower.startsWith('https://')) return text;
+  return 'https://$text';
+}
+
+bool _validProfileUrl(String value, Set<String> hosts) {
+  if (value.isEmpty) return true;
+  if (value.length > 300) return false;
+  final uri = Uri.tryParse(value);
+  if (uri == null || uri.host.isEmpty || uri.userInfo.isNotEmpty) return false;
+  if (uri.scheme != 'http' && uri.scheme != 'https') return false;
+  return hosts.contains(uri.host.toLowerCase());
+}
+
+InputDecoration _inputDecoration({
+  required DashboardColors colors,
+  String? hint,
+  Widget? prefix,
+}) {
+  return InputDecoration(
+    hintText: hint,
+    hintStyle: TextStyle(color: colors.muted, fontSize: 14),
+    prefixIcon: prefix == null
+        ? null
+        : Padding(
+            padding: const EdgeInsets.only(left: 12, right: 4),
+            child: prefix,
+          ),
+    prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+    filled: true,
+    fillColor: colors.field,
     isDense: false,
-    contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-    enabledBorder: OutlineInputBorder(
+    contentPadding: EdgeInsets.fromLTRB(prefix == null ? 14 : 0, 16, 14, 16),
+    border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+    enabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(12)),
       borderSide: BorderSide(color: Color(0xFFD7E6F5)),
     ),
-    focusedBorder: OutlineInputBorder(
+    focusedBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(12)),
       borderSide: BorderSide(color: _blue, width: 1.4),
     ),
   );
 }
+
+enum _Brand { whatsapp, facebook, instagram }
+
+class _BrandIcon extends StatelessWidget {
+  const _BrandIcon(this.brand, {this.color = Colors.white});
+
+  final _Brand brand;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (brand) {
+      _Brand.whatsapp => _whatsappSvg(_hex(color)),
+      _Brand.facebook => _facebookSvg(_hex(color)),
+      _Brand.instagram => _instagramSvg,
+    };
+    return SvgPicture.string(icon, width: 20, height: 20);
+  }
+}
+
+String _hex(Color color) {
+  final red = (color.r * 255).round().toRadixString(16).padLeft(2, '0');
+  final green = (color.g * 255).round().toRadixString(16).padLeft(2, '0');
+  final blue = (color.b * 255).round().toRadixString(16).padLeft(2, '0');
+  return '#$red$green$blue';
+}
+
+String _whatsappSvg(String fill) => '''
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path fill="$fill" d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.74.46 3.44 1.34 4.94L2 22l5.39-1.41a10.1 10.1 0 0 0 4.65 1.12h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm5.76 13.92c-.24.68-1.4 1.24-1.93 1.32-.49.07-.96.1-3.08-.64-2.58-.93-4.24-3.4-4.37-3.56-.12-.16-1.04-1.38-1.04-2.63 0-1.25.66-1.86.89-2.11.23-.26.5-.32.67-.32h.48c.15 0 .36-.06.56.43.21.5.7 1.73.76 1.86.06.13.1.28.02.45-.08.17-.12.28-.24.43-.12.15-.25.34-.36.45-.12.12-.24.26-.1.5.13.25.59.97 1.27 1.57.87.78 1.61 1.02 1.84 1.14.23.12.37.1.5-.06.14-.16.59-.69.75-1.06.16-.37.31-.31.52-.19.21.13 1.33.63 1.56.74.23.12.38.17.44.27.06.1.06.58-.18 1.26z"/>
+</svg>''';
+
+String _facebookSvg(String fill) => '''
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path fill="$fill" d="M14.2 21v-7.1h2.4l.4-2.8h-2.8V9.4c0-.8.2-1.3 1.4-1.3h1.5V5.6c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.1H8.6v2.8h2.6V21h3z"/>
+</svg>''';
+
+const _instagramSvg = '''
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="teamIg" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#FEDA77"/>
+      <stop offset="0.25" stop-color="#F58529"/>
+      <stop offset="0.5" stop-color="#DD2A7B"/>
+      <stop offset="0.75" stop-color="#8134AF"/>
+      <stop offset="1" stop-color="#515BD4"/>
+    </linearGradient>
+  </defs>
+  <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" fill="none" stroke="url(#teamIg)" stroke-width="1.8"/>
+  <circle cx="12" cy="12" r="4.1" fill="none" stroke="url(#teamIg)" stroke-width="1.8"/>
+  <circle cx="17.1" cy="6.9" r="1.1" fill="url(#teamIg)"/>
+</svg>''';
 
 BoxDecoration _cardDecoration(DashboardColors colors) {
   return BoxDecoration(

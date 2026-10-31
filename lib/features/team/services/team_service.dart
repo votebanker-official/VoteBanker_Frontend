@@ -101,6 +101,7 @@ class TeamService implements TeamRepository {
         last = response;
         final logged = _decode(response);
         // #region agent log
+        _socialLog(method, logged, payload);
         _agentLog(
           'team api response',
           {
@@ -133,6 +134,46 @@ class TeamService implements TeamRepository {
       throw TeamException(body['error'] as String? ?? 'request_failed');
     }
     return body;
+  }
+
+  void _socialLog(String method, Map<String, dynamic> body, Map<String, dynamic>? payload) {
+    final members = body['members'];
+    final created = body['member'];
+    final first = members is List && members.isNotEmpty && members.first is Map
+        ? Map<String, dynamic>.from(members.first as Map)
+        : created is Map
+            ? Map<String, dynamic>.from(created)
+            : const <String, dynamic>{};
+    final sentFacebook = payload?['facebookUrl'];
+    final sentInstagram = payload?['instagramUrl'];
+    try {
+      http
+          .post(
+            Uri.parse('http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c'),
+            headers: const {
+              'Content-Type': 'application/json',
+              'X-Debug-Session-Id': 'f11656',
+            },
+            body: jsonEncode({
+              'sessionId': 'f11656',
+              'location': 'team_service.dart',
+              'message': 'team social field round trip',
+              'data': {
+                'method': method,
+                'sentFacebook': sentFacebook is String && sentFacebook.trim().isNotEmpty,
+                'sentInstagram': sentInstagram is String && sentInstagram.trim().isNotEmpty,
+                'responseHasFacebook': first['facebookUrl'] is String &&
+                    (first['facebookUrl'] as String).trim().isNotEmpty,
+                'responseHasInstagram': first['instagramUrl'] is String &&
+                    (first['instagramUrl'] as String).trim().isNotEmpty,
+                'responseKeys': first.keys.map((key) => '$key').toList(),
+              },
+              'timestamp': DateTime.now().millisecondsSinceEpoch,
+              'hypothesisId': 'B',
+            }),
+          )
+          .then((_) {}, onError: (_) {});
+    } catch (_) {}
   }
 
   void _agentLog(String message, Map<String, Object?> data, String hypothesisId) {

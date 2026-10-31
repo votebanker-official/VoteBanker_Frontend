@@ -9,6 +9,8 @@ class TeamMember {
     required this.role,
     required this.permissions,
     required this.status,
+    this.facebookUrl = '',
+    this.instagramUrl = '',
   });
 
   final String id;
@@ -20,13 +22,18 @@ class TeamMember {
   final String role;
   final List<String> permissions;
   final String status;
+  final String facebookUrl;
+  final String instagramUrl;
+
+  /// Phone number collected as the member's WhatsApp number.
+  String get whatsappNumber => mobile;
 
   factory TeamMember.fromJson(Map<String, dynamic> json) {
     final rawPermissions = json['permissions'];
     return TeamMember(
       id: '${json['id'] ?? ''}',
       fullName: '${json['fullName'] ?? ''}',
-      mobile: '${json['mobile'] ?? ''}',
+      mobile: '${json['whatsappNumber'] ?? json['mobile'] ?? ''}',
       email: '${json['email'] ?? ''}',
       designation: '${json['designation'] ?? ''}',
       location: '${json['location'] ?? ''}',
@@ -36,6 +43,8 @@ class TeamMember {
           '$item',
       ],
       status: '${json['status'] ?? 'pending'}',
+      facebookUrl: '${json['facebookUrl'] ?? json['facebook_url'] ?? ''}',
+      instagramUrl: '${json['instagramUrl'] ?? json['instagram_url'] ?? ''}',
     );
   }
 
@@ -49,6 +58,8 @@ class TeamMember {
     String? role,
     List<String>? permissions,
     String? status,
+    String? facebookUrl,
+    String? instagramUrl,
   }) {
     return TeamMember(
       id: id ?? this.id,
@@ -60,6 +71,8 @@ class TeamMember {
       role: role ?? this.role,
       permissions: permissions ?? this.permissions,
       status: status ?? this.status,
+      facebookUrl: facebookUrl ?? this.facebookUrl,
+      instagramUrl: instagramUrl ?? this.instagramUrl,
     );
   }
 }
