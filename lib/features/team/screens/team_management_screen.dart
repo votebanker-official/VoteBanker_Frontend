@@ -1459,7 +1459,7 @@ class _MemberDialogState extends State<_MemberDialog> {
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             key: fieldKey,
-            initialValue: value,
+            value: value,
             isExpanded: true,
             decoration: _inputDecoration(),
             items: [

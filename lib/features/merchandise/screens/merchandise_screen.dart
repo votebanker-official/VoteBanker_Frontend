@@ -89,7 +89,7 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
                       icon: const Icon(Icons.arrow_back),
                     ),
                     Expanded(
-                      child: Text(l10n.line('merchTitle'), style: AppTextStyles.wordmark(context).copyWith(fontSize: 16)),
+                      child: Text(l10n.cardMarketplace, style: AppTextStyles.wordmark(context).copyWith(fontSize: 16)),
                     ),
                     const ThemeToggle(),
                     const SizedBox(width: 8),
@@ -192,6 +192,17 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
                               const SizedBox(height: 10),
                             ],
                         ],
+                        const SizedBox(height: 32),
+                        Center(
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: context.palette.accent,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                            onPressed: () => AppRouter.open(context, AppRoutes.vrm),
+                            child: Text(l10n.skipForNow),
+                          ),
+                        ),
                       ],
                     ),
                   ),

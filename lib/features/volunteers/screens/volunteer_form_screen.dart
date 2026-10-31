@@ -215,7 +215,7 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 DropdownButtonFormField<String>(
-                                  initialValue: _role,
+                                  value: _role,
                                   decoration: InputDecoration(
                                     labelText: l10n.line('volRole'),
                                   ),
@@ -250,7 +250,7 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                 if (!widget.asApplication) ...[
                                   const SizedBox(height: 12),
                                   DropdownButtonFormField<String?>(
-                                    initialValue: _teamId,
+                                    value: _teamId,
                                     decoration: InputDecoration(
                                       labelText: l10n.line('volTeam'),
                                     ),
@@ -270,7 +270,7 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   DropdownButtonFormField<String>(
-                                    initialValue: _status,
+                                    value: _status,
                                     decoration: InputDecoration(
                                       labelText: l10n.line('volStatus'),
                                     ),
