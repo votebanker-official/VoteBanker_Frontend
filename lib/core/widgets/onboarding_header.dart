@@ -10,6 +10,7 @@ class OnboardingHeader extends StatelessWidget {
     this.description,
     this.compact = false,
     this.centerTitle = false,
+    this.showDescriptor = true,
     super.key,
   });
 
@@ -17,6 +18,7 @@ class OnboardingHeader extends StatelessWidget {
   final String? description;
   final bool compact;
   final bool centerTitle;
+  final bool showDescriptor;
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +62,13 @@ class OnboardingHeader extends StatelessWidget {
                         context,
                       ).copyWith(fontSize: 16),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.descriptor,
-                      style: AppTextStyles.descriptor(context),
-                    ),
+                    if (showDescriptor) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.descriptor,
+                        style: AppTextStyles.descriptor(context),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -91,12 +95,14 @@ class OnboardingHeader extends StatelessWidget {
           textAlign: TextAlign.center,
           style: AppTextStyles.wordmark(context),
         ),
-        const SizedBox(height: 6),
-        Text(
-          l10n.descriptor,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.descriptor(context),
-        ),
+        if (showDescriptor) ...[
+          const SizedBox(height: 6),
+          Text(
+            l10n.descriptor,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.descriptor(context),
+          ),
+        ],
         const SizedBox(height: 22),
         titleText,
         if (description != null) ...[

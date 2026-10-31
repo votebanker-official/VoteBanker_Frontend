@@ -207,12 +207,9 @@ void main() {
     expect(find.text('Social Media Setup'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Dashboard'), findsOneWidget);
-    expect(
-      find.text('Your VOTE BANKER workspace starts here.'),
-      findsOneWidget,
-    );
-    expect(find.text('Marketplace'), findsOneWidget);
+    expect(find.text('Campaign'), findsWidgets);
+    expect(find.text('Custom campaign merchandise'), findsWidgets);
+    expect(find.text('Dashboard'), findsNothing);
   });
 
   testWidgets('template continue opens website details without payment', (

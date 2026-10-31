@@ -48,7 +48,7 @@ void main() {
     expect(find.text('AI Content Studio'), findsWidgets);
     expect(find.text('My Voters'), findsWidgets);
     expect(find.text('My Team'), findsWidgets);
-    expect(find.text('Marketplace'), findsWidgets);
+    expect(find.text('Campaign'), findsWidgets);
     expect(find.textContaining('Administrations'), findsWidgets);
     expect(find.text('Settings'), findsWidgets);
     expect(

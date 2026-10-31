@@ -42,6 +42,11 @@ void main() {
     expect(find.text('Mug'), findsOneWidget);
     expect(find.text('Design and order'), findsWidgets);
     expect(find.text('Coming later'), findsNothing);
+    expect(find.text('Skip for now'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Skip for now')).dy,
+      greaterThan(tester.getTopLeft(find.text('My requests')).dy),
+    );
     expect(tester.takeException(), isNull);
   });
 
