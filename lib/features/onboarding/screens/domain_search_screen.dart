@@ -258,6 +258,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
               children: [
                 OnboardingHeader(
                   compact: true,
+                  showDescriptor: false,
                   title: l10n.domainTitle,
                   description: l10n.domainDescription,
                 ),

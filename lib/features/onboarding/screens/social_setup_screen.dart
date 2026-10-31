@@ -310,6 +310,7 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
           ),
         OnboardingHeader(
           compact: true,
+          showDescriptor: false,
           title: l10n.socialTitle,
           description: l10n.socialBody,
         ),
