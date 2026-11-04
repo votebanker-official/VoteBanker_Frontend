@@ -36,12 +36,10 @@ class ProfileService {
     final session = AuthService.instance.session;
     if (session == null) return null;
     try {
-      final response = await http
-          .get(
-            Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
-            headers: {'Authorization': 'Bearer ${session.accessToken}'},
-          )
-          .timeout(const Duration(seconds: 20));
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+        headers: {'Authorization': 'Bearer ${session.accessToken}'},
+      ).timeout(const Duration(seconds: 20));
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) return null;
@@ -55,9 +53,8 @@ class ProfileService {
 
   Future<Uint8List?> downloadPhoto(String url) async {
     try {
-      final response = await http
-          .get(Uri.parse(url))
-          .timeout(const Duration(seconds: 20));
+      final response =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       if (response.bodyBytes.length > maxPhotoBytes) return null;
       return response.bodyBytes;
@@ -78,10 +75,9 @@ class ProfileService {
       'state_region': draft.stateRegion,
       'constituency': draft.constituency,
       'public_contact': draft.publicContact,
-      'language':
-          draft.preferredLanguage.isNotEmpty
-              ? draft.preferredLanguage
-              : draft.selectedLanguage,
+      'language': draft.preferredLanguage.isNotEmpty
+          ? draft.preferredLanguage
+          : draft.selectedLanguage,
       'selected_domain': draft.selectedDomain,
       'website_template': draft.websiteTemplate,
       'booth_number': draft.boothNumber,
@@ -96,6 +92,8 @@ class ProfileService {
       if (draft.socialChannels.isNotEmpty)
         'social_channels': draft.socialChannels.toList(),
       if (draft.vrmRequested) 'vrm_requested': true,
+      if (draft.additionalProfile.isNotEmpty)
+        'additional_profile': draft.additionalProfile,
     };
   }
 
@@ -185,6 +183,10 @@ class ProfileService {
       draft.preferredLanguage,
       (value) => draft.preferredLanguage = value,
     );
+    final additional = profile['additional_profile'];
+    if (draft.additionalProfile.isEmpty && additional is Map) {
+      draft.additionalProfile = Map<String, dynamic>.from(additional);
+    }
     final photoUrl = photoUrlFromProfile(profile);
     if (photoUrl != null &&
         draft.photoBytes == null &&
@@ -237,12 +239,10 @@ class ProfileService {
 
   Future<bool> _deletePhoto(String token) async {
     try {
-      final response = await http
-          .delete(
-            Uri.parse('${AppConfig.apiBaseUrl}/api/profile/photo'),
-            headers: {'Authorization': 'Bearer $token'},
-          )
-          .timeout(const Duration(seconds: 20));
+      final response = await http.delete(
+        Uri.parse('${AppConfig.apiBaseUrl}/api/profile/photo'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 20));
       return response.statusCode >= 200 && response.statusCode < 300;
     } catch (_) {
       return false;

@@ -59,6 +59,7 @@ class AppLocalizations {
   String get welcomeTitle => _t('welcomeTitle');
   String get welcomeBody => _t('welcomeBody');
   String get continueWhatsApp => _t('continueWhatsApp');
+  String get continueGoogle => _t('continueGoogle');
   String get continueMobile => _t('continueMobile');
   String get continueFacebook => _t('continueFacebook');
   String get continueInstagram => _t('continueInstagram');

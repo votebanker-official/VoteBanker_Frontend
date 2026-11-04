@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../app/localization/app_localizations.dart';
 import '../../app/routing/app_router.dart';
+import '../../core/utils/person_name.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 import '../dashboard/widgets/dashboard_colors.dart';
 import 'social_integration_service.dart';
@@ -316,7 +317,7 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
                         caption: _caption.text,
                         hashtags: _hashtags,
                         mediaName: _media?.name,
-                        name: draft?.fullName.trim() ?? '',
+                        name: formatPersonName(draft?.fullName ?? ''),
                         photo: draft?.photoBytes,
                         onPlatform: (value) => setState(() => _platform = value),
                       );

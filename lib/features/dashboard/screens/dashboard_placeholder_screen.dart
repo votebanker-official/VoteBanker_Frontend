@@ -5,6 +5,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
+import '../../../core/utils/person_name.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 import '../widgets/dashboard_colors.dart';
 
@@ -30,7 +31,7 @@ class _DashboardPlaceholderScreenState extends State<DashboardPlaceholderScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = DashboardColors.of(context);
-    final name = OnboardingScope.of(context).draft.fullName.trim();
+    final name = formatPersonName(OnboardingScope.of(context).draft.fullName);
     final greeting = name.isEmpty ? l10n.welcomeTitle : l10n.welcomeBack(name);
     final modules = _modules(l10n);
     final query = _search.text.trim().toLowerCase();
@@ -187,24 +188,12 @@ class _DashboardPlaceholderScreenState extends State<DashboardPlaceholderScreen>
     return [
       _Module(Icons.person_outline, l10n.cardProfile),
       _Module(
-        Icons.groups_outlined,
-        l10n.cardSocial,
-        subtitle: l10n.line('socialCardBody'),
-        route: AppRoutes.socialContacts,
-      ),
-      _Module(
         Icons.share_outlined,
         l10n.line('smiNav'),
         subtitle: l10n.line('smiCardBody'),
         route: AppRoutes.socialIntegration,
       ),
       _Module(Icons.auto_awesome_outlined, l10n.cardContent),
-      _Module(
-        Icons.groups_outlined,
-        l10n.cardVolunteers,
-        subtitle: l10n.line('volCardBody'),
-        route: AppRoutes.volunteers,
-      ),
       _Module(
         Icons.groups_outlined,
         l10n.cardVrm,

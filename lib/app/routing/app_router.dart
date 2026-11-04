@@ -10,6 +10,7 @@ import '../../features/merchandise/screens/merchandise_screen.dart';
 import '../../features/letter_generator/letter_generator_screen.dart';
 import '../../features/speech_generator/speech_generator_screen.dart';
 import '../../features/onboarding/screens/basic_profile_screen.dart';
+import '../../features/onboarding/screens/additional_profile_screen.dart';
 import '../../features/onboarding/screens/domain_search_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/otp_login_screen.dart';
@@ -36,6 +37,7 @@ abstract final class AppRoutes {
   static const login = '/';
   static const otp = '/otp';
   static const profile = '/profile';
+  static const additionalProfile = '/profile/additional';
   static const domain = '/domain';
   static const website = '/website';
   static const websiteInfo = '/website/info';
@@ -69,6 +71,7 @@ abstract final class AppRouter {
           channel: settings.arguments == 'whatsapp' ? 'whatsapp' : 'sms',
         ),
       AppRoutes.profile => const BasicProfileScreen(),
+      AppRoutes.additionalProfile => const AdditionalProfileScreen(),
       AppRoutes.domain => const DomainSearchScreen(),
       AppRoutes.website => const WebsiteScreen(),
       AppRoutes.websiteInfo => const WebsiteInfoScreen(),
@@ -83,7 +86,9 @@ abstract final class AppRouter {
       AppRoutes.vrm => const VrmSetupScreen(),
       AppRoutes.vrmRecords => const VrmRecordsScreen(),
       AppRoutes.vrmGetMore => const VrmGetMoreScreen(),
-      AppRoutes.volunteers => const VolunteerManagementScreen(),
+      AppRoutes.volunteers => VolunteerManagementScreen(
+          openAddOnLoad: settings.arguments == 'add',
+        ),
       AppRoutes.team => const TeamManagementScreen(),
       AppRoutes.socialContacts => const SocialMediaScreen(),
       AppRoutes.socialIntegration => const SocialIntegrationScreen(),

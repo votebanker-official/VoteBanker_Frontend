@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
+import '../../../core/utils/person_name.dart';
 import '../../onboarding/data/political_party.dart';
 import '../../onboarding/widgets/party_symbol.dart';
 import '../models/website_builder_draft.dart';
@@ -28,7 +29,7 @@ class LeaderPortfolioSite extends StatelessWidget {
     final partyName = draft.party.trim();
     final displayName = draft.fullName.trim().isEmpty
         ? l10n.line('portfolioYourName')
-        : draft.fullName.trim();
+        : formatPersonName(draft.fullName);
     final designation = draft.officialDesignation.trim().isNotEmpty
         ? draft.officialDesignation.trim()
         : draft.designation.trim();

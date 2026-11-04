@@ -4,14 +4,15 @@ import 'political_party.dart';
 /// the list is kept so an existing draft still displays.
 abstract final class ProfileOptions {
   static const designations = <String>[
-    'MLA',
-    'MP',
-    'Minister',
-    'Chief Minister',
-    'Mayor',
-    'Councillor',
-    'Party President',
     'Constituency Leader',
+    'Councillor',
+    'Mayor',
+    'Member of Legislative Assembly (MLA)',
+    'State Minister',
+    'Chief Minister',
+    'Member of Parliament (MP)',
+    'Union Minister',
+    'Prime Minister',
   ];
 
   static List<String> get parties => PartyOption.names;

@@ -11,7 +11,7 @@ import 'package:votebanker/features/onboarding/state/onboarding_controller.dart'
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('dashboard keeps Volunteers card and hides summary panel', (tester) async {
+  testWidgets('dashboard keeps volunteers out of the standalone cards', (tester) async {
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -39,40 +39,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('My Volunteers'), findsWidgets);
+    expect(find.text('My Volunteers'), findsNothing);
     expect(find.text('Manage Volunteers'), findsNothing);
     expect(find.text('Total Volunteers'), findsNothing);
     expect(find.text('Unassigned'), findsNothing);
     expect(find.text('My Portfolio'), findsWidgets);
-    expect(find.text('Saved Voters'), findsWidgets);
+    expect(find.text('Saved Voters'), findsNothing);
     expect(find.text('AI Content Studio'), findsWidgets);
     expect(find.text('My Voters'), findsWidgets);
     expect(find.text('My Team'), findsWidgets);
     expect(find.text('Campaign'), findsWidgets);
     expect(find.textContaining('Administrations'), findsWidgets);
     expect(find.text('Settings'), findsWidgets);
-    expect(
-      find.text(
-        'Register, organize, assign, and manage volunteers from one place.',
-      ),
-      findsOneWidget,
-    );
-    expect(tester.takeException(), isNull);
-
-    await tester.ensureVisible(
-      find.text(
-        'Register, organize, assign, and manage volunteers from one place.',
-      ),
-    );
-    await tester.tap(
-      find.text(
-        'Register, organize, assign, and manage volunteers from one place.',
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('BrightPath Volunteers'), findsNothing);
-    expect(find.text('No volunteers found'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

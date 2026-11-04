@@ -8,6 +8,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
+import '../../../core/utils/person_name.dart';
 import '../../dashboard/widgets/dashboard_colors.dart';
 import '../models/team_member.dart';
 import '../services/team_service.dart';
@@ -163,7 +164,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete team member'),
-        content: Text('Remove ${member.fullName} from your team?'),
+        content: Text(
+          'Remove ${formatPersonName(member.fullName)} from your team?',
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           FilledButton(
@@ -295,6 +298,12 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         const SizedBox(height: 18),
         _StatGrid(colors: colors, stats: stats, unavailable: _error != null && !_loaded),
         const SizedBox(height: 16),
+        _VolunteersSection(
+          colors: colors,
+          onAdd: () => AppRouter.open(context, AppRoutes.volunteers, arguments: 'add'),
+          onView: () => AppRouter.open(context, AppRoutes.volunteers),
+        ),
+        const SizedBox(height: 16),
         if (_members.isNotEmpty) ...[
           _FilterRow(
             colors: colors,
@@ -352,6 +361,103 @@ class _NavItem {
   final IconData icon;
   final String label;
   final String? route;
+}
+
+class _VolunteersSection extends StatelessWidget {
+  const _VolunteersSection({
+    required this.colors,
+    required this.onAdd,
+    required this.onView,
+  });
+
+  final DashboardColors colors;
+  final VoidCallback onAdd;
+  final VoidCallback onView;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0C17324D),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 560;
+          final actions = Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                key: const Key('view-team-volunteers'),
+                onPressed: onView,
+                icon: const Icon(Icons.groups_outlined),
+                label: const Text('View Volunteers'),
+              ),
+              FilledButton.icon(
+                key: const Key('add-team-volunteer'),
+                onPressed: onAdd,
+                icon: const Icon(Icons.person_add_alt_1),
+                label: const Text('Add Volunteer'),
+              ),
+            ],
+          );
+          final content = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(11),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6F0FF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.groups_outlined, color: _blue),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Volunteers',
+                      style: TextStyle(
+                        color: colors.text,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Volunteers are part of your working team. Add and manage them from here.',
+                      style: TextStyle(color: colors.muted, height: 1.35),
+                    ),
+                    if (compact) ...[
+                      const SizedBox(height: 14),
+                      actions,
+                    ],
+                  ],
+                ),
+              ),
+              if (!compact) ...[
+                const SizedBox(width: 16),
+                actions,
+              ],
+            ],
+          );
+          return content;
+        },
+      ),
+    );
+  }
 }
 
 class _Sidebar extends StatelessWidget {
@@ -1088,7 +1194,10 @@ class _MemberCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(member.fullName, style: TextStyle(color: colors.text, fontWeight: FontWeight.w800)),
+                Text(
+                  formatPersonName(member.fullName),
+                  style: TextStyle(color: colors.text, fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 4),
                 Text('${member.whatsappNumber} · ${member.role}', style: TextStyle(color: colors.muted, fontSize: 13)),
                 const SizedBox(height: 4),
@@ -1697,7 +1806,10 @@ class _MemberDetails extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(member.fullName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(
+                formatPersonName(member.fullName),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 12),
               for (var i = 0; i < rows.length; i += 2) ...[
                 Text(rows[i], style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),

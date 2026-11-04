@@ -45,7 +45,7 @@ void main() {
           expect(find.text('VOTE BANKER'), findsWidgets);
           expect(find.text('Dashboard'), findsWidgets);
           expect(find.text('My Portfolio'), findsWidgets);
-          expect(find.text('Saved Voters'), findsWidgets);
+          expect(find.text('Saved Voters'), findsNothing);
           expect(find.text('My Voters'), findsWidgets);
           expect(find.text('Social Media'), findsWidgets);
         },

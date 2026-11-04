@@ -131,6 +131,8 @@ void main() {
 
     await _enter(tester, 'profileContact', '9876543210');
     await _tapLabel(tester, 'Save & Continue');
+    expect(find.text('Additional Leader Profile Details'), findsOneWidget);
+    await _tapLabel(tester, 'Save & Continue');
     expect(find.text('Portfolio Template'), findsOneWidget);
 
     final draft = OnboardingScope.of(
@@ -187,6 +189,8 @@ void main() {
 
       // Validation: 10 digits starting with 6–9 accepted on submit
       await _enter(tester, 'profileContact', '6876543210');
+      await _tapLabel(tester, 'Save & Continue');
+      expect(find.text('Additional Leader Profile Details'), findsOneWidget);
       await _tapLabel(tester, 'Save & Continue');
       expect(find.text('Portfolio Template'), findsOneWidget);
     },

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/utils/person_name.dart';
 import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_card.dart';
 import '../models/volunteer_models.dart';
@@ -178,7 +179,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          volunteer.fullName,
+                                          formatPersonName(volunteer.fullName),
                                           style: AppTextStyles.headline(context),
                                         ),
                                         const SizedBox(height: 8),

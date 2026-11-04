@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../app/routing/app_router.dart';
 import '../../../core/services/theme_controller.dart';
+import '../../../core/utils/person_name.dart';
 import '../models/volunteer_dashboard.dart';
 import '../models/volunteer_models.dart';
 import '../services/volunteer_service.dart';
@@ -15,12 +16,14 @@ class VolunteerManagementScreen extends StatefulWidget {
     this.service,
     this.initialOverview,
     this.initialVolunteers,
+    this.openAddOnLoad = false,
     super.key,
   });
 
   final VolunteerService? service;
   final VolunteerOverview? initialOverview;
   final List<VolunteerRecord>? initialVolunteers;
+  final bool openAddOnLoad;
 
   @override
   State<VolunteerManagementScreen> createState() =>
@@ -50,6 +53,11 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.openAddOnLoad) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _addOrEdit();
+      });
+    }
     if (widget.initialVolunteers != null) {
       _volunteers = [
         for (final record in widget.initialVolunteers!)
@@ -993,7 +1001,7 @@ class _VolunteerRow extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Text(
-                volunteer.name,
+                formatPersonName(volunteer.name),
                 style: TextStyle(
                   color: colors.link,
                   fontWeight: FontWeight.w700,
@@ -1691,7 +1699,7 @@ class _VolunteerDetailsDialog extends StatelessWidget {
     }
 
     return AlertDialog(
-      title: Text(volunteer.name),
+      title: Text(formatPersonName(volunteer.name)),
       content: SizedBox(
         width: 440,
         child: Column(
@@ -1719,4 +1727,3 @@ class _VolunteerDetailsDialog extends StatelessWidget {
     );
   }
 }
-

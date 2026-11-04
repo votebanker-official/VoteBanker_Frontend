@@ -6,6 +6,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/utils/person_name.dart';
 import '../models/vrm_voter_record.dart';
 import '../services/vrm_service.dart';
 import '../../social_media/social_contact_links.dart';
@@ -361,6 +362,14 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
         SocialContactLinks.validProfile(_facebook.text, SocialContactLinks.facebookHosts);
   }
 
+  bool get _detailsComplete {
+    final item = widget.record;
+    return item.name.trim().isNotEmpty &&
+        item.age != null &&
+        item.gender?.trim().isNotEmpty == true &&
+        item.epicNumber?.trim().isNotEmpty == true;
+  }
+
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     if (!_contactsValid) {
@@ -419,13 +428,45 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
     final l10n = AppLocalizations.of(context);
     final palette = context.palette;
     final item = widget.record;
+    final statusColor = _detailsComplete ? palette.success : palette.danger;
+    final statusLabel = _detailsComplete ? 'Complete details' : 'Incomplete details';
 
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(item.name, style: AppTextStyles.label(context)),
-          const SizedBox(height: 8),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: statusColor, width: 2),
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    formatPersonName(item.name),
+                    style: AppTextStyles.label(context),
+                  ),
+                ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    child: Text(
+                      statusLabel,
+                      style: AppTextStyles.muted(context).copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
           Text(
             '${l10n.line('vrmEpic')}: ${item.epicNumber ?? '—'}',
             style: AppTextStyles.body(context),
@@ -435,79 +476,80 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
             '   ${l10n.line('vrmGender')}: ${item.gender ?? '—'}',
             style: AppTextStyles.muted(context),
           ),
-          if (item.needsReview)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                l10n.line('vrmNeedsReview'),
-                style: AppTextStyles.muted(context).copyWith(color: palette.campaign),
-              ),
-            ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _whatsapp,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  decoration: _fieldDecoration(
-                    l10n.line('vrmWhatsapp'),
-                    l10n.line('vrmWhatsappHint'),
-                  ),
+            if (item.needsReview)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  l10n.line('vrmNeedsReview'),
+                  style: AppTextStyles.muted(context).copyWith(color: palette.campaign),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _instagram,
-                  textInputAction: TextInputAction.next,
-                  decoration: _fieldDecoration(
-                    l10n.line('vrmInstagram'),
-                    l10n.line('vrmInstagramHint'),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _whatsapp,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
+                    decoration: _fieldDecoration(
+                      l10n.line('vrmWhatsapp'),
+                      l10n.line('vrmWhatsappHint'),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _facebook,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _saving ? null : _save(),
-                  decoration: _fieldDecoration(
-                    l10n.line('vrmFacebook'),
-                    l10n.line('vrmFacebookHint'),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              TextButton(
-                onPressed: _saving ? null : _save,
-                child: Text(l10n.line('vrmContactSave')),
-              ),
-              if (_status != null) ...[
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    _status!,
-                    style: AppTextStyles.muted(context).copyWith(
-                      color: _status == l10n.line('vrmContactSaved')
-                          ? palette.success
-                          : (_status == l10n.line('vrmContactSaving')
-                              ? palette.textMuted
-                              : palette.danger),
+                  child: TextField(
+                    controller: _instagram,
+                    textInputAction: TextInputAction.next,
+                    decoration: _fieldDecoration(
+                      l10n.line('vrmInstagram'),
+                      l10n.line('vrmInstagramHint'),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _facebook,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _saving ? null : _save(),
+                    decoration: _fieldDecoration(
+                      l10n.line('vrmFacebook'),
+                      l10n.line('vrmFacebookHint'),
                     ),
                   ),
                 ),
               ],
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: _saving ? null : _save,
+                  child: Text(l10n.line('vrmContactSave')),
+                ),
+                if (_status != null) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _status!,
+                      style: AppTextStyles.muted(context).copyWith(
+                        color: _status == l10n.line('vrmContactSaved')
+                            ? palette.success
+                            : (_status == l10n.line('vrmContactSaving')
+                                ? palette.textMuted
+                                : palette.danger),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -10,15 +10,16 @@ const enTranslations = <String, String>{
   'welcomeBody':
       'Build your digital presence, manage relationships, communicate with your community, and grow your leadership platform.',
   'continueWhatsApp': 'Continue with WhatsApp',
+  'continueGoogle': 'Continue with Google',
   'continueMobile': 'Continue with Mobile OTP',
   'continueFacebook': 'Continue with Facebook',
   'continueInstagram': 'Continue with Instagram',
   'socialNotConfigured':
-      'Facebook and Instagram sign-in are not set up on the server yet.',
+      'Facebook, Google, and Instagram sign-in are not set up on the server yet.',
   'socialDenied': 'Sign-in was cancelled.',
   'socialFailed': 'Could not sign in. Please try again.',
   'socialWebOnly':
-      'Open VoteBanker in the browser to sign in with Facebook or Instagram.',
+      'Open VoteBanker in the browser to sign in with Facebook, Google, or Instagram.',
   'authLater': 'Sign-in will be connected later. Continuing for now.',
   'basicProfile': 'Leader Profile',
   'profileDescription': 'Tell us a little about your leadership and journey.',
@@ -43,7 +44,8 @@ const enTranslations = <String, String>{
   'optionalHint': 'Every field is optional.',
   'photoError': 'Could not read that image.',
   'domainTitle': 'Portfolio Name Search',
-  'domainDescription': 'Find a professional website name for your public profile.',
+  'domainDescription':
+      'Find a professional website name for your public profile.',
   'searchPlaceholder': 'Search your website name',
   'available': 'Available',
   'unavailable': 'Unavailable',
@@ -58,11 +60,14 @@ const enTranslations = <String, String>{
   'domainNeedLatin': 'Use English letters, for example Arjun Verma.',
   'domainSearch': 'Search',
   'domainSearching': 'Searching…',
-  'domainSearchHint': 'Enter a name and tap Search. Available domains show standard TLDs first.',
+  'domainSearchHint':
+      'Enter a name and tap Search. Available domains show standard TLDs first.',
   'domainNoResults': 'No domain results were returned. Try another name.',
   'domainSearchError': 'Domain search failed. Please try again.',
-  'domainSearchUnreachable': 'Could not reach the domain search service. Please try again.',
-  'domainSearchUnavailable': 'Domain search is not configured yet. Please try again later.',
+  'domainSearchUnreachable':
+      'Could not reach the domain search service. Please try again.',
+  'domainSearchUnavailable':
+      'Domain search is not configured yet. Please try again later.',
   'domainSearchAccessDenied':
       'Openprovider is blocking Railway. Railway IPs change, so do not whitelist one IP. In Openprovider → Contact persons → API: delete EVERY IP from whitelist and blacklist (both must be empty), save, wait 1 minute, then Retry. Remove OPENPROVIDER_IP from Railway if set.',
   'domainSearchAccessDeniedIp':
@@ -156,8 +161,10 @@ const enTranslations = <String, String>{
   'smiScheduleUnsupported':
       'Scheduling is not available. The server cannot store a scheduled post yet.',
   'smiSignIn': 'Sign in to manage social media accounts.',
-  'smiUnreachable': 'Could not reach the social media service. Please try again.',
-  'smiPickSchedule': 'Choose a date and time. The post is saved only if the server accepts it.',
+  'smiUnreachable':
+      'Could not reach the social media service. Please try again.',
+  'smiPickSchedule':
+      'Choose a date and time. The post is saved only if the server accepts it.',
   'vrmContactInvalid': 'Check the contact details and try again.',
   'vrmUnsavedTitle': 'Unsaved contacts',
   'vrmUnsavedBody': 'You have contact changes that are not saved yet.',
@@ -331,7 +338,8 @@ const enTranslations = <String, String>{
   'cardEvents': 'Events',
   'cardIssues': 'Public Issues',
   'cardTeam': 'My Team',
-  'teamCardBody': 'Manage your team members, assign roles, and track their progress.',
+  'teamCardBody':
+      'Manage your team members, assign roles, and track their progress.',
   'cardAnalytics': 'Analytics',
   'cardMarketplace': 'Campaign',
   'comingLater': 'Coming later',
@@ -394,12 +402,16 @@ const enTranslations = <String, String>{
   'portfolioAchievementsWork': 'Achievements & Development Work',
   'portfolioGalleryUpdates': 'Gallery & Community Updates',
   'portfolioGetInTouch': 'Get in Touch',
-  'portfolioBioPlaceholder': 'Add your biography in Website Details. This section stays text only.',
+  'portfolioBioPlaceholder':
+      'Add your biography in Website Details. This section stays text only.',
   'portfolioVisionPlaceholder':
       'Share your vision, priorities, and development agenda in Website Details.',
-  'portfolioAchievementsPlaceholder': 'Achievements and development projects appear here when you add them.',
-  'portfolioGalleryPlaceholder': 'Saved photos, captions, and public updates appear here when available.',
-  'portfolioContactPlaceholder': 'A public contact number appears here when you add one.',
+  'portfolioAchievementsPlaceholder':
+      'Achievements and development projects appear here when you add them.',
+  'portfolioGalleryPlaceholder':
+      'Saved photos, captions, and public updates appear here when available.',
+  'portfolioContactPlaceholder':
+      'A public contact number appears here when you add one.',
   'portfolioPoliticalParty': 'Political party',
   'portfolioYourName': 'Your name',
   'portfolioJoinMission': 'Join Our Mission',
@@ -527,7 +539,8 @@ const enTranslations = <String, String>{
       'Could not reach the website generator. Start the local backend or check the API URL, then retry.',
   'websiteGenerateFailed':
       'Website generation failed. Check the server logs and retry.',
-  'websiteAiSourceStock': 'Images are curated stock photos matched to this website category.',
+  'websiteAiSourceStock':
+      'Images are curated stock photos matched to this website category.',
   'genStyle': 'Applying selected template style',
   'genInfo': 'Reading your portfolio details',
   'genLanguage': 'Preparing website language',
@@ -782,7 +795,8 @@ const enTranslations = <String, String>{
   'capturePhoto': 'Capture',
   'cameraUnavailable':
       'Camera is unavailable. Allow camera permission and try again.',
-  'portfolioIntroPlaceholder': 'A professional introduction appears here once you add it in Website Details.',
+  'portfolioIntroPlaceholder':
+      'A professional introduction appears here once you add it in Website Details.',
   'portfolioKnowMyVision': 'Know My Vision',
   'paymentMethod': 'Payment method',
   'securePayments': 'Secure & Encrypted Payments',
@@ -792,12 +806,14 @@ const enTranslations = <String, String>{
   'socialConnectTitle': 'Connect {provider}',
   'socialSecureTitle': 'Secure authorization',
   'socialPermissionsTitle': 'Required permissions',
-  'socialRedirectNote': 'You\'ll be redirected to {provider} to authorize the connection.',
+  'socialRedirectNote':
+      'You\'ll be redirected to {provider} to authorize the connection.',
   'socialContinueTo': 'Continue to {provider}',
   'socialCancel': 'Cancel',
   'socialRetry': 'Retry',
   'socialConnecting': 'Connecting...',
-  'socialConnectingHint': 'Please wait while we verify your account with {provider}.',
+  'socialConnectingHint':
+      'Please wait while we verify your account with {provider}.',
   'socialConnectedTitle': 'Connected successfully',
   'socialConnectedHeading': '{provider} connected',
   'socialConnectedBody': 'Your {provider} account is connected successfully.',
@@ -805,31 +821,58 @@ const enTranslations = <String, String>{
   'socialDone': 'Done',
   'socialManage': 'Manage',
   'socialDisconnect': 'Disconnect',
-  'socialNotSignedIn': 'Sign in to VOTE BANKER before connecting a social account.',
-  'socialNotConfiguredProvider': 'This provider is not configured yet. Add the official developer credentials on the backend.',
-  'socialCancelled': 'Authorization was cancelled. The account was not connected.',
-  'socialFailedConnect': 'Authorization failed. Try again from the official provider page.',
-  'socialNoPage': 'Connect a Facebook Page you manage. Personal profile publishing is not supported.',
-  'socialProfessionalRequired': 'Connect a professional Instagram account. Personal accounts are not supported.',
-  'socialNoChannel': 'No YouTube channel was found on the authorized Google account.',
-  'socialWhatsappIncomplete': 'WhatsApp Business messaging was not completed. A Business account and phone number are required.',
-  'socialStorageNotReady': 'Connection storage is not ready. Apply the social_account_connections migration.',
-  'socialIgSummary': 'Connect your Instagram account to manage your political outreach from VOTE BANKER.',
-  'socialIgSecure': 'Sign in through the official Instagram/Meta platform. We never ask for your password.',
-  'socialIgPermissions': 'We request your professional profile info, username, and account identity so we can show the connected account.',
-  'socialFbSummary': 'Connect your Facebook Page to manage your political outreach from VOTE BANKER.',
-  'socialFbSecure': 'Sign in through the official Facebook platform. We never ask for your password.',
-  'socialFbPermissions': 'We request the Pages you manage. Personal Facebook profile publishing is not supported.',
-  'socialWaSummary': 'Connect your WhatsApp Business account for official Cloud API messaging.',
-  'socialWaSecure': 'Authorize through Meta Embedded Signup. We never ask for your WhatsApp password.',
-  'socialWaPermissions': 'We request the WhatsApp Business Account and phone number used for Cloud API messaging. This does not publish WhatsApp Status.',
-  'socialXSummary': 'Connect your X account to manage your political outreach from VOTE BANKER.',
-  'socialXSecure': 'Sign in through the official X platform. We never ask for your password.',
-  'socialXPermissions': 'We request your public profile information so we can show the connected account.',
-  'socialYtSummary': 'Connect your YouTube channel to manage your political outreach from VOTE BANKER.',
-  'socialYtSecure': 'Sign in through Google\'s official platform. We never ask for your password.',
-  'socialYtPermissions': 'We request your channel information so we can show the authorized YouTube channel.',
-  'socialEmailSummary': 'Connect your email account to manage your campaign communication from VOTE BANKER.',
-  'socialEmailSecure': 'Sign in through Google using official OAuth. We never ask for your email password.',
-  'socialEmailPermissions': 'We request your email address and basic profile. No email password is stored.',
+  'socialNotSignedIn':
+      'Sign in to VOTE BANKER before connecting a social account.',
+  'socialNotConfiguredProvider':
+      'This provider is not configured yet. Add the official developer credentials on the backend.',
+  'socialCancelled':
+      'Authorization was cancelled. The account was not connected.',
+  'socialFailedConnect':
+      'Authorization failed. Try again from the official provider page.',
+  'socialNoPage':
+      'Connect a Facebook Page you manage. Personal profile publishing is not supported.',
+  'socialProfessionalRequired':
+      'Connect a professional Instagram account. Personal accounts are not supported.',
+  'socialNoChannel':
+      'No YouTube channel was found on the authorized Google account.',
+  'socialWhatsappIncomplete':
+      'WhatsApp Business messaging was not completed. A Business account and phone number are required.',
+  'socialStorageNotReady':
+      'Connection storage is not ready. Apply the social_account_connections migration.',
+  'socialIgSummary':
+      'Connect your Instagram account to manage your political outreach from VOTE BANKER.',
+  'socialIgSecure':
+      'Sign in through the official Instagram/Meta platform. We never ask for your password.',
+  'socialIgPermissions':
+      'We request your professional profile info, username, and account identity so we can show the connected account.',
+  'socialFbSummary':
+      'Connect your Facebook Page to manage your political outreach from VOTE BANKER.',
+  'socialFbSecure':
+      'Sign in through the official Facebook platform. We never ask for your password.',
+  'socialFbPermissions':
+      'We request the Pages you manage. Personal Facebook profile publishing is not supported.',
+  'socialWaSummary':
+      'Connect your WhatsApp Business account for official Cloud API messaging.',
+  'socialWaSecure':
+      'Authorize through Meta Embedded Signup. We never ask for your WhatsApp password.',
+  'socialWaPermissions':
+      'We request the WhatsApp Business Account and phone number used for Cloud API messaging. This does not publish WhatsApp Status.',
+  'socialXSummary':
+      'Connect your X account to manage your political outreach from VOTE BANKER.',
+  'socialXSecure':
+      'Sign in through the official X platform. We never ask for your password.',
+  'socialXPermissions':
+      'We request your public profile information so we can show the connected account.',
+  'socialYtSummary':
+      'Connect your YouTube channel to manage your political outreach from VOTE BANKER.',
+  'socialYtSecure':
+      'Sign in through Google\'s official platform. We never ask for your password.',
+  'socialYtPermissions':
+      'We request your channel information so we can show the authorized YouTube channel.',
+  'socialEmailSummary':
+      'Connect your email account to manage your campaign communication from VOTE BANKER.',
+  'socialEmailSecure':
+      'Sign in through Google using official OAuth. We never ask for your email password.',
+  'socialEmailPermissions':
+      'We request your email address and basic profile. No email password is stored.',
 };

@@ -6,6 +6,7 @@ import '../../app/localization/app_localizations.dart';
 import '../../app/routing/app_router.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
+import '../../core/utils/person_name.dart';
 import '../../core/widgets/app_background.dart';
 import '../../core/widgets/app_card.dart';
 import 'social_contact_links.dart';
@@ -329,7 +330,10 @@ class _Section extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(entry.name, style: AppTextStyles.label(context)),
+                  Text(
+                    formatPersonName(entry.name),
+                    style: AppTextStyles.label(context),
+                  ),
                   if (epicLabel != null && (entry.epicNumber ?? '').isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(

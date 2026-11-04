@@ -24,6 +24,8 @@ class AuthSession {
     required this.refreshToken,
     required this.userId,
     required this.phone,
+    this.fullName = '',
+    this.email = '',
     this.expiresAt,
   });
 
@@ -31,6 +33,8 @@ class AuthSession {
   final String refreshToken;
   final String userId;
   final String phone;
+  final String fullName;
+  final String email;
   final int? expiresAt;
 }
 
@@ -44,6 +48,8 @@ class AuthService {
   static const _prefsRefresh = 'auth.refresh_token';
   static const _prefsUser = 'auth.user_id';
   static const _prefsPhone = 'auth.phone';
+  static const _prefsFullName = 'auth.full_name';
+  static const _prefsEmail = 'auth.email';
   static const _prefsExpires = 'auth.expires_at';
 
   AuthSession? session;
@@ -81,6 +87,8 @@ class AuthService {
       refreshToken: refresh,
       userId: user,
       phone: phone,
+      fullName: prefs.getString(_prefsFullName) ?? '',
+      email: prefs.getString(_prefsEmail) ?? '',
       expiresAt: prefs.getInt(_prefsExpires),
     );
   }
@@ -90,17 +98,18 @@ class AuthService {
     await _post('/api/auth/otp/send', {'phone': phone, 'channel': channel});
   }
 
-  /// Opens Facebook or Instagram in the browser. The provider sends the user back here.
+  /// Opens a social provider in the browser. The provider sends the user back here.
   void startSocial(String provider) {
     if (!kIsWeb) {
       throw const AuthException(
         'social_web_only',
-        'Open VoteBanker in the browser to sign in with Facebook or Instagram.',
+        'Open VoteBanker in the browser to sign in with Facebook, Google, or Instagram.',
       );
     }
     final origin = browserOrigin();
-    final uri = Uri.parse('${AppConfig.apiBaseUrl}/api/auth/oauth/$provider/start')
-        .replace(queryParameters: {'return_to': '$origin/'});
+    final uri =
+        Uri.parse('${AppConfig.apiBaseUrl}/api/auth/oauth/$provider/start')
+            .replace(queryParameters: {'return_to': '$origin/'});
     redirectBrowser(uri.toString());
   }
 
@@ -112,6 +121,8 @@ class AuthService {
       refreshToken: body['refresh_token'] as String,
       userId: (user['id'] ?? '') as String,
       phone: (user['phone'] ?? '') as String,
+      fullName: (user['full_name'] ?? '') as String,
+      email: (user['email'] ?? '') as String,
       expiresAt: body['expires_at'] as int?,
     );
     session = result;
@@ -146,6 +157,8 @@ class AuthService {
       _prefsRefresh,
       _prefsUser,
       _prefsPhone,
+      _prefsFullName,
+      _prefsEmail,
       _prefsExpires,
     ]) {
       await prefs.remove(key);
@@ -158,6 +171,8 @@ class AuthService {
     await prefs.setString(_prefsRefresh, s.refreshToken);
     await prefs.setString(_prefsUser, s.userId);
     await prefs.setString(_prefsPhone, s.phone);
+    await prefs.setString(_prefsFullName, s.fullName);
+    await prefs.setString(_prefsEmail, s.email);
     if (s.expiresAt != null) await prefs.setInt(_prefsExpires, s.expiresAt!);
   }
 
@@ -219,9 +234,9 @@ class AuthService {
       case 'too_many_requests':
         return 'Too many attempts. Please wait a few minutes and try again.';
       case 'social_expired':
-        return 'That sign-in expired. Please try Facebook or Instagram again.';
+        return 'That sign-in expired. Please try Facebook, Google, or Instagram again.';
       case 'social_not_configured':
-        return 'Facebook and Instagram sign-in are not set up on the server yet.';
+        return 'Facebook, Google, and Instagram sign-in are not set up on the server yet.';
       default:
         return 'Something went wrong. Please try again.';
     }

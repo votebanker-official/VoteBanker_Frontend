@@ -11,6 +11,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/onboarding_header.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
+import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_frame.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -33,7 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final params = Uri.base.queryParameters;
     final error = params['auth_error'];
     final ticket = params['auth_ticket'];
-    if ((error == null || error.isEmpty) && (ticket == null || ticket.isEmpty)) {
+    if ((error == null || error.isEmpty) &&
+        (ticket == null || ticket.isEmpty)) {
       return;
     }
     clearAuthQuery();
@@ -47,6 +49,13 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await AuthService.instance.exchangeSocialTicket(ticket!);
       if (!mounted) return;
+      final fullName = AuthService.instance.session?.fullName.trim() ?? '';
+      if (fullName.isNotEmpty) {
+        final draft = OnboardingScope.of(context).draft;
+        if (draft.fullName.trim().isEmpty) {
+          draft.fullName = fullName;
+        }
+      }
       Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
     } on AuthException catch (e) {
       if (mounted) _showMessage(e.message);
@@ -67,7 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _startSocial(AppLocalizations l10n, String provider) {
@@ -125,9 +135,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 12),
             SecondaryButton(
-              label: l10n.continueMobile,
-              icon: Icons.sms_outlined,
-              onPressed: _busy ? () {} : () => AppRouter.open(context, AppRoutes.otp),
+              label: l10n.continueGoogle,
+              icon: Icons.g_mobiledata,
+              onPressed: _busy ? () {} : () => _startSocial(l10n, 'google'),
             ),
             const SizedBox(height: 12),
             SecondaryButton(
@@ -135,14 +145,10 @@ class _LoginScreenState extends State<LoginScreen> {
               icon: Icons.facebook,
               onPressed: _busy ? () {} : () => _startSocial(l10n, 'facebook'),
             ),
-            const SizedBox(height: 12),
-            SecondaryButton(
-              label: l10n.continueInstagram,
-              icon: Icons.photo_camera_outlined,
-              onPressed: _busy ? () {} : () => _startSocial(l10n, 'instagram'),
-            ),
             TextButton(
-              onPressed: _busy ? null : () => AppRouter.open(context, AppRoutes.profile),
+              onPressed: _busy
+                  ? null
+                  : () => AppRouter.open(context, AppRoutes.profile),
               child: Text(l10n.skipForNow),
             ),
           ],

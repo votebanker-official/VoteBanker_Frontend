@@ -69,10 +69,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     _contactNumber = TextEditingController(
       text: extractIndianNationalNumber(draft.contactNumber),
     );
-    _preferredLanguage =
-        ProfileLanguages.supports(draft.preferredLanguage)
-            ? draft.preferredLanguage
-            : 'en';
+    _preferredLanguage = ProfileLanguages.supports(draft.preferredLanguage)
+        ? draft.preferredLanguage
+        : 'en';
     draft.preferredLanguage = _preferredLanguage;
     _ready = true;
     unawaited(_loadSavedProfile(draft));
@@ -135,8 +134,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       }
       if (_contactNumber.text.trim().isEmpty &&
           draft.contactNumber.isNotEmpty) {
-        _contactNumber.text =
-            extractIndianNationalNumber(draft.contactNumber);
+        _contactNumber.text = extractIndianNationalNumber(draft.contactNumber);
       }
       final catalog = _catalog;
       if (catalog != null) {
@@ -271,7 +269,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       return;
     }
     _commit();
-    AppRouter.open(context, AppRoutes.website);
+    AppRouter.open(context, AppRoutes.additionalProfile);
   }
 
   void _revealContact() {
@@ -407,14 +405,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     final draft = OnboardingScope.of(context).draft;
     final photo = draft.photoBytes;
     final catalog = _catalog;
-    final states =
-        catalog == null
-            ? const <String>[]
-            : catalog.statesOf(_selection.country);
-    final districts =
-        catalog == null
-            ? const <String>[]
-            : catalog.districtsOf(_selection.country, _selection.state);
+    final states = catalog == null
+        ? const <String>[]
+        : catalog.statesOf(_selection.country);
+    final districts = catalog == null
+        ? const <String>[]
+        : catalog.districtsOf(_selection.country, _selection.state);
     final countryEnabled = catalog != null && catalog.countries.isNotEmpty;
     final stateEnabled =
         countryEnabled && _selection.country.isNotEmpty && states.isNotEmpty;
@@ -464,34 +460,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         ),
         const SizedBox(height: 14),
         _ProfileDropdown(
-          fieldKey: const ValueKey('profileDesignation'),
-          label: '${l10n.designation} *',
-          hint: l10n.selectDesignation,
-          icon: Icons.work_outline,
-          value: _shown(_designation.text, designations),
-          options: designations,
-          enabled: true,
-          searchable: true,
-          searchHint: 'Search designation',
-          noResultsLabel: 'No results found',
-          clearSearchLabel: l10n.clearStateSearch,
-          prepareOptions: (options) => options,
-          searchFieldKey: const ValueKey('designationSearch'),
-          clearButtonKey: const ValueKey('clearDesignationSearch'),
-          emptyMessageKey: const ValueKey('noDesignationsFound'),
-          listKey: const ValueKey('designationMenuList'),
-          filterOptions: (options, query) {
-            final q = query.trim().toLowerCase();
-            if (q.isEmpty) return options;
-            return options.where((o) => o.toLowerCase().contains(q)).toList();
-          },
-          onChanged: (value) {
-            setState(() => _designation.text = value ?? '');
-            draft.designation = _designation.text;
-          },
-        ),
-        const SizedBox(height: 14),
-        _ProfileDropdown(
           fieldKey: const ValueKey('profileParty'),
           label: '${l10n.organization} *',
           hint: l10n.selectParty,
@@ -528,6 +496,34 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             draft.party = _party.text;
           },
         ),
+        const SizedBox(height: 14),
+        _ProfileDropdown(
+          fieldKey: const ValueKey('profileDesignation'),
+          label: '${l10n.designation} *',
+          hint: l10n.selectDesignation,
+          icon: Icons.work_outline,
+          value: _shown(_designation.text, designations),
+          options: designations,
+          enabled: true,
+          searchable: true,
+          searchHint: 'Search designation',
+          noResultsLabel: 'No results found',
+          clearSearchLabel: l10n.clearStateSearch,
+          prepareOptions: (options) => options,
+          searchFieldKey: const ValueKey('designationSearch'),
+          clearButtonKey: const ValueKey('clearDesignationSearch'),
+          emptyMessageKey: const ValueKey('noDesignationsFound'),
+          listKey: const ValueKey('designationMenuList'),
+          filterOptions: (options, query) {
+            final q = query.trim().toLowerCase();
+            if (q.isEmpty) return options;
+            return options.where((o) => o.toLowerCase().contains(q)).toList();
+          },
+          onChanged: (value) {
+            setState(() => _designation.text = value ?? '');
+            draft.designation = _designation.text;
+          },
+        ),
         const SizedBox(height: 16),
         _SectionCard(
           icon: Icons.location_on_outlined,
@@ -546,10 +542,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 ),
                 options: catalog?.countries ?? const [],
                 enabled: countryEnabled,
-                errorText:
-                    _locationIssue == LocationIssue.country
-                        ? l10n.invalidSelection
-                        : null,
+                errorText: _locationIssue == LocationIssue.country
+                    ? l10n.invalidSelection
+                    : null,
                 onChanged: _selectCountry,
               ),
               const SizedBox(height: 14),
@@ -565,10 +560,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 searchHint: l10n.searchStates,
                 noResultsLabel: l10n.noStatesFound,
                 clearSearchLabel: l10n.clearStateSearch,
-                errorText:
-                    _locationIssue == LocationIssue.state
-                        ? l10n.invalidSelection
-                        : null,
+                errorText: _locationIssue == LocationIssue.state
+                    ? l10n.invalidSelection
+                    : null,
                 onChanged: _selectState,
               ),
               const SizedBox(height: 14),
@@ -589,10 +583,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 clearButtonKey: const ValueKey('clearDistrictSearch'),
                 emptyMessageKey: const ValueKey('noDistrictsFound'),
                 listKey: const ValueKey('districtMenuList'),
-                errorText:
-                    _locationIssue == LocationIssue.district
-                        ? l10n.invalidSelection
-                        : null,
+                errorText: _locationIssue == LocationIssue.district
+                    ? l10n.invalidSelection
+                    : null,
                 onChanged: _selectDistrict,
               ),
               const SizedBox(height: 14),
@@ -720,11 +713,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           noResultsLabel: l10n.noConstituenciesFound,
           clearSearchLabel: l10n.clearStateSearch,
           loadingLabel: l10n.loadingAssemblyConstituencies,
-          onLoad:
-              () => AssemblyConstituencies.load(
-                state: _selection.state,
-                district: _selection.district,
-              ),
+          onLoad: () => AssemblyConstituencies.load(
+            state: _selection.state,
+            district: _selection.district,
+          ),
           onChanged: (item) {
             if (item == null) return;
             setState(() {
@@ -931,25 +923,23 @@ class _PhotoCard extends StatelessWidget {
                           blurRadius: 12,
                         ),
                       ],
-                      image:
-                          bytes == null
-                              ? null
-                              : DecorationImage(
-                                image: MemoryImage(bytes!),
-                                fit: BoxFit.cover,
-                              ),
+                      image: bytes == null
+                          ? null
+                          : DecorationImage(
+                              image: MemoryImage(bytes!),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                     child: SizedBox(
                       width: 92,
                       height: 92,
-                      child:
-                          bytes == null
-                              ? Icon(
-                                Icons.person,
-                                size: 40,
-                                color: palette.textMuted,
-                              )
-                              : null,
+                      child: bytes == null
+                          ? Icon(
+                              Icons.person,
+                              size: 40,
+                              color: palette.textMuted,
+                            )
+                          : null,
                     ),
                   ),
                   Positioned(
@@ -1058,7 +1048,8 @@ class _ProfileDropdown extends StatelessWidget {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options)? prepareOptions;
-  final List<String> Function(List<String> options, String query)? filterOptions;
+  final List<String> Function(List<String> options, String query)?
+      filterOptions;
   final Key? searchFieldKey;
   final Key? clearButtonKey;
   final Key? emptyMessageKey;
@@ -1093,24 +1084,22 @@ class _ProfileDropdown extends StatelessWidget {
             prepareOptions: prepareOptions,
             filterOptions: filterOptions,
             showPrefix: !showPartySymbols,
-            selectedWidget:
-                showPartySymbols && value != null
-                    ? (context, val) => _PartyOptionLabel(name: val)
-                    : null,
-            menuContentBuilder:
-                showPartySymbols
-                    ? (context, visible, selected, onSelect, palette) =>
-                        _partyMenuContent(
-                          context: context,
-                          visibleOptions: visible,
-                          selected: selected,
-                          onSelect: onSelect,
-                          nationalLabel: nationalPartiesLabel,
-                          regionalLabel: regionalPartiesLabel,
-                          listKey: listKey ?? const ValueKey('partyMenuList'),
-                          palette: palette,
-                        )
-                    : null,
+            selectedWidget: showPartySymbols && value != null
+                ? (context, val) => _PartyOptionLabel(name: val)
+                : null,
+            menuContentBuilder: showPartySymbols
+                ? (context, visible, selected, onSelect, palette) =>
+                    _partyMenuContent(
+                      context: context,
+                      visibleOptions: visible,
+                      selected: selected,
+                      onSelect: onSelect,
+                      nationalLabel: nationalPartiesLabel,
+                      regionalLabel: regionalPartiesLabel,
+                      listKey: listKey ?? const ValueKey('partyMenuList'),
+                      palette: palette,
+                    )
+                : null,
             searchFieldKey: searchFieldKey ?? const ValueKey('stateSearch'),
             clearButtonKey:
                 clearButtonKey ?? const ValueKey('clearStateSearch'),
@@ -1128,31 +1117,29 @@ class _ProfileDropdown extends StatelessWidget {
             menuMaxHeight: MediaQuery.sizeOf(context).height * 0.5,
             itemHeight: showPartySymbols ? 56 : kMinInteractiveDimension,
             decoration: InputDecoration(
-              prefixIcon:
-                  showPartySymbols
-                      ? null
-                      : Icon(icon, color: palette.textMuted),
+              prefixIcon: showPartySymbols
+                  ? null
+                  : Icon(icon, color: palette.textMuted),
               errorText: errorText,
             ),
-            items:
-                showPartySymbols
-                    ? _partyMenuItems(
-                      options,
-                      nationalPartiesLabel,
-                      regionalPartiesLabel,
-                      palette,
-                    )
-                    : [
-                      for (final option in options)
-                        DropdownMenuItem<String>(
-                          value: option,
-                          child: Text(
-                            option,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+            items: showPartySymbols
+                ? _partyMenuItems(
+                    options,
+                    nationalPartiesLabel,
+                    regionalPartiesLabel,
+                    palette,
+                  )
+                : [
+                    for (final option in options)
+                      DropdownMenuItem<String>(
+                        value: option,
+                        child: Text(
+                          option,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    ],
+                      ),
+                  ],
             onChanged: enabled ? onChanged : null,
           ),
       ],
@@ -1191,10 +1178,9 @@ Widget _partyMenuContent({
   required AppPalette palette,
 }) {
   final visibleSet = visibleOptions.toSet();
-  final saved =
-      visibleOptions
-          .where((name) => PartyOption.findByName(name) == null)
-          .toList();
+  final saved = visibleOptions
+      .where((name) => PartyOption.findByName(name) == null)
+      .toList();
   final national =
       PartyOption.national.where((p) => visibleSet.contains(p.name)).toList();
   final regional =

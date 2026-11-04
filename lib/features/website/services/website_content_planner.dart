@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../../../core/utils/person_name.dart';
 import '../models/website_document.dart';
 import '../models/website_draft.dart';
 
@@ -262,7 +263,14 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
 
   return WebsiteDocument(
     siteTitle: subject.name.isEmpty ? subject.fallback : subject.name,
-    personName: draft.fullName.trim().isNotEmpty ? draft.fullName.trim() : (type == 'pet' || type == 'leadership' || type == 'healthcare' || type == 'personal' ? subject.name : ''),
+    personName: draft.fullName.trim().isNotEmpty
+        ? formatPersonName(draft.fullName)
+        : (type == 'pet' ||
+                type == 'leadership' ||
+                type == 'healthcare' ||
+                type == 'personal'
+            ? subject.name
+            : ''),
     professionalTitle: draft.publicTitle.trim(),
     organization: draft.organization.trim().isNotEmpty ? draft.organization.trim() : (type == 'healthcare' ? _place(story) : ''),
     tagline: draft.callToAction.trim(),

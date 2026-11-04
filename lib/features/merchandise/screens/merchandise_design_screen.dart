@@ -10,6 +10,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/services/theme_controller.dart';
+import '../../../core/utils/person_name.dart';
 import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/language_selector.dart';
@@ -62,7 +63,9 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       return;
     }
     _seeded = true;
-    final draft = OnboardingScope.maybeOf(context)?.draft.fullName.trim() ?? '';
+    final draft = formatPersonName(
+      OnboardingScope.maybeOf(context)?.draft.fullName ?? '',
+    );
     if (draft.isNotEmpty) {
       _name.text = draft;
     }
