@@ -217,7 +217,6 @@ class AppLocalizations {
   String get socialWhatsApp => _t('socialWhatsApp');
   String get socialX => _t('socialX');
   String get socialYouTube => _t('socialYouTube');
-  String get socialEmail => _t('socialEmail');
   String get socialConnect => _t('socialConnect');
   String socialConnectSoon(String platform) =>
       _t('socialConnectSoon').replaceAll('{platform}', platform);

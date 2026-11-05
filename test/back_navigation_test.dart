@@ -48,7 +48,7 @@ void main() {
     expect(find.text('WhatsApp'), findsOneWidget);
     expect(find.text('X / Twitter'), findsOneWidget);
     expect(find.text('YouTube'), findsOneWidget);
-    expect(find.text('Email'), findsOneWidget);
+    expect(find.text('Email'), findsNothing);
     expect(find.text('Save & Continue'), findsOneWidget);
     expect(find.text('Skip for now'), findsOneWidget);
 

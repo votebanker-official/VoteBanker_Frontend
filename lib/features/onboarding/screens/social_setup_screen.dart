@@ -77,6 +77,10 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
       return;
     }
     _handledReturn = true;
+    if (provider == 'email') {
+      clearAuthQuery();
+      return;
+    }
     final account = params['account'] ?? '';
     clearAuthQuery();
     if (!mounted) return;
@@ -228,7 +232,7 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
       'whatsapp' => const _PlatformIcon(_SocialMark.whatsapp),
       'x' => const _PlatformIcon(_SocialMark.x),
       'youtube' => const _PlatformIcon(_SocialMark.youtube),
-      _ => const _PlatformIcon(_SocialMark.email),
+      _ => const Icon(Icons.link, size: 42),
     };
   }
 
@@ -239,7 +243,7 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
       'whatsapp' => l10n.socialWhatsApp,
       'x' => l10n.socialX,
       'youtube' => l10n.socialYouTube,
-      _ => l10n.socialEmail,
+      _ => id,
     };
   }
 
@@ -285,11 +289,6 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
         id: 'youtube',
         label: l10n.socialYouTube,
         mark: const _PlatformIcon(_SocialMark.youtube),
-      ),
-      _SocialOption(
-        id: 'email',
-        label: l10n.socialEmail,
-        mark: const _PlatformIcon(_SocialMark.email),
       ),
     ];
 
@@ -481,7 +480,7 @@ class _SocialConnectRow extends StatelessWidget {
   }
 }
 
-enum _SocialMark { instagram, facebook, whatsapp, x, youtube, email }
+enum _SocialMark { instagram, facebook, whatsapp, x, youtube }
 
 class _PlatformIcon extends StatelessWidget {
   const _PlatformIcon(this.mark);
@@ -514,12 +513,6 @@ class _PlatformIcon extends StatelessWidget {
 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
   <rect width="48" height="48" rx="12" fill="#FF0033"/>
   <path fill="#fff" d="M20 16.5v15l13-7.5-13-7.5z"/>
-</svg>''',
-    _SocialMark.email: '''
-<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="12" fill="#4C8DFF"/>
-  <rect x="13" y="16" width="22" height="16" rx="2.5" fill="none" stroke="#fff" stroke-width="2.4"/>
-  <path d="M13.5 17.2 L24 26.5 L34.5 17.2" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/>
 </svg>''',
   };
 

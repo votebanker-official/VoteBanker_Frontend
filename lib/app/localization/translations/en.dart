@@ -449,7 +449,6 @@ const enTranslations = <String, String>{
   'socialWhatsApp': 'WhatsApp',
   'socialX': 'X / Twitter',
   'socialYouTube': 'YouTube',
-  'socialEmail': 'Email',
   'socialConnect': 'Connect',
   'socialConnectSoon': '{platform} connection will be available soon.',
   'socialMeta': 'Meta Business',
@@ -869,10 +868,4 @@ const enTranslations = <String, String>{
       'Sign in through Google\'s official platform. We never ask for your password.',
   'socialYtPermissions':
       'We request your channel information so we can show the authorized YouTube channel.',
-  'socialEmailSummary':
-      'Connect your email account to manage your campaign communication from VOTE BANKER.',
-  'socialEmailSecure':
-      'Sign in through Google using official OAuth. We never ask for your email password.',
-  'socialEmailPermissions':
-      'We request your email address and basic profile. No email password is stored.',
 };

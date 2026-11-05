@@ -63,13 +63,7 @@ SocialConnectCopy socialConnectCopy(AppLocalizations l10n, String providerId) {
         secure: l10n.line('socialYtSecure'),
       );
     default:
-      return SocialConnectCopy(
-        providerId: 'email',
-        name: l10n.socialEmail,
-        summary: l10n.line('socialEmailSummary'),
-        permissions: l10n.line('socialEmailPermissions'),
-        secure: l10n.line('socialEmailSecure'),
-      );
+      throw ArgumentError.value(providerId, 'providerId', 'Unknown social provider');
   }
 }
 
