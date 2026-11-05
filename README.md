@@ -24,7 +24,7 @@ No `.env` is needed for the frontend. The only setting is `API_BASE_URL` (see `l
 
 ## Where things are
 
-- `lib/features/onboarding/` screens: login, mobile OTP, profile, domain, website, social, VRM, ready
+- `lib/features/onboarding/` screens: login, WhatsApp OTP, profile, domain, website, social, VRM, ready
 - `lib/core/services/auth_service.dart` OTP send/verify and session storage
 - `lib/core/services/profile_service.dart` saves onboarding answers to the backend (called from `AppRouter.open`)
 - `lib/app/localization/translations/` language files
@@ -41,7 +41,7 @@ Theme: colors come from `context.palette.*` (light and dark), not `AppColors.*`.
 ## To do
 
 - New login/OTP screen text is English only; add translations to all six language files.
-- Email sign-in, WhatsApp OTP, and profile photo upload are not built yet (see the backend README).
+- WhatsApp OTP requires the Twilio Verify WhatsApp sender and backend configuration described in the backend README.
 - "Skip for now" on the login screen opens onboarding without signing in; decide if that should stay.
 
 ## Rules

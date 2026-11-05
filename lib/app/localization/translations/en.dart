@@ -11,7 +11,7 @@ const enTranslations = <String, String>{
       'Build your digital presence, manage relationships, communicate with your community, and grow your leadership platform.',
   'continueWhatsApp': 'Continue with WhatsApp',
   'continueGoogle': 'Continue with Google',
-  'continueMobile': 'Continue with Mobile OTP',
+  'continueMobile': 'Continue with WhatsApp OTP',
   'continueFacebook': 'Continue with Facebook',
   'continueInstagram': 'Continue with Instagram',
   'socialNotConfigured':

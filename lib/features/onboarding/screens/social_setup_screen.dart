@@ -23,7 +23,8 @@ class SocialSetupScreen extends StatefulWidget {
   State<SocialSetupScreen> createState() => _SocialSetupScreenState();
 }
 
-class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindingObserver {
+class _SocialSetupScreenState extends State<SocialSetupScreen>
+    with WidgetsBindingObserver {
   late final SocialConnectionService _service =
       widget.service ?? SocialConnectionService();
   final Map<String, SocialConnection> _connections = {};
@@ -73,7 +74,10 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
     final params = Uri.base.queryParameters;
     final status = params['social_status'];
     final provider = params['provider'];
-    if (status == null || status.isEmpty || provider == null || provider.isEmpty) {
+    if (status == null ||
+        status.isEmpty ||
+        provider == null ||
+        provider.isEmpty) {
       return;
     }
     _handledReturn = true;
@@ -94,7 +98,9 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
         builder: (_) => SocialConnectedDialog(
           provider: _label(l10n, provider),
           account: account.isEmpty
-              ? (row?.displayName.isNotEmpty == true ? row!.displayName : _label(l10n, provider))
+              ? (row?.displayName.isNotEmpty == true
+                  ? row!.displayName
+                  : _label(l10n, provider))
               : account,
           mark: _markFor(provider),
           detail: row?.detail ?? '',
@@ -143,7 +149,8 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
                   if (kIsWeb) {
                     redirectBrowser(url);
                   } else {
-                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication);
                   }
                 } on SocialConnectionException catch (error) {
                   setDialog(() {
@@ -210,7 +217,8 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
   }
 
   void _toast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _returnTo() {
@@ -232,7 +240,7 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
       'whatsapp' => const _PlatformIcon(_SocialMark.whatsapp),
       'x' => const _PlatformIcon(_SocialMark.x),
       'youtube' => const _PlatformIcon(_SocialMark.youtube),
-      _ => const Icon(Icons.link, size: 42),
+      _ => const Icon(Icons.public),
     };
   }
 
@@ -363,7 +371,8 @@ class _SocialSetupScreenState extends State<SocialSetupScreen> with WidgetsBindi
 }
 
 class _SocialOption {
-  const _SocialOption({required this.id, required this.label, required this.mark});
+  const _SocialOption(
+      {required this.id, required this.label, required this.mark});
 
   final String id;
   final String label;
@@ -441,7 +450,8 @@ class _SocialConnectRow extends StatelessWidget {
               ),
             if (connection != null && connection!.connected)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F8EE),
                   borderRadius: BorderRadius.circular(999),

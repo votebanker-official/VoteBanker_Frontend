@@ -101,7 +101,7 @@ void main() {
     expect(find.text('VOTE BANKER में आपका स्वागत है'), findsNothing);
   });
 
-  testWidgets('login opens the mobile OTP screen', (tester) async {
+  testWidgets('login opens the WhatsApp OTP screen', (tester) async {
     await _setSurface(tester, const Size(1280, 900));
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();

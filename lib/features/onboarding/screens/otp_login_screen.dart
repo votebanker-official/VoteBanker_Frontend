@@ -3,18 +3,20 @@ import 'package:flutter/material.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/profile_service.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/onboarding_header.dart';
 import '../../../core/widgets/primary_button.dart';
+import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_frame.dart';
 
 enum _OtpStep { phone, code }
 
 class OtpLoginScreen extends StatefulWidget {
-  const OtpLoginScreen({this.channel = 'sms', super.key});
+  const OtpLoginScreen({this.channel = 'whatsapp', super.key});
 
-  /// `sms` or `whatsapp`.
+  /// WhatsApp is the only supported OTP channel.
   final String channel;
 
   @override
@@ -29,7 +31,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
   String? _phone;
   String? _error;
   bool _busy = false;
-  late String _channel = widget.channel;
+  late final String _channel = widget.channel;
 
   String get _channelName => _channel == 'whatsapp' ? 'WhatsApp' : 'SMS';
 
@@ -52,7 +54,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
       _error = null;
     });
     try {
-      await AuthService.instance.sendOtp(phone, channel: _channel);
+      await AuthService.instance.sendOtp(phone);
       if (!mounted) return;
       setState(() {
         _phone = phone;
@@ -80,7 +82,23 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
     try {
       await AuthService.instance.verifyOtp(_phone!, code);
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
+      OnboardingScope.of(context).draft.contactNumber = _phone!;
+      final state = await ProfileService.instance.fetchProfileState();
+      if (!mounted) return;
+      if (state == null) {
+        throw const AuthException(
+          'profile_unavailable',
+          'We could not load your profile. Please try again.',
+        );
+      }
+      final profile = state['profile'];
+      final lastRoute = state['last_route'];
+      final nextRoute = profile is Map<String, dynamic>
+          ? (lastRoute is String && lastRoute.startsWith("/")
+              ? lastRoute
+              : AppRoutes.dashboard)
+          : AppRoutes.profile;
+      Navigator.of(context).pushReplacementNamed(nextRoute);
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } finally {
@@ -148,7 +166,9 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
             PrimaryButton(
               label: _busy
                   ? 'Please wait...'
-                  : (onCodeStep ? 'Verify and continue' : 'Send code'),
+                  : (onCodeStep
+                      ? 'Verify and continue'
+                      : 'Send code in WhatsApp'),
               icon: onCodeStep ? Icons.verified_outlined : Icons.sms_outlined,
               onPressed: _busy ? () {} : (onCodeStep ? _verifyCode : _sendCode),
             ),
@@ -163,11 +183,6 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                 child: const Text('Change number'),
               ),
             ] else ...[
-              if (_channel == 'whatsapp')
-                TextButton(
-                  onPressed: _busy ? null : () => setState(() => _channel = 'sms'),
-                  child: const Text('Get the code by SMS instead'),
-                ),
               TextButton(
                 onPressed: () => AppRouter.back(context, AppRoutes.login),
                 child: Text(l10n.back),

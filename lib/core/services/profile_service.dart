@@ -51,6 +51,60 @@ class ProfileService {
     }
   }
 
+  /// Returns true when a profile exists, false when onboarding is incomplete,
+  /// and null when the profile service could not be reached.
+  Future<bool?> hasProfile() async {
+    final session = AuthService.instance.session;
+    if (session == null) return null;
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+        headers: {'Authorization': 'Bearer ${session.accessToken}'},
+      ).timeout(const Duration(seconds: 20));
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) return null;
+      return decoded['profile'] is Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchProfileState() async {
+    final session = AuthService.instance.session;
+    if (session == null) return null;
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+        headers: {'Authorization': 'Bearer ${session.accessToken}'},
+      ).timeout(const Duration(seconds: 20));
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+      final decoded = jsonDecode(response.body);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveLastRoute(String route) async {
+    final session = AuthService.instance.session;
+    if (session == null) return;
+    try {
+      await http
+          .put(
+            Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+            headers: {
+              'Authorization': 'Bearer ${session.accessToken}',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({'last_route': route}),
+          )
+          .timeout(const Duration(seconds: 20));
+    } catch (_) {
+      // Route persistence must not block navigation.
+    }
+  }
+
   Future<Uint8List?> downloadPhoto(String url) async {
     try {
       final response =

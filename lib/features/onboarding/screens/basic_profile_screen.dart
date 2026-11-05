@@ -10,6 +10,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/profile_service.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -66,6 +67,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     _boothName = TextEditingController(text: draft.boothName);
     _party = TextEditingController(text: draft.party);
     _designation = TextEditingController(text: draft.designation);
+    final loginPhone = AuthService.instance.session?.phone ?? '';
+    if (draft.contactNumber.trim().isEmpty && loginPhone.isNotEmpty) {
+      draft.contactNumber = loginPhone;
+    }
     _contactNumber = TextEditingController(
       text: extractIndianNationalNumber(draft.contactNumber),
     );

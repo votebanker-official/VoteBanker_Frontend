@@ -93,9 +93,8 @@ class AuthService {
     );
   }
 
-  /// [channel] is `sms` or `whatsapp`.
-  Future<void> sendOtp(String phone, {String channel = 'sms'}) async {
-    await _post('/api/auth/otp/send', {'phone': phone, 'channel': channel});
+  Future<void> sendOtp(String phone) async {
+    await _post('/api/auth/otp/send', {'phone': phone, 'channel': 'whatsapp'});
   }
 
   /// Opens a social provider in the browser. The provider sends the user back here.
@@ -227,7 +226,13 @@ class AuthService {
       case 'code_expired':
         return 'That code has expired. Request a new one.';
       case 'channel_unavailable':
-        return 'WhatsApp codes are not available yet. Please use SMS instead.';
+        return 'WhatsApp OTP is not configured yet. Please contact the administrator.';
+      case 'demo_number_not_allowed':
+        return 'This number is not enabled for the demo.';
+      case 'whatsapp_only':
+        return 'Only WhatsApp OTP is supported.';
+      case 'profile_unavailable':
+        return 'We could not load your profile. Please try again.';
       case 'number_not_verified':
         return 'This number is not enabled for testing yet. '
             'Ask the VoteBanker team to add it, then try again.';

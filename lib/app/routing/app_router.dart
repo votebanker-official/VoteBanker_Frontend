@@ -68,7 +68,7 @@ abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
       AppRoutes.otp => OtpLoginScreen(
-          channel: settings.arguments == 'whatsapp' ? 'whatsapp' : 'sms',
+          channel: 'whatsapp',
         ),
       AppRoutes.profile => const BasicProfileScreen(),
       AppRoutes.additionalProfile => const AdditionalProfileScreen(),
@@ -125,6 +125,7 @@ abstract final class AppRouter {
     if (draft != null) {
       unawaited(ProfileService.instance.saveDraft(draft));
     }
+    unawaited(ProfileService.instance.saveLastRoute(route));
     Navigator.of(context).pushNamed(route, arguments: arguments);
   }
 
