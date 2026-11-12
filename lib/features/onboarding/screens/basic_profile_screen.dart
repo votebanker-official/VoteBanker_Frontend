@@ -9,6 +9,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/services/auth_browser.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/utils/person_name.dart';
@@ -92,7 +93,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         : 'en';
     draft.preferredLanguage = _preferredLanguage;
     _ready = true;
-    unawaited(_loadSavedProfile(draft));
+    unawaited(_prepareProfile(draft));
     final readyCatalog = LocationCatalog.instance;
     if (readyCatalog != null) {
       _applyCatalog(readyCatalog, draft);
@@ -116,6 +117,44 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       ..country = _selection.country
       ..stateRegion = _selection.state
       ..constituency = _selection.district;
+  }
+
+  Future<void> _prepareProfile(OnboardingDraft draft) async {
+    final pending = AuthService.instance.takeSocialReturn();
+    final error = pending.error;
+    final ticket = pending.ticket;
+    if ((ticket != null && ticket.isNotEmpty) ||
+        (error != null && error.isNotEmpty)) {
+      clearAuthQuery();
+    }
+    if (error != null && error.isNotEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google sign-in failed. Please try again.')),
+      );
+      return;
+    }
+    if (ticket != null && ticket.isNotEmpty) {
+      try {
+        await AuthService.instance.exchangeSocialTicket(ticket);
+      } on AuthException catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        return;
+      }
+      final fullName = AuthService.instance.session?.fullName.trim() ?? '';
+      if (fullName.isNotEmpty && draft.leaderName.trim().isEmpty) {
+        draft.leaderName = fullName;
+      }
+      if (draft.leaderName.trim().isNotEmpty) {
+        await ProfileService.instance.saveDraft(draft);
+      }
+    }
+    if (!mounted) return;
+    if (_leaderName.text.trim().isEmpty && draft.leaderName.isNotEmpty) {
+      setState(() => _leaderName.text = draft.leaderName);
+    }
+    await _loadSavedProfile(draft);
   }
 
   Future<void> _loadSavedProfile(OnboardingDraft draft) async {

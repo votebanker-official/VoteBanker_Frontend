@@ -22,6 +22,12 @@ class OnboardingFrame extends StatelessWidget {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              // The first web frame can be a couple of physical pixels tall.
+              // Laying the header out there overflows; the next frame has the
+              // real window size.
+              if (constraints.maxWidth < 48 || constraints.maxHeight < 48) {
+                return const SizedBox.shrink();
+              }
               final wide = AppBreakpoints.isWide(constraints.maxWidth);
               final horizontal = wide ? 28.0 : 16.0;
               final header = Padding(

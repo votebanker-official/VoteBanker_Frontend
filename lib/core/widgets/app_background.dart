@@ -23,6 +23,7 @@ class AppBackground extends StatelessWidget {
         ),
       ),
       child: Stack(
+        fit: StackFit.expand,
         children: [
           Positioned.fill(
             child: IgnorePointer(

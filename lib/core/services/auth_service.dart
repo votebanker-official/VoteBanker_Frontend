@@ -53,6 +53,8 @@ class AuthService {
   static const _prefsExpires = 'auth.expires_at';
 
   AuthSession? session;
+  String? _pendingSocialTicket;
+  String? _pendingSocialError;
 
   /// Set when Facebook sends the browser back with an error before a session exists.
   String? socialLaunchError;
@@ -61,6 +63,31 @@ class AuthService {
   bool openProfileAfterLogin = false;
 
   bool get isSignedIn => session != null;
+
+  /// Reads the Google return query once, before routing can drop it.
+  void captureSocialReturn() {
+    final params = Uri.base.queryParameters;
+    final ticket = params['auth_ticket'];
+    final error = params['auth_error'];
+    if ((ticket == null || ticket.isEmpty) && (error == null || error.isEmpty)) {
+      return;
+    }
+    _pendingSocialTicket = ticket;
+    _pendingSocialError = error;
+    clearAuthQuery();
+  }
+
+  ({String? ticket, String? error}) takeSocialReturn() {
+    final ticket = _pendingSocialTicket;
+    final error = _pendingSocialError;
+    _pendingSocialTicket = null;
+    _pendingSocialError = null;
+    final params = Uri.base.queryParameters;
+    return (
+      ticket: (ticket != null && ticket.isNotEmpty) ? ticket : params['auth_ticket'],
+      error: (error != null && error.isNotEmpty) ? error : params['auth_error'],
+    );
+  }
 
   /// Turns user input into E.164, or returns null if it is not a valid number.
   static String? normalizePhone(String input) {
@@ -112,9 +139,18 @@ class AuthService {
       );
     }
     final origin = browserOrigin();
+    final returnTo = provider == 'google' ? '$origin/profile' : '$origin/auth/callback';
     final uri =
         Uri.parse('${AppConfig.apiBaseUrl}/api/auth/oauth/$provider/start')
-            .replace(queryParameters: {'return_to': '$origin/profile'});
+            .replace(queryParameters: {'return_to': returnTo});
+    // #region agent log
+    _debugSessionLog('B', 'social start', {
+      'provider': provider,
+      'apiHost': uri.host,
+      'apiPort': uri.hasPort ? uri.port : 0,
+      'returnTo': returnTo,
+    });
+    // #endregion
     redirectBrowser(uri.toString());
   }
 
@@ -210,11 +246,73 @@ class AuthService {
     if (s.expiresAt != null) await prefs.setInt(_prefsExpires, s.expiresAt!);
   }
 
+  // #region agent log
+  void _debugSessionLog(
+    String hypothesisId,
+    String message,
+    Map<String, Object?> data,
+  ) {
+    http
+        .post(
+          Uri.parse(
+            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
+          ),
+          headers: const {
+            'Content-Type': 'application/json',
+            'X-Debug-Session-Id': 'b1102e',
+          },
+          body: jsonEncode({
+            'sessionId': 'b1102e',
+            'runId': 'pre-fix',
+            'hypothesisId': hypothesisId,
+            'location': 'auth_service.dart:startSocial',
+            'message': message,
+            'data': data,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          }),
+        )
+        .timeout(const Duration(seconds: 2))
+        .catchError((_) => http.Response('', 599));
+  }
+
+  void _agentLog(String hypothesisId, String message, Map<String, Object?> data) {
+    http
+        .post(
+          Uri.parse(
+            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
+          ),
+          headers: const {
+            'Content-Type': 'application/json',
+            'X-Debug-Session-Id': 'f6f27c',
+          },
+          body: jsonEncode({
+            'sessionId': 'f6f27c',
+            'runId': 'pre-fix',
+            'hypothesisId': hypothesisId,
+            'location': 'auth_service.dart',
+            'message': message,
+            'data': data,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          }),
+        )
+        .timeout(const Duration(seconds: 2))
+        .catchError((_) => http.Response('', 599));
+  }
+  // #endregion
+
   Future<Map<String, dynamic>> _post(
     String path,
     Map<String, dynamic> payload,
   ) async {
     final uri = Uri.parse('${AppConfig.apiBaseUrl}$path');
+    // #region agent log
+    _agentLog('A', 'auth request start', {
+      'scheme': uri.scheme,
+      'host': uri.host,
+      'port': uri.hasPort ? uri.port : 0,
+      'path': uri.path,
+    });
+    // #endregion
     http.Response response;
     try {
       response = await http
@@ -225,16 +323,37 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 20));
     } on TimeoutException {
+      // #region agent log
+      _agentLog('E', 'auth request timed out', {
+        'host': uri.host,
+        'path': uri.path,
+      });
+      // #endregion
       throw const AuthException(
         'timeout',
         'The server took too long to respond. Please try again.',
       );
-    } catch (_) {
+    } catch (error) {
+      // #region agent log
+      _agentLog('C', 'auth request failed before a readable response', {
+        'host': uri.host,
+        'path': uri.path,
+        'errorType': error.runtimeType.toString(),
+        'errorMessage': error.toString(),
+      });
+      // #endregion
       throw const AuthException(
         'network',
         'Could not reach the server. Check your internet connection.',
       );
     }
+    // #region agent log
+    _agentLog('B', 'auth response received', {
+      'host': uri.host,
+      'path': uri.path,
+      'status': response.statusCode,
+    });
+    // #endregion
 
     Map<String, dynamic> body = const {};
     try {

@@ -35,6 +35,7 @@ import '../../features/website/screens/website_sections_screen.dart';
 
 abstract final class AppRoutes {
   static const login = '/';
+  static const authCallback = '/auth/callback';
   static const otp = '/otp';
   static const profile = '/profile';
   static const additionalProfile = '/profile/additional';
@@ -76,6 +77,7 @@ abstract final class AppRouter {
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (normalizeRouteName(settings.name)) {
+      AppRoutes.authCallback => const LoginScreen(),
       AppRoutes.otp => OtpLoginScreen(
           channel: 'whatsapp',
         ),

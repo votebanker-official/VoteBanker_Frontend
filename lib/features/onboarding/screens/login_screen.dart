@@ -33,9 +33,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _finishSocialReturn() async {
-    final params = browserLocation().queryParameters;
-    final error = params['auth_error'] ?? AuthService.instance.socialLaunchError;
-    final ticket = params['auth_ticket'];
+    final pending = AuthService.instance.takeSocialReturn();
+    final error = pending.error ?? AuthService.instance.socialLaunchError;
+    final ticket = pending.ticket;
     AuthService.instance.socialLaunchError = null;
     if ((error == null || error.isEmpty) &&
         (ticket == null || ticket.isEmpty)) {
@@ -63,7 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (draft.fullName.trim().isEmpty && fullName.isNotEmpty) {
         draft.fullName = fullName;
+        await ProfileService.instance.saveDraft(draft);
       }
+      if (!mounted) return;
       replaceBrowserPath(AppRoutes.profile);
       Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
     } on AuthException catch (e) {

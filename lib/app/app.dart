@@ -29,11 +29,18 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
       widget.themeController ?? ThemeController();
   late final bool _ownsThemeController = widget.themeController == null;
   final _navigatorKey = GlobalKey<NavigatorState>();
-  late final String _initialRoute =
-      AuthService.instance.openProfileAfterLogin ||
-              browserLocation().path == AppRoutes.profile
-          ? AppRoutes.profile
-          : AppRoutes.login;
+
+  String get _initialRoute {
+    final basePath = Uri.base.path;
+    if (basePath == AppRoutes.profile || basePath == AppRoutes.authCallback) {
+      return basePath;
+    }
+    final path = WidgetsBinding.instance.platformDispatcher.defaultRouteName
+        .split('?')
+        .first;
+    if (path == AppRoutes.profile || path == AppRoutes.authCallback) return path;
+    return AppRoutes.login;
+  }
 
   @override
   void initState() {
