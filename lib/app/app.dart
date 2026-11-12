@@ -3,6 +3,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../core/services/auth_browser.dart';
+import '../core/services/auth_service.dart';
 import '../core/services/theme_controller.dart';
 import '../features/onboarding/state/onboarding_controller.dart';
 import 'localization/app_localizations.dart';
@@ -27,12 +29,29 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
       widget.themeController ?? ThemeController();
   late final bool _ownsThemeController = widget.themeController == null;
   final _navigatorKey = GlobalKey<NavigatorState>();
+  late final String _initialRoute =
+      AuthService.instance.openProfileAfterLogin ||
+              browserLocation().path == AppRoutes.profile
+          ? AppRoutes.profile
+          : AppRoutes.login;
 
   @override
   void initState() {
     super.initState();
     // Restore UI language from a pre-seeded or previously saved draft.
     _controller.syncLocaleFromDraft();
+    if (AuthService.instance.openProfileAfterLogin ||
+        _initialRoute == AppRoutes.profile) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        replaceBrowserPath(AppRoutes.profile);
+        final navigator = _navigatorKey.currentState;
+        if (navigator == null) return;
+        navigator.pushNamedAndRemoveUntil(
+          AppRoutes.profile,
+          (route) => false,
+        );
+      });
+    }
   }
 
   @override
@@ -73,8 +92,15 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
                     _WidgetsLocalizationsFallback(),
                     _CupertinoLocalizationsFallback(),
                   ],
-                  initialRoute: AppRoutes.login,
+                  initialRoute: _initialRoute,
                   onGenerateRoute: AppRouter.onGenerateRoute,
+                  onGenerateInitialRoutes: (String initialRoute) {
+                    return [
+                      AppRouter.onGenerateRoute(
+                        RouteSettings(name: initialRoute),
+                      ),
+                    ];
+                  },
                   scrollBehavior: const MaterialScrollBehavior().copyWith(
                     scrollbars: true,
                     dragDevices: <PointerDeviceKind>{

@@ -68,7 +68,7 @@ const hiTranslations = <String, String>{
   'domainSearchAccessDenied':
       'डोमेन प्रदाता ने इस सर्वर IP को ब्लॉक किया है। Openprovider में API संपर्क खोलें और IP whitelist/blacklist साफ़ करें, फिर फिर से प्रयास करें।',
   'domainSearchAccessDeniedIp':
-      'डोमेन प्रदाता ने Railway IP {ip} को ब्लॉक किया है। Openprovider में whitelist/blacklist साफ़ करें या ठीक {ip} अनुमति दें (होम IP नहीं)।',
+      'डोमेन प्रदाता ने इस सर्वर के आउटबाउंड IP {ip} को ब्लॉक किया है। Openprovider में whitelist/blacklist साफ़ करें; बदल सकने वाले सर्वर IP को whitelist न करें।',
   'domainSearchAuthFailed':
       'Openprovider ने लॉगिन अस्वीकार किया। यह IP whitelist की समस्या नहीं है। उस संपर्क के लिए API access चालू करें और सर्वर का यूज़रनेम व पासवर्ड जाँचें।',
   'domainRetry': 'फिर से प्रयास करें',

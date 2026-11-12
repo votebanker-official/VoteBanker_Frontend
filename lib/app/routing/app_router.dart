@@ -65,8 +65,17 @@ abstract final class AppRoutes {
 }
 
 abstract final class AppRouter {
+  static String normalizeRouteName(String? name) {
+    if (name == null || name.isEmpty) return AppRoutes.login;
+    final path = Uri.parse(name).path;
+    if (path.isEmpty) return AppRoutes.login;
+    return path.length > 1 && path.endsWith('/')
+        ? path.substring(0, path.length - 1)
+        : path;
+  }
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final page = switch (settings.name) {
+    final page = switch (normalizeRouteName(settings.name)) {
       AppRoutes.otp => OtpLoginScreen(
           channel: 'whatsapp',
         ),

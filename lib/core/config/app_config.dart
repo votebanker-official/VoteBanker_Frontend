@@ -5,7 +5,7 @@
 abstract final class AppConfig {
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://votebankerbackend-production.up.railway.app',
+    defaultValue: 'http://127.0.0.1:5000',
   );
 
   /// Country code assumed when a user types a 10-digit mobile number.

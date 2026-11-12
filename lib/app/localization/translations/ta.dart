@@ -70,7 +70,7 @@ const taTranslations = <String, String>{
   'domainSearchAccessDenied':
       'டொமைன் வழங்குநர் இந்த சர்வர் IP-ஐ தடுத்துள்ளார். Openprovider-இல் API தொடர்பைத் திறந்து IP whitelist/blacklist-ஐ அழித்து மீண்டும் முயலுங்கள்.',
   'domainSearchAccessDeniedIp':
-      'டொமைன் வழங்குநர் Railway IP {ip}-ஐ தடுத்துள்ளார். whitelist/blacklist-ஐ அழிக்கவும் அல்லது {ip}-ஐ அனுமதிக்கவும் (வீட்டு IP அல்ல).',
+      'இந்த சேவையகத்தின் வெளியேறும் IP {ip}-ஐ டொமைன் வழங்குநர் தடுத்துள்ளார். Openprovider-இல் whitelist/blacklist-ஐ அழிக்கவும்; மாறக்கூடிய சேவையக IP-ஐ whitelist செய்ய வேண்டாம்.',
   'domainSearchAuthFailed':
       'Openprovider உள்நுழைவை நிராகரித்தது. இது IP whitelist தடை அல்ல. அந்த தொடர்புக்கு API access இயக்கி, சேவையகத்தின் பயனர்பெயரையும் கடவுச்சொல்லையும் சரிபார்க்கவும்.',
   'domainRetry': 'மீண்டும் முயல்க',

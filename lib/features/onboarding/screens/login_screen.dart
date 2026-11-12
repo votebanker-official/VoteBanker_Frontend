@@ -7,6 +7,8 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/profile_service.dart';
+import '../../../core/utils/person_name.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/onboarding_header.dart';
 import '../../../core/widgets/primary_button.dart';
@@ -31,9 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _finishSocialReturn() async {
-    final params = Uri.base.queryParameters;
-    final error = params['auth_error'];
+    final params = browserLocation().queryParameters;
+    final error = params['auth_error'] ?? AuthService.instance.socialLaunchError;
     final ticket = params['auth_ticket'];
+    AuthService.instance.socialLaunchError = null;
     if ((error == null || error.isEmpty) &&
         (ticket == null || ticket.isEmpty)) {
       return;
@@ -49,13 +52,19 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await AuthService.instance.exchangeSocialTicket(ticket!);
       if (!mounted) return;
-      final fullName = AuthService.instance.session?.fullName.trim() ?? '';
-      if (fullName.isNotEmpty) {
-        final draft = OnboardingScope.of(context).draft;
-        if (draft.fullName.trim().isEmpty) {
-          draft.fullName = fullName;
-        }
+      final draft = OnboardingScope.of(context).draft;
+      final savedProfile = await ProfileService.instance.fetchProfile();
+      if (!mounted) return;
+      if (savedProfile != null) {
+        ProfileService.applyProfile(draft, savedProfile);
       }
+      final fullName = formatPersonName(
+        AuthService.instance.session?.fullName ?? '',
+      );
+      if (draft.fullName.trim().isEmpty && fullName.isNotEmpty) {
+        draft.fullName = fullName;
+      }
+      replaceBrowserPath(AppRoutes.profile);
       Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
     } on AuthException catch (e) {
       if (mounted) _showMessage(e.message);
@@ -76,8 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _startSocial(AppLocalizations l10n, String provider) {
@@ -125,9 +135,10 @@ class _LoginScreenState extends State<LoginScreen> {
             PrimaryButton(
               label: l10n.continueWhatsApp,
               icon: Icons.chat_rounded,
-              onPressed: _busy
-                  ? null
-                  : () => AppRouter.open(
+              onPressed:
+                  _busy
+                      ? null
+                      : () => AppRouter.open(
                         context,
                         AppRoutes.otp,
                         arguments: 'whatsapp',
@@ -146,9 +157,10 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: _busy ? () {} : () => _startSocial(l10n, 'facebook'),
             ),
             TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => AppRouter.open(context, AppRoutes.profile),
+              onPressed:
+                  _busy
+                      ? null
+                      : () => AppRouter.open(context, AppRoutes.profile),
               child: Text(l10n.skipForNow),
             ),
           ],

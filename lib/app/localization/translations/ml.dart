@@ -69,7 +69,7 @@ const mlTranslations = <String, String>{
   'domainSearchAccessDenied':
       'ഡൊമെയ്ൻ ദാതാവ് ഈ സെർവർ IP തടഞ്ഞു. Openprovider-ൽ API കോൺടാക്റ്റ് തുറന്ന് IP whitelist/blacklist ക്ലിയർ ചെയ്ത ശേഷം വീണ്ടും ശ്രമിക്കുക.',
   'domainSearchAccessDeniedIp':
-      'ഡൊമെയ്ൻ ദാതാവ് Railway IP {ip} തടഞ്ഞു. whitelist/blacklist ക്ലിയർ ചെയ്യുക അല്ലെങ്കിൽ {ip} അനുവദിക്കുക (ഹോം IP അല്ല).',
+      'ഈ സെർവറിന്റെ പുറത്തേക്കുള്ള IP {ip} ഡൊമെയ്ൻ ദാതാവ് തടഞ്ഞു. Openprovider-ൽ whitelist/blacklist ക്ലിയർ ചെയ്യുക; മാറാവുന്ന സെർവർ IP whitelist ചെയ്യരുത്.',
   'domainSearchAuthFailed':
       'Openprovider ലോഗിൻ നിരസിച്ചു. ഇത് IP whitelist പ്രശ്നമല്ല. ആ കോൺടാക്റ്റിന് API access ഓണാക്കി സെർവറിലെ യൂസർനെയിമും പാസ്‌വേഡും പരിശോധിക്കുക.',
   'domainRetry': 'വീണ്ടും ശ്രമിക്കുക',

@@ -34,6 +34,23 @@
     }
   </style>
   <script>
+    // Facebook returns with ?auth_ticket= before Flutter starts. Keep the ticket
+    // and move the address bar to /profile immediately, so the app cannot boot
+    // on the login URL and drop the sign-in.
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var ticket = params.get('auth_ticket');
+      var authError = params.get('auth_error');
+      if (ticket) {
+        sessionStorage.setItem('vb_auth_ticket', ticket);
+        history.replaceState(null, '', '/profile');
+      } else if (authError) {
+        sessionStorage.setItem('vb_auth_error', authError);
+        history.replaceState(null, '', '/');
+      }
+    } catch (e) {}
+  </script>
+  <script>
     // Avoid a light flash for visitors who chose dark mode (saved by the app).
     try {
       if (String(localStorage.getItem('flutter.theme_mode')).indexOf('dark') !== -1) {

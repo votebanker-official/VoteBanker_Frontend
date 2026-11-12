@@ -67,7 +67,7 @@ const knTranslations = <String, String>{
   'domainSearchAccessDenied':
       'ಡೊಮೇನ್ ಪೂರೈಕೆದಾರರು ಈ ಸರ್ವರ್ IP ಅನ್ನು ನಿರ್ಬಂಧಿಸಿದ್ದಾರೆ. Openprovider ನಲ್ಲಿ API ಸಂಪರ್ಕವನ್ನು ತೆರೆದು IP whitelist/blacklist ತೆರವುಗೊಳಿಸಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
   'domainSearchAccessDeniedIp':
-      'ಡೊಮೇನ್ ಪೂರೈಕೆದಾರರು Railway IP {ip} ಅನ್ನು ನಿರ್ಬಂಧಿಸಿದ್ದಾರೆ. whitelist/blacklist ತೆರವುಗೊಳಿಸಿ ಅಥವಾ {ip} ಅನ್ನು ಅನುಮತಿಸಿ (ಮನೆ IP ಅಲ್ಲ).',
+      'ಡೊಮೇನ್ ಪೂರೈಕೆದಾರರು ಈ ಸರ್ವರ್‌ನ ಹೊರಹೋಗುವ IP {ip} ಅನ್ನು ನಿರ್ಬಂಧಿಸಿದ್ದಾರೆ. Openprovider ನಲ್ಲಿ whitelist/blacklist ತೆರವುಗೊಳಿಸಿ; ಬದಲಾಗಬಹುದಾದ ಸರ್ವರ್ IP ಅನ್ನು whitelist ಮಾಡಬೇಡಿ.',
   'domainSearchAuthFailed':
       'Openprovider ಲಾಗಿನ್ ತಿರಸ್ಕರಿಸಿದೆ. ಇದು IP whitelist ತೊಂದರೆ ಅಲ್ಲ. ಆ ಸಂಪರ್ಕಕ್ಕೆ API access ಆನ್ ಮಾಡಿ ಮತ್ತು ಸರ್ವರ್‌ನ ಬಳಕೆದಾರ ಹೆಸರು ಹಾಗೂ ಪಾಸ್‌ವರ್ಡ್ ಪರಿಶೀಲಿಸಿ.',
   'domainRetry': 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',

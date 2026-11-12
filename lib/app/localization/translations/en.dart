@@ -69,9 +69,9 @@ const enTranslations = <String, String>{
   'domainSearchUnavailable':
       'Domain search is not configured yet. Please try again later.',
   'domainSearchAccessDenied':
-      'Openprovider is blocking Railway. Railway IPs change, so do not whitelist one IP. In Openprovider → Contact persons → API: delete EVERY IP from whitelist and blacklist (both must be empty), save, wait 1 minute, then Retry. Remove OPENPROVIDER_IP from Railway if set.',
+      "Openprovider is blocking this server's outbound IP. In Openprovider → Contact persons → API, clear ALL IP entries from whitelist and blacklist (leave both empty), save, then retry. Do not configure a fixed OPENPROVIDER_IP.",
   'domainSearchAccessDeniedIp':
-      'Openprovider blocked Railway IP {ip}. Railway IPs change, so whitelisting one IP will fail again. In Openprovider → Contact persons → your API contact → API tab: clear ALL whitelist and blacklist entries (leave both empty), save, wait 1 minute, then Retry.',
+      "Openprovider blocked this server's outbound IP {ip}. Avoid whitelisting a fixed IP. In Openprovider → Contact persons → your API contact → API tab, clear ALL whitelist and blacklist entries (leave both empty), save, then retry.",
   'domainSearchAuthFailed':
       'Openprovider rejected the login. This is not an IP whitelist block. Enable API access for that contact, then check the username and password on the server.',
   'domainRetry': 'Retry',

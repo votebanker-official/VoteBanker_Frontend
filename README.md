@@ -5,7 +5,7 @@ Flutter app (web first; Android/iOS folders included). Six languages: English, H
 | | |
 |---|---|
 | Live site | https://votebanker-frontend.vercel.app |
-| Backend API | https://votebankerbackend-production.up.railway.app (repo: `VoteBanker_Backend`) |
+| Backend API | Not currently hosted. Deploy the backend and configure `API_BASE_URL` before using backend features. |
 
 ## Run locally
 
@@ -15,7 +15,7 @@ Flutter app (web first; Android/iOS folders included). Six languages: English, H
    flutter pub get
    flutter run -d chrome
    ```
-   By default the app talks to the live Railway backend. To use a backend running on your machine:
+   By default the app talks to a backend running on your machine:
    ```bash
    flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:5000
    ```
@@ -32,7 +32,7 @@ No `.env` is needed for the frontend. The only setting is `API_BASE_URL` (see `l
 
 ## Deploy
 
-Deploys are automatic: the Vercel project `votebanker-frontend` (team `votebanker`) is linked to this GitHub repo, so every push to `main` goes live in a few minutes. Pushes to other branches get a preview link only. If a deploy fails, check the Deployments tab in Vercel.
+Deploys are automatic: the Vercel project `votebanker-frontend` (team `votebanker`) is linked to this GitHub repo, so every push to `main` goes live in a few minutes. Pushes to other branches get a preview link only. If a deploy fails, check the Deployments tab in Vercel. Set `API_BASE_URL` in the Vercel project's environment variables to the deployed backend URL. The build fails if it is missing, preventing deployment with a stale or local API URL.
 
 The production backend must list the site in its `CORS_ORIGINS` variable.
 

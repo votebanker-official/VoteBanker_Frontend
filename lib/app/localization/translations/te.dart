@@ -67,7 +67,7 @@ const teTranslations = <String, String>{
   'domainSearchAccessDenied':
       'డొమైన్ ప్రొవైడర్ ఈ సర్వర్ IPని బ్లాక్ చేశారు. Openproviderలో API కాంటాక్ట్ తెరిచి IP whitelist/blacklist క్లియర్ చేసి మళ్లీ ప్రయత్నించండి.',
   'domainSearchAccessDeniedIp':
-      'డొమైన్ ప్రొవైడర్ Railway IP {ip}ని బ్లాక్ చేశారు. whitelist/blacklist క్లియర్ చేయండి లేదా {ip}ని అనుమతించండి (హోమ్ IP కాదు).',
+      'ఈ సర్వర్ అవుట్‌బౌండ్ IP {ip}ని డొమైన్ ప్రొవైడర్ బ్లాక్ చేశారు. Openproviderలో whitelist/blacklist క్లియర్ చేయండి; మారే అవకాశం ఉన్న సర్వర్ IPని whitelist చేయవద్దు.',
   'domainSearchAuthFailed':
       'Openprovider లాగిన్‌ను తిరస్కరించింది. ఇది IP whitelist సమస్య కాదు. ఆ కాంటాక్ట్‌కు API access ఆన్ చేసి, సర్వర్‌లోని యూజర్‌నేమ్ మరియు పాస్‌వర్డ్‌ను తనిఖీ చేయండి.',
   'domainRetry': 'మళ్లీ ప్రయత్నించండి',

@@ -58,7 +58,7 @@ class DomainService {
     if (kDebugMode &&
         !configured.contains('127.0.0.1') &&
         !configured.contains('localhost')) {
-      // Prefer local Openprovider access in debug; Railway egress IPs often fail auth.
+      // Prefer local Openprovider access in debug before using the configured API.
       return ['http://127.0.0.1:5000', configured];
     }
     return [configured];
@@ -127,8 +127,8 @@ class DomainService {
           continue;
         }
 
-        // Local first may be down; try Railway next. If Railway is blocked by
-        // Openprovider IP rules, keep trying other bases when available.
+        // Local first may be down; try the configured API next. If its outbound
+        // IP is blocked by Openprovider, keep trying other bases when available.
         if (kDebugMode &&
             _isRemoteApi(base) &&
             _isOpenproviderIpOrAuthFailure(response) &&
@@ -137,8 +137,8 @@ class DomainService {
         }
         return response;
       } on TimeoutException {
-        // A slow local Openprovider search must not be replaced by Railway's
-        // login error. Railway is only a fallback when this machine is down.
+        // A slow local Openprovider search must not be replaced by a remote
+        // login error. A remote API is only a fallback when this machine is down.
         if (!_isRemoteApi(base)) {
           throw const DomainException('openprovider_timeout');
         }

@@ -11,6 +11,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/utils/person_name.dart';
 import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -55,6 +56,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   String? _contactError;
   LocationIssue? _locationIssue;
 
+  /// Facebook name placed in the field before a saved profile comes back.
+  String? _socialNamePrefill;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -62,6 +66,15 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       return;
     }
     final draft = OnboardingScope.of(context).draft;
+    if (draft.leaderName.trim().isEmpty) {
+      final socialName = formatPersonName(
+        AuthService.instance.session?.fullName ?? '',
+      );
+      if (socialName.isNotEmpty) {
+        draft.leaderName = socialName;
+        _socialNamePrefill = socialName;
+      }
+    }
     _leaderName = TextEditingController(text: draft.leaderName);
     _boothNumber = TextEditingController(text: draft.boothNumber);
     _boothName = TextEditingController(text: draft.boothName);
@@ -107,10 +120,37 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   Future<void> _loadSavedProfile(OnboardingDraft draft) async {
     final profile = await ProfileService.instance.fetchProfile();
-    if (!mounted || profile == null) return;
+    if (!mounted) return;
     final boothNumber = _boothNumber.text;
     final boothName = _boothName.text;
-    ProfileService.applyProfile(draft, profile);
+    final typedName = _leaderName.text.trim();
+    final untouchedPrefill =
+        typedName.isEmpty || typedName == _socialNamePrefill;
+    if (untouchedPrefill) {
+      // Let a name the leader already saved replace the Facebook prefill.
+      draft.leaderName = '';
+    }
+    if (profile != null) {
+      ProfileService.applyProfile(draft, profile);
+    }
+    final socialName = formatPersonName(
+      AuthService.instance.session?.fullName ?? '',
+    );
+    if (draft.leaderName.trim().isEmpty && socialName.isNotEmpty) {
+      draft.leaderName = socialName;
+    }
+    if (untouchedPrefill &&
+        draft.leaderName.isNotEmpty &&
+        _leaderName.text.trim() != draft.leaderName) {
+      _leaderName.text = draft.leaderName;
+    }
+    if (profile == null) {
+      if (!mounted) return;
+      if (untouchedPrefill && draft.leaderName.isNotEmpty) {
+        setState(() => _leaderName.text = draft.leaderName);
+      }
+      return;
+    }
     OnboardingScope.of(context).syncLocaleFromDraft();
     if (ProfileLanguages.supports(draft.preferredLanguage)) {
       _preferredLanguage = draft.preferredLanguage;

@@ -197,7 +197,7 @@ class ApiWebsiteGenerationService implements WebsiteGenerationService {
         if (response.statusCode == 404) {
           continue;
         }
-        // Prefer a configured local model over Railway when Railway is not set up.
+        // Prefer a configured local model over the remote API when it is unavailable.
         if (kDebugMode &&
             _isRemoteApi(base) &&
             _isConfigOrAuthFailure(response) &&

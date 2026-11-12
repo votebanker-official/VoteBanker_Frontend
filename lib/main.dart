@@ -7,17 +7,19 @@ import 'core/services/auth_service.dart';
 import 'core/services/theme_controller.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   usePathUrlStrategy();
+  WidgetsFlutterBinding.ensureInitialized();
+  // Read Facebook's return address before the first screen can replace it.
+  try {
+    await AuthService.instance.restore();
+    await AuthService.instance.completeSocialLaunch();
+  } catch (_) {
+    // A broken saved session must never stop the app from opening.
+  }
   try {
     await AppTheme.preloadFonts().timeout(const Duration(seconds: 8));
   } catch (_) {
     // The app still opens if the font host cannot be reached.
-  }
-  try {
-    await AuthService.instance.restore();
-  } catch (_) {
-    // A broken saved session must never stop the app from opening.
   }
   final themeController = ThemeController();
   await themeController.load();

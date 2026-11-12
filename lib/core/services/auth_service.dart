@@ -54,6 +54,12 @@ class AuthService {
 
   AuthSession? session;
 
+  /// Set when Facebook sends the browser back with an error before a session exists.
+  String? socialLaunchError;
+
+  /// True after this page load redeemed a Facebook sign-in ticket.
+  bool openProfileAfterLogin = false;
+
   bool get isSignedIn => session != null;
 
   /// Turns user input into E.164, or returns null if it is not a valid number.
@@ -108,8 +114,37 @@ class AuthService {
     final origin = browserOrigin();
     final uri =
         Uri.parse('${AppConfig.apiBaseUrl}/api/auth/oauth/$provider/start')
-            .replace(queryParameters: {'return_to': '$origin/'});
+            .replace(queryParameters: {'return_to': '$origin/profile'});
     redirectBrowser(uri.toString());
+  }
+
+  /// Redeems a Facebook return ticket before the first screen is built.
+  /// The browser URL is then the leader profile, with the query removed.
+  Future<void> completeSocialLaunch() async {
+    final location = browserLocation();
+    final ticket =
+        takeSessionValue('vb_auth_ticket') ??
+        location.queryParameters['auth_ticket'];
+    final error =
+        takeSessionValue('vb_auth_error') ??
+        location.queryParameters['auth_error'];
+    if ((ticket == null || ticket.isEmpty) &&
+        (error == null || error.isEmpty)) {
+      return;
+    }
+    if (error != null && error.isNotEmpty) {
+      socialLaunchError = error;
+      replaceBrowserPath('/');
+      return;
+    }
+    try {
+      await exchangeSocialTicket(ticket!);
+      openProfileAfterLogin = true;
+      replaceBrowserPath('/profile');
+    } on AuthException catch (error) {
+      socialLaunchError = error.code;
+      replaceBrowserPath('/');
+    }
   }
 
   Future<AuthSession> exchangeSocialTicket(String ticket) async {

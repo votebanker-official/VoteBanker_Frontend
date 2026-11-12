@@ -3,7 +3,7 @@
 set -euo pipefail
 
 FLUTTER_CHANNEL="${FLUTTER_CHANNEL:-stable}"
-API_BASE_URL="${API_BASE_URL:-https://votebankerbackend-production.up.railway.app}"
+: "${API_BASE_URL:?Set API_BASE_URL to the deployed backend URL}"
 
 if [ ! -d "$HOME/flutter" ]; then
   git clone --depth 1 --branch "$FLUTTER_CHANNEL" https://github.com/flutter/flutter.git "$HOME/flutter"
