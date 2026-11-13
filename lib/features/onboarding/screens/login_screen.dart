@@ -90,6 +90,24 @@ class _LoginScreenState extends State<LoginScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _skipForNow() async {
+    final draft = OnboardingScope.of(context).draft;
+    final socialName = formatPersonName(
+      AuthService.instance.session?.fullName ?? '',
+    );
+    if (socialName.isNotEmpty &&
+        formatPersonName(draft.leaderName) == socialName) {
+      draft.leaderName = '';
+    }
+    AuthService.instance.openProfileAfterLogin = false;
+    await AuthService.instance.signOut();
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.profile,
+      (route) => false,
+    );
+  }
+
   void _startSocial(AppLocalizations l10n, String provider) {
     if (!kIsWeb) {
       _showMessage(l10n.socialWebOnly);
@@ -157,10 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: _busy ? () {} : () => _startSocial(l10n, 'facebook'),
             ),
             TextButton(
-              onPressed:
-                  _busy
-                      ? null
-                      : () => AppRouter.open(context, AppRoutes.profile),
+              onPressed: _busy ? null : _skipForNow,
               child: Text(l10n.skipForNow),
             ),
           ],

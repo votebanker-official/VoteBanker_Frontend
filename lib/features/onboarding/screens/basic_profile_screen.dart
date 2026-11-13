@@ -53,8 +53,29 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   late String _preferredLanguage;
 
   LocationCatalog? _catalog;
+  String? _nameError;
+  String? _partyError;
+  String? _designationError;
+  String? _countryError;
+  String? _stateError;
+  String? _districtError;
+  String? _assemblyError;
+  String? _boothNumberError;
+  String? _boothNameError;
   String? _contactError;
   LocationIssue? _locationIssue;
+
+  final _nameAnchor = GlobalKey();
+  final _partyAnchor = GlobalKey();
+  final _designationAnchor = GlobalKey();
+  final _countryAnchor = GlobalKey();
+  final _stateAnchor = GlobalKey();
+  final _districtAnchor = GlobalKey();
+  final _assemblyAnchor = GlobalKey();
+  final _boothNumberAnchor = GlobalKey();
+  final _boothNameAnchor = GlobalKey();
+
+  static const _fillFirst = 'Fill this field first';
 
   /// Facebook name placed in the field before a saved profile comes back.
   String? _socialNamePrefill;
@@ -261,6 +282,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     setState(() {
       _selection.selectCountry(value);
       _locationIssue = null;
+      _countryError = null;
       _syncLocation(draft);
     });
   }
@@ -271,6 +293,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     setState(() {
       _selection.selectState(value);
       _locationIssue = null;
+      _stateError = null;
       if (_selection.state != previous) {
         _clearAssembly(draft);
       }
@@ -290,6 +313,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     setState(() {
       _selection.selectDistrict(value);
       _locationIssue = null;
+      _districtError = null;
       if (_selection.district != previous) {
         _clearAssembly(draft);
       }
@@ -297,29 +321,101 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     });
   }
 
+  String? _choiceError(String current, List<String> options) {
+    return _shown(current, options) == null ? _fillFirst : null;
+  }
+
+  String? _placeError({
+    required String value,
+    required LocationIssue field,
+    required LocationIssue? invalid,
+    required String invalidMessage,
+  }) {
+    if (value.trim().isEmpty) return _fillFirst;
+    if (invalid == field) return invalidMessage;
+    return null;
+  }
+
   void _saveAndContinue() {
     final l10n = AppLocalizations.of(context);
-    final contactError =
-        isValidContactNumber(_contactNumber.text) ? null : l10n.invalidContact;
+    final draft = OnboardingScope.of(context).draft;
     final catalog = _catalog;
-    final locationIssue = catalog == null ? null : _selection.issue(catalog);
-    if (contactError != null || locationIssue != null) {
-      setState(() {
-        _contactError = contactError;
-        _locationIssue = locationIssue;
-      });
-      if (contactError != null) {
-        _revealContact();
-      }
+    final parties = ProfileOptions.withSaved(
+      ProfileOptions.parties,
+      _party.text,
+    );
+    final designations = ProfileOptions.withSaved(
+      ProfileOptions.designations,
+      _designation.text,
+    );
+    final invalid = catalog == null ? null : _selection.issue(catalog);
+    final contactText = _contactNumber.text.trim();
+    final nameError = _leaderName.text.trim().isEmpty ? _fillFirst : null;
+    final partyError = _choiceError(_party.text, parties);
+    final designationError = _choiceError(_designation.text, designations);
+    final countryError = _placeError(
+      value: _selection.country,
+      field: LocationIssue.country,
+      invalid: invalid,
+      invalidMessage: l10n.invalidSelection,
+    );
+    final stateError = _placeError(
+      value: _selection.state,
+      field: LocationIssue.state,
+      invalid: invalid,
+      invalidMessage: l10n.invalidSelection,
+    );
+    final districtError = _placeError(
+      value: _selection.district,
+      field: LocationIssue.district,
+      invalid: invalid,
+      invalidMessage: l10n.invalidSelection,
+    );
+    final assemblyError =
+        draft.assemblyConstituency.trim().isEmpty ? _fillFirst : null;
+    final boothNumberError =
+        _boothNumber.text.trim().isEmpty ? _fillFirst : null;
+    final boothNameError = _boothName.text.trim().isEmpty ? _fillFirst : null;
+    final contactError = contactText.isEmpty
+        ? _fillFirst
+        : (isValidContactNumber(contactText) ? null : l10n.invalidContact);
+    final missing = <(GlobalKey, String?)>[
+      (_nameAnchor, nameError),
+      (_partyAnchor, partyError),
+      (_designationAnchor, designationError),
+      (_countryAnchor, countryError),
+      (_stateAnchor, stateError),
+      (_districtAnchor, districtError),
+      (_assemblyAnchor, assemblyError),
+      (_boothNumberAnchor, boothNumberError),
+      (_boothNameAnchor, boothNameError),
+      (_contactAnchor, contactError),
+    ].where((entry) => entry.$2 != null);
+
+    setState(() {
+      _nameError = nameError;
+      _partyError = partyError;
+      _designationError = designationError;
+      _countryError = countryError;
+      _stateError = stateError;
+      _districtError = districtError;
+      _assemblyError = assemblyError;
+      _boothNumberError = boothNumberError;
+      _boothNameError = boothNameError;
+      _contactError = contactError;
+      _locationIssue = invalid;
+    });
+    if (missing.isNotEmpty) {
+      _reveal(missing.first.$1);
       return;
     }
     _commit();
     AppRouter.open(context, AppRoutes.additionalProfile);
   }
 
-  void _revealContact() {
+  void _reveal(GlobalKey key) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = _contactAnchor.currentContext;
+      final target = key.currentContext;
       if (target == null || !target.mounted) {
         return;
       }
@@ -492,7 +588,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           onDelete: photo == null ? null : _deletePhoto,
         ),
         const SizedBox(height: 16),
-        AppTextField(
+        KeyedSubtree(
+          key: _nameAnchor,
+          child: AppTextField(
           key: const ValueKey('profileLeaderName'),
           label: '${l10n.fullName} *',
           hint: l10n.enterFullName,
@@ -501,10 +599,19 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.name],
-          onChanged: (value) => draft.leaderName = value,
+          errorText: _nameError,
+          onChanged: (value) {
+            draft.leaderName = value;
+            if (_nameError != null && value.trim().isNotEmpty) {
+              setState(() => _nameError = null);
+            }
+          },
+        ),
         ),
         const SizedBox(height: 14),
-        _ProfileDropdown(
+        KeyedSubtree(
+          key: _partyAnchor,
+          child: _ProfileDropdown(
           fieldKey: const ValueKey('profileParty'),
           label: '${l10n.organization} *',
           hint: l10n.selectParty,
@@ -537,12 +644,19 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             }).toList();
           },
           onChanged: (value) {
-            setState(() => _party.text = value ?? '');
+            setState(() {
+              _party.text = value ?? '';
+              if (_party.text.trim().isNotEmpty) _partyError = null;
+            });
             draft.party = _party.text;
           },
+          errorText: _partyError,
+        ),
         ),
         const SizedBox(height: 14),
-        _ProfileDropdown(
+        KeyedSubtree(
+          key: _designationAnchor,
+          child: _ProfileDropdown(
           fieldKey: const ValueKey('profileDesignation'),
           label: '${l10n.designation} *',
           hint: l10n.selectDesignation,
@@ -565,9 +679,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             return options.where((o) => o.toLowerCase().contains(q)).toList();
           },
           onChanged: (value) {
-            setState(() => _designation.text = value ?? '');
+            setState(() {
+              _designation.text = value ?? '';
+              if (_designation.text.trim().isNotEmpty) _designationError = null;
+            });
             draft.designation = _designation.text;
           },
+          errorText: _designationError,
+        ),
         ),
         const SizedBox(height: 16),
         _SectionCard(
@@ -576,7 +695,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _ProfileDropdown(
+              KeyedSubtree(
+                key: _countryAnchor,
+                child: _ProfileDropdown(
                 fieldKey: const ValueKey('profileCountry'),
                 label: '${l10n.country} *',
                 hint: l10n.selectCountry,
@@ -587,13 +708,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 ),
                 options: catalog?.countries ?? const [],
                 enabled: countryEnabled,
-                errorText: _locationIssue == LocationIssue.country
-                    ? l10n.invalidSelection
-                    : null,
+                errorText: _countryError,
                 onChanged: _selectCountry,
               ),
+              ),
               const SizedBox(height: 14),
-              _ProfileDropdown(
+              KeyedSubtree(
+                key: _stateAnchor,
+                child: _ProfileDropdown(
                 fieldKey: const ValueKey('profileState'),
                 label: '${l10n.stateRegion} *',
                 hint: l10n.selectState,
@@ -605,13 +727,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 searchHint: l10n.searchStates,
                 noResultsLabel: l10n.noStatesFound,
                 clearSearchLabel: l10n.clearStateSearch,
-                errorText: _locationIssue == LocationIssue.state
-                    ? l10n.invalidSelection
-                    : null,
+                errorText: _stateError,
                 onChanged: _selectState,
               ),
+              ),
               const SizedBox(height: 14),
-              _ProfileDropdown(
+              KeyedSubtree(
+                key: _districtAnchor,
+                child: _ProfileDropdown(
                 fieldKey: const ValueKey('profileDistrict'),
                 label: '${l10n.constituency} *',
                 hint: l10n.selectDistrict,
@@ -628,27 +751,45 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                 clearButtonKey: const ValueKey('clearDistrictSearch'),
                 emptyMessageKey: const ValueKey('noDistrictsFound'),
                 listKey: const ValueKey('districtMenuList'),
-                errorText: _locationIssue == LocationIssue.district
-                    ? l10n.invalidSelection
-                    : null,
+                errorText: _districtError,
                 onChanged: _selectDistrict,
               ),
+              ),
               const SizedBox(height: 14),
-              _assemblyField(l10n, draft),
+              KeyedSubtree(
+                key: _assemblyAnchor,
+                child: _assemblyField(l10n, draft),
+              ),
               const SizedBox(height: 14),
               if (wideBooth)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _boothNumberField(l10n, draft)),
+                    Expanded(
+                      child: KeyedSubtree(
+                        key: _boothNumberAnchor,
+                        child: _boothNumberField(l10n, draft),
+                      ),
+                    ),
                     const SizedBox(width: 12),
-                    Expanded(child: _boothNameField(l10n, draft)),
+                    Expanded(
+                      child: KeyedSubtree(
+                        key: _boothNameAnchor,
+                        child: _boothNameField(l10n, draft),
+                      ),
+                    ),
                   ],
                 )
               else ...[
-                _boothNumberField(l10n, draft),
+                KeyedSubtree(
+                  key: _boothNumberAnchor,
+                  child: _boothNumberField(l10n, draft),
+                ),
                 const SizedBox(height: 14),
-                _boothNameField(l10n, draft),
+                KeyedSubtree(
+                  key: _boothNameAnchor,
+                  child: _boothNameField(l10n, draft),
+                ),
               ],
             ],
           ),
@@ -673,8 +814,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               onChanged: (value) {
                 draft.contactNumber = value;
                 if (_contactError != null) {
-                  final next =
-                      isValidContactNumber(value) ? null : l10n.invalidContact;
+                  final next = value.trim().isEmpty
+                      ? _fillFirst
+                      : (isValidContactNumber(value)
+                          ? null
+                          : l10n.invalidContact);
                   if (next != _contactError) {
                     setState(() => _contactError = next);
                   }
@@ -762,18 +906,23 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             state: _selection.state,
             district: _selection.district,
           ),
+          errorText: _assemblyError,
           onChanged: (item) {
             if (item == null) return;
             setState(() {
               draft
                 ..assemblyConstituency = item.label
                 ..assemblyConstituencyId = item.id;
+              _assemblyError = null;
             });
           },
           onTyped: (text) {
             draft
               ..assemblyConstituency = text
               ..assemblyConstituencyId = null;
+            if (_assemblyError != null && text.trim().isNotEmpty) {
+              setState(() => _assemblyError = null);
+            }
           },
         ),
       ],
@@ -788,7 +937,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       prefixIcon: const Icon(Icons.tag),
       controller: _boothNumber,
       textInputAction: TextInputAction.next,
-      onChanged: (value) => draft.boothNumber = value,
+      errorText: _boothNumberError,
+      onChanged: (value) {
+        draft.boothNumber = value;
+        if (_boothNumberError != null && value.trim().isNotEmpty) {
+          setState(() => _boothNumberError = null);
+        }
+      },
     );
   }
 
@@ -801,7 +956,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       controller: _boothName,
       textCapitalization: TextCapitalization.words,
       textInputAction: TextInputAction.next,
-      onChanged: (value) => draft.boothName = value,
+      errorText: _boothNameError,
+      onChanged: (value) {
+        draft.boothName = value;
+        if (_boothNameError != null && value.trim().isNotEmpty) {
+          setState(() => _boothNameError = null);
+        }
+      },
     );
   }
 
