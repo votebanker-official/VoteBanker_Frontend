@@ -145,7 +145,9 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
 
   Future<void> _bootstrap() async {
     final session = OnboardingScope.of(context);
-    final stored = await WebsiteBuilderStore.instance.loadPreferred();
+    final stored = session.ignoreStoredWebsiteDrafts
+        ? null
+        : await WebsiteBuilderStore.instance.loadPreferred();
     final draft = stored ?? WebsiteBuilderDraft();
 
     final template = WebsiteTemplates.normalize(

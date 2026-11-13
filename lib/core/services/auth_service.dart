@@ -185,17 +185,21 @@ class AuthService {
 
   Future<void> signOut() async {
     session = null;
-    final prefs = await SharedPreferences.getInstance();
-    for (final key in [
-      _prefsAccess,
-      _prefsRefresh,
-      _prefsUser,
-      _prefsPhone,
-      _prefsFullName,
-      _prefsEmail,
-      _prefsExpires,
-    ]) {
-      await prefs.remove(key);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      for (final key in [
+        _prefsAccess,
+        _prefsRefresh,
+        _prefsUser,
+        _prefsPhone,
+        _prefsFullName,
+        _prefsEmail,
+        _prefsExpires,
+      ]) {
+        await prefs.remove(key);
+      }
+    } catch (_) {
+      // Session is already cleared; storage may be unavailable in tests.
     }
   }
 

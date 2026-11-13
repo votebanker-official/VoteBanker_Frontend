@@ -81,9 +81,20 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     if (!mounted) return;
     final session = OnboardingScope.of(context);
     if (session.portfolioRestored && session.websiteBuilderRestored) return;
+    // "Skip for now" already cleared the profile; do not refill from cache/API.
+    if (session.ignoreStoredWebsiteDrafts) {
+      session.portfolioRestored = true;
+      session.websiteBuilderRestored = true;
+      return;
+    }
     final saved = await PortfolioStore.instance.load();
     final builder = await WebsiteBuilderStore.instance.loadPreferred();
     if (!mounted) return;
+    if (session.ignoreStoredWebsiteDrafts) {
+      session.portfolioRestored = true;
+      session.websiteBuilderRestored = true;
+      return;
+    }
     setState(() {
       session.portfolioRestored = true;
       session.websiteBuilderRestored = true;

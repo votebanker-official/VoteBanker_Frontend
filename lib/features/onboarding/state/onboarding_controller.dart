@@ -20,6 +20,10 @@ class OnboardingController {
   bool portfolioRestored = false;
   bool websiteBuilderRestored = false;
 
+  /// When true, local/remote website drafts must not refill this session
+  /// (set by "Skip for now" so another account's cached profile cannot return).
+  bool ignoreStoredWebsiteDrafts = false;
+
   void setLanguageCode(String code) {
     if (!ProfileLanguages.supports(code)) {
       return;
@@ -42,6 +46,49 @@ class OnboardingController {
 
   void selectDomain(String domain) {
     draft.selectedDomain = domain;
+  }
+
+  /// Clears profile and website session state for a guest "Skip for now" start.
+  void clearForGuestSkip() {
+    draft
+      ..fullName = ''
+      ..photoBytes = null
+      ..profilePhotoUrl = ''
+      ..photoPendingUpload = false
+      ..photoRemoved = false
+      ..assemblyConstituencyId = null
+      ..assemblyConstituency = ''
+      ..designation = ''
+      ..organization = ''
+      ..country = ''
+      ..stateRegion = ''
+      ..constituency = ''
+      ..publicContact = ''
+      ..partNo = ''
+      ..partName = ''
+      ..domainQuery = ''
+      ..selectedDomain = null
+      ..websiteTemplate = null
+      ..vrmRequested = false
+      ..additionalProfile = <String, dynamic>{};
+    draft.socialChannels.clear();
+    resetWebsiteFromProfile();
+  }
+
+  /// Drop cached website content and seed only from the current profile draft.
+  void resetWebsiteFromProfile() {
+    ignoreStoredWebsiteDrafts = true;
+    websiteBuilder = WebsiteBuilderDraft()
+      ..fullName = draft.leaderName.trim()
+      ..designation = draft.designation.trim()
+      ..constituency = draft.assemblyConstituency.trim()
+      ..district = draft.district.trim()
+      ..state = draft.state.trim()
+      ..phone = draft.contactNumber.trim();
+    websiteBuilder.applyPartyFromProfile(draft.party);
+    // Mark restored so WebsiteScreen does not reload SharedPreferences / API drafts.
+    portfolioRestored = true;
+    websiteBuilderRestored = true;
   }
 
   void dispose() {

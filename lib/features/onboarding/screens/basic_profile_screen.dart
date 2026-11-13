@@ -15,6 +15,8 @@ import '../../../core/utils/person_name.dart';
 import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../website/services/portfolio_store.dart';
+import '../../website/services/website_builder_store.dart';
 import '../data/assembly_constituency.dart';
 import '../data/contact_number.dart';
 import '../data/location_catalog.dart';
@@ -58,6 +60,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   /// Facebook name placed in the field before a saved profile comes back.
   String? _socialNamePrefill;
+
+  /// Bumped when the user skips so a late GET /api/profile cannot fill the draft.
+  int _profileLoadToken = 0;
 
   @override
   void didChangeDependencies() {
@@ -119,8 +124,15 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   }
 
   Future<void> _loadSavedProfile(OnboardingDraft draft) async {
+    final loadToken = _profileLoadToken;
+    // Guest "Skip for now" from login must not pull another account's profile.
+    if (OnboardingScope.of(context).ignoreStoredWebsiteDrafts ||
+        !AuthService.instance.isSignedIn) {
+      return;
+    }
     final profile = await ProfileService.instance.fetchProfile();
-    if (!mounted) return;
+    if (!mounted || loadToken != _profileLoadToken) return;
+    if (OnboardingScope.of(context).ignoreStoredWebsiteDrafts) return;
     final boothNumber = _boothNumber.text;
     final boothName = _boothName.text;
     final typedName = _leaderName.text.trim();
@@ -315,6 +327,18 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
     _commit();
     AppRouter.open(context, AppRoutes.additionalProfile);
+  }
+
+  /// Leave the leader profile empty and continue. Drops auto-fetched or typed
+  /// values for this step, and blocks cached website drafts from filling them
+  /// back in on the next screens.
+  void _skipForNow() {
+    _profileLoadToken++;
+    final onboarding = OnboardingScope.of(context);
+    onboarding.clearForGuestSkip();
+    unawaited(WebsiteBuilderStore.instance.clearLocal());
+    unawaited(PortfolioStore.instance.clear());
+    AppRouter.open(context, AppRoutes.website);
   }
 
   void _revealContact() {
@@ -718,10 +742,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         ),
         Center(
           child: TextButton(
-            onPressed: () {
-              _commit();
-              AppRouter.open(context, AppRoutes.website);
-            },
+            onPressed: _skipForNow,
             child: Text(l10n.skipForNow),
           ),
         ),
