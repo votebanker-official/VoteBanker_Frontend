@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +15,8 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/onboarding_header.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
+import '../../website/services/portfolio_store.dart';
+import '../../website/services/website_builder_store.dart';
 import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_frame.dart';
 
@@ -90,24 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _skipForNow() async {
-    final draft = OnboardingScope.of(context).draft;
-    final socialName = formatPersonName(
-      AuthService.instance.session?.fullName ?? '',
-    );
-    if (socialName.isNotEmpty &&
-        formatPersonName(draft.leaderName) == socialName) {
-      draft.leaderName = '';
-    }
-    AuthService.instance.openProfileAfterLogin = false;
-    await AuthService.instance.signOut();
-    if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.profile,
-      (route) => false,
-    );
-  }
-
   void _startSocial(AppLocalizations l10n, String provider) {
     if (!kIsWeb) {
       _showMessage(l10n.socialWebOnly);
@@ -118,6 +104,41 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       _showMessage(e.message);
     }
+  }
+
+  /// Guest path: drop any restored session and cached drafts so onboarding
+  /// cannot fetch or reuse another account's profile, including a name that
+  /// Facebook filled in before the user chose Skip for now.
+  void _skipForNow() {
+    if (_busy) return;
+    final hadSession = AuthService.instance.isSignedIn;
+    final onboarding = OnboardingScope.of(context);
+    final socialName = formatPersonName(
+      AuthService.instance.session?.fullName ?? '',
+    );
+    if (socialName.isNotEmpty &&
+        formatPersonName(onboarding.draft.leaderName) == socialName) {
+      onboarding.draft.leaderName = '';
+    }
+    // Clear the token immediately so Basic Profile cannot GET /api/profile.
+    AuthService.instance.openProfileAfterLogin = false;
+    AuthService.instance.session = null;
+    if (hadSession) {
+      onboarding.clearForGuestSkip();
+    } else {
+      // Keep any in-memory draft used by tests/navigation, but never reload
+      // another session's cached website/profile into this guest flow.
+      onboarding.ignoreStoredWebsiteDrafts = true;
+      onboarding.resetWebsiteFromProfile();
+    }
+    unawaited(AuthService.instance.signOut());
+    unawaited(WebsiteBuilderStore.instance.clearLocal());
+    unawaited(PortfolioStore.instance.clear());
+    if (!mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.profile,
+      (route) => false,
+    );
   }
 
   @override

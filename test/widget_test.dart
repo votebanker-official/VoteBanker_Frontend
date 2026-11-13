@@ -14,9 +14,12 @@ import 'package:votebanker/app/localization/translations/kn.dart';
 import 'package:votebanker/app/localization/translations/ml.dart';
 import 'package:votebanker/app/localization/translations/ta.dart';
 import 'package:votebanker/app/localization/translations/te.dart';
+import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/features/onboarding/services/domain_service.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 import 'package:votebanker/features/onboarding/widgets/domain_result_card.dart';
+import 'package:votebanker/features/website/models/website_builder_draft.dart';
+import 'package:votebanker/features/website/services/website_builder_store.dart';
 
 void main() {
   setUpAll(() {
@@ -101,6 +104,106 @@ void main() {
     expect(find.text('VOTE BANKER में आपका स्वागत है'), findsNothing);
   });
 
+  testWidgets(
+    'login skip clears a restored session and leftover website draft',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({
+        WebsiteBuilderStore.prefsKey: jsonEncode({
+          'templateId': WebsiteTemplates.professional,
+          'profileData': {
+            'fullName': 'Someone Else',
+            'party': 'Other Party',
+          },
+        }),
+      });
+      AuthService.instance.session = const AuthSession(
+        accessToken: 'demo-token',
+        refreshToken: 'refresh',
+        userId: 'user-1',
+        phone: '+919876543210',
+        fullName: 'Someone Else',
+      );
+      addTearDown(() => AuthService.instance.session = null);
+
+      final controller = OnboardingController();
+      addTearDown(controller.dispose);
+      controller.draft
+        ..fullName = 'Someone Else'
+        ..organization = 'Other Party';
+      controller.websiteBuilder.fullName = 'Someone Else';
+
+      await _setSurface(tester, const Size(1280, 900));
+      await tester.pumpWidget(VoteBankerApp(controller: controller));
+      await tester.pumpAndSettle();
+
+      await _tapLabel(tester, 'Skip for now');
+      // Allow background SharedPreferences clears from skip to finish.
+      await tester.pump();
+
+      expect(AuthService.instance.session, isNull);
+      expect(controller.draft.fullName, isEmpty);
+      expect(controller.draft.organization, isEmpty);
+      expect(controller.websiteBuilder.fullName, isEmpty);
+      expect(controller.ignoreStoredWebsiteDrafts, isTrue);
+      expect(find.text('Leader Profile'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('profileLeaderName')),
+          matching: find.text('Someone Else'),
+        ),
+        findsNothing,
+      );
+      expect(await WebsiteBuilderStore.instance.loadLocal(), isNull);
+    },
+  );
+
+  testWidgets(
+    'profile skip leaves an empty profile and does not restore cached website data',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({
+        WebsiteBuilderStore.prefsKey: jsonEncode({
+          'templateId': WebsiteTemplates.professional,
+          'profileData': {
+            'fullName': 'Cached Leader',
+            'party': 'Cached Party',
+            'shortIntro': 'Should not appear after skip',
+          },
+        }),
+      });
+
+      final controller = OnboardingController();
+      addTearDown(controller.dispose);
+      controller.draft
+        ..fullName = 'Fetched Leader'
+        ..organization = 'Fetched Party'
+        ..designation = 'MLA';
+      controller.websiteBuilder
+        ..fullName = 'Cached Leader'
+        ..shortIntro = 'Should not appear after skip';
+
+      await _setSurface(tester, const Size(1280, 900));
+      await tester.pumpWidget(VoteBankerApp(controller: controller));
+      await tester.pumpAndSettle();
+
+      await _tapLabel(tester, 'Skip for now');
+      expect(find.text('Leader Profile'), findsOneWidget);
+
+      await _tapLabel(tester, 'Skip for now');
+      await tester.pump();
+
+      expect(find.text('Portfolio Template'), findsOneWidget);
+      expect(controller.draft.fullName, isEmpty);
+      expect(controller.draft.organization, isEmpty);
+      expect(controller.draft.designation, isEmpty);
+      expect(controller.websiteBuilder.fullName, isEmpty);
+      expect(controller.websiteBuilder.shortIntro, isEmpty);
+      expect(controller.ignoreStoredWebsiteDrafts, isTrue);
+      expect(find.text('Cached Leader'), findsNothing);
+      expect(find.text('Should not appear after skip'), findsNothing);
+      expect(find.text('Fetched Leader'), findsNothing);
+    },
+  );
+
   testWidgets('login opens the WhatsApp OTP screen', (tester) async {
     await _setSurface(tester, const Size(1280, 900));
     await tester.pumpWidget(const VoteBankerApp());
@@ -157,18 +260,18 @@ void main() {
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Leader Profile'), findsOneWidget);
 
-    await tester.enterText(
-      find.byType(TextField).hitTestable().first,
-      'Arjun Verma',
-    );
+    // Profile skip must leave an empty profile (no fetched/cached leader data).
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Portfolio Template'), findsOneWidget);
+    final websiteContext = tester.element(find.text('Portfolio Template'));
+    expect(OnboardingScope.of(websiteContext).draft.fullName, isEmpty);
 
     // Header Skip opens domain search for portfolio name selection.
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.text('Portfolio Name Search'), findsOneWidget);
 
+    await tester.enterText(find.byType(TextField).hitTestable().first, 'Arjun Verma');
     await tester.tap(find.text('Search'));
     await tester.pumpAndSettle();
     expect(find.text('arjunverma.com'), findsOneWidget);
@@ -185,7 +288,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Your website is ready'), findsOneWidget);
     expect(find.byKey(const ValueKey('purchaseWebsitePreview')), findsOneWidget);
-    expect(find.text('Arjun Verma'), findsWidgets);
     await tester.ensureVisible(find.byKey(const ValueKey('payWebsite')));
     expect(find.textContaining('₹999'), findsWidgets);
     await tester.ensureVisible(find.byKey(const ValueKey('publishWebsite')));
@@ -193,7 +295,8 @@ void main() {
 
     final purchaseContext = tester.element(find.text('Your website is ready'));
     final draft = OnboardingScope.of(purchaseContext).draft;
-    expect(draft.fullName, 'Arjun Verma');
+    expect(draft.fullName, isEmpty);
+    expect(draft.domainQuery, 'Arjun Verma');
     expect(draft.selectedDomain, 'arjunverma.com');
 
     await _tapLabel(tester, 'Continue editing');
