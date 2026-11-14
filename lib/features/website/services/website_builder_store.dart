@@ -42,6 +42,19 @@ class WebsiteBuilderStore {
     }
   }
 
+  /// Drops the cached draft so a guest skip cannot reuse another session's data.
+  Future<void> clearLocal() async {
+    _latest = null;
+    _debounce?.cancel();
+    saveState.value = WebsiteSaveState.idle;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(prefsKey);
+    } catch (_) {
+      // In-memory state is already cleared.
+    }
+  }
+
   /// Loads remote draft when signed in, otherwise local.
   Future<WebsiteBuilderDraft?> loadPreferred() async {
     final remote = await WebsiteBuilderApi.instance.fetchMine();

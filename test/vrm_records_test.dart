@@ -153,6 +153,56 @@ void main() {
     expect(find.text('Instagram'), findsOneWidget);
     expect(find.text('Facebook'), findsOneWidget);
     expect(find.text('View more voters'), findsOneWidget);
+    // Core fields alone are not enough — missing social contacts = incomplete.
+    expect(find.text('Incomplete details'), findsOneWidget);
+    expect(find.text('Complete details'), findsNothing);
+  });
+
+  testWidgets('voter card turns complete only after WhatsApp Instagram Facebook', (tester) async {
+    AuthService.instance.session = null;
+
+    final client = MockClient((request) async {
+      return http.Response(
+        jsonEncode({
+          'success': true,
+          'records': [
+            {
+              'id': '1',
+              'name': 'Ahmed Raza',
+              'age': 21,
+              'gender': 'Male',
+              'epicNumber': 'NNA5100110',
+              'whatsappContact': '+919876543210',
+              'instagramContact': 'ahmed.raza',
+              'facebookContact': 'ahmed.fb',
+            },
+          ],
+        }),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    await tester.pumpWidget(
+      ThemeScope(
+        controller: ThemeController(),
+        child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: VrmRecordsScreen(
+            service: VrmService(client: client, baseUrls: const ['http://vrm.test']),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Complete details'), findsOneWidget);
+    expect(find.text('Incomplete details'), findsNothing);
   });
 
   testWidgets('View more voters lists the three priced options', (tester) async {

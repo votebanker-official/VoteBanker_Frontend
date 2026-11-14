@@ -312,7 +312,7 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
     _instagram = TextEditingController(text: widget.record.instagramContact ?? '');
     _facebook = TextEditingController(text: widget.record.facebookContact ?? '');
     for (final controller in [_whatsapp, _instagram, _facebook]) {
-      controller.addListener(_notifyDirty);
+      controller.addListener(_onContactChanged);
     }
   }
 
@@ -346,6 +346,11 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
         _facebook.text.trim() != (widget.record.facebookContact ?? '');
   }
 
+  void _onContactChanged() {
+    if (mounted) setState(() {});
+    _notifyDirty();
+  }
+
   void _notifyDirty() {
     final dirty = _isDirty;
     if (dirty == _reportedDirty) return;
@@ -362,12 +367,31 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
         SocialContactLinks.validProfile(_facebook.text, SocialContactLinks.facebookHosts);
   }
 
+  /// Green only when core voter fields AND WhatsApp, Instagram, Facebook
+  /// are all filled with valid values. Any empty social field = red.
   bool get _detailsComplete {
     final item = widget.record;
-    return item.name.trim().isNotEmpty &&
+    final hasCore = item.name.trim().isNotEmpty &&
         item.age != null &&
-        item.gender?.trim().isNotEmpty == true &&
-        item.epicNumber?.trim().isNotEmpty == true;
+        (item.gender?.trim().isNotEmpty ?? false) &&
+        (item.epicNumber?.trim().isNotEmpty ?? false);
+    if (!hasCore) return false;
+
+    final whatsapp = _whatsapp.text.trim();
+    final instagram = _instagram.text.trim();
+    final facebook = _facebook.text.trim();
+    if (whatsapp.isEmpty || instagram.isEmpty || facebook.isEmpty) {
+      return false;
+    }
+    return SocialContactLinks.validWhatsapp(whatsapp) &&
+        SocialContactLinks.validProfile(
+          instagram,
+          SocialContactLinks.instagramHosts,
+        ) &&
+        SocialContactLinks.validProfile(
+          facebook,
+          SocialContactLinks.facebookHosts,
+        );
   }
 
   Future<void> _save() async {

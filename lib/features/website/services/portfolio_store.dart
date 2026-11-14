@@ -27,4 +27,14 @@ class PortfolioStore {
       // Keep the session copy if storage fails.
     }
   }
+
+  /// Drops the cached portfolio so a guest skip starts from an empty profile.
+  Future<void> clear() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(prefsKey);
+    } catch (_) {
+      // Ignore storage failures; callers still reset in-memory state.
+    }
+  }
 }
