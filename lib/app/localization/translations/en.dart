@@ -486,7 +486,7 @@ const enTranslations = <String, String>{
       'Voice input will be connected later. Please type for now.',
   'inputLanguageLabel': 'I want to speak/type in',
   'websiteLanguageLabel': 'Create my website in',
-  'questionsBody': 'Every answer is optional.',
+  'questionsBody': 'Every answer is required.',
   'questionProgress': '{step} / {total}',
   'skipThisField': 'Skip this field',
   'qPageIdentity': 'Who you are',

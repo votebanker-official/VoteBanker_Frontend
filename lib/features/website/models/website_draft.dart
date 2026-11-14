@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../../../core/utils/person_name.dart';
 import '../../onboarding/models/onboarding_draft.dart';
 import 'website_document.dart';
 
@@ -104,6 +105,35 @@ class WebsiteDraft {
     }
     if (publicContact.isEmpty) {
       publicContact = profile.publicContact;
+    }
+  }
+
+  /// Full name on the website questions comes from Facebook or Google only.
+  /// A signed-out visit does not keep a name copied from the leader profile.
+  /// A name already typed on this website draft is left as the user wrote it.
+  void applyLoginName({
+    required bool signedIn,
+    required String loginName,
+    required String profileName,
+  }) {
+    final login = formatPersonName(loginName);
+    final profile = profileName.trim();
+    final current = fullName.trim();
+    if (signedIn) {
+      if (login.isNotEmpty && (current.isEmpty || current == profile)) {
+        fullName = login;
+        return;
+      }
+      if (current.isEmpty) {
+        final chosen = formatPersonName(profile);
+        if (chosen.isNotEmpty) {
+          fullName = chosen;
+        }
+      }
+      return;
+    }
+    if (current.isEmpty || current == profile) {
+      fullName = '';
     }
   }
 

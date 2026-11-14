@@ -336,7 +336,7 @@ const knTranslations = <String, String>{
   'voiceUnavailable': 'ಧ್ವನಿ ಇನ್‌ಪುಟ್ ನಂತರ ಸೇರುತ್ತದೆ. ಈಗ ಟೈಪ್ ಮಾಡಿ.',
   'inputLanguageLabel': 'ನಾನು ಈ ಭಾಷೆಯಲ್ಲಿ ಮಾತನಾಡಲು/ಬರೆಯಲು ಬಯಸುತ್ತೇನೆ',
   'websiteLanguageLabel': 'ನನ್ನ ವೆಬ್‌ಸೈಟ್ ಈ ಭಾಷೆಯಲ್ಲಿ ಆಗಲಿ',
-  'questionsBody': 'ಪ್ರತಿ ಉತ್ತರವೂ ಐಚ್ಛಿಕ.',
+  'questionsBody': 'ಪ್ರತಿ ಉತ್ತರವೂ ಕಡ್ಡಾಯ.',
   'questionProgress': '{step} / {total}',
   'skipThisField': 'ಈ ಅಂಕಣವನ್ನು ಬಿಟ್ಟುಬಿಡಿ',
   'qPageIdentity': 'ನೀವು ಯಾರು',

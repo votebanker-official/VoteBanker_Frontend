@@ -335,7 +335,7 @@ const hiTranslations = <String, String>{
   'voiceUnavailable': 'आवाज़ इनपुट बाद में जुड़ेगा। अभी टाइप करें।',
   'inputLanguageLabel': 'मैं इस भाषा में बोलना/लिखना चाहता हूँ',
   'websiteLanguageLabel': 'मेरी वेबसाइट इस भाषा में बने',
-  'questionsBody': 'हर उत्तर वैकल्पिक है।',
+  'questionsBody': 'हर उत्तर आवश्यक है।',
   'questionProgress': '{step} / {total}',
   'skipThisField': 'यह फ़ील्ड छोड़ें',
   'qPageIdentity': 'आप कौन हैं',

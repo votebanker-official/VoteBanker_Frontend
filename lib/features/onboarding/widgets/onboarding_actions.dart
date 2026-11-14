@@ -7,8 +7,8 @@ class OnboardingActions extends StatelessWidget {
   const OnboardingActions({
     required this.primaryLabel,
     required this.onPrimary,
-    required this.skipLabel,
-    required this.onSkip,
+    this.skipLabel,
+    this.onSkip,
     this.backLabel,
     this.onBack,
     super.key,
@@ -16,8 +16,8 @@ class OnboardingActions extends StatelessWidget {
 
   final String primaryLabel;
   final VoidCallback onPrimary;
-  final String skipLabel;
-  final VoidCallback onSkip;
+  final String? skipLabel;
+  final VoidCallback? onSkip;
   final String? backLabel;
   final VoidCallback? onBack;
 
@@ -58,7 +58,8 @@ class OnboardingActions extends StatelessWidget {
             );
           },
         ),
-        TextButton(onPressed: onSkip, child: Text(skipLabel)),
+        if (onSkip != null)
+          TextButton(onPressed: onSkip, child: Text(skipLabel ?? '')),
       ],
     );
   }
