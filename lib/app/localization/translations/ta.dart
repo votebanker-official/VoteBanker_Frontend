@@ -340,7 +340,7 @@ const taTranslations = <String, String>{
       'குரல் உள்ளீடு பின்னர் இணைக்கப்படும். இப்போது தட்டச்சு செய்யுங்கள்.',
   'inputLanguageLabel': 'நான் இந்த மொழியில் பேச/எழுத விரும்புகிறேன்',
   'websiteLanguageLabel': 'என் வலைத்தளம் இந்த மொழியில் இருக்கட்டும்',
-  'questionsBody': 'ஒவ்வொரு பதிலும் விருப்பமானது.',
+  'questionsBody': 'ஒவ்வொரு பதிலும் கட்டாயம்.',
   'questionProgress': '{step} / {total}',
   'skipThisField': 'இந்த புலத்தைத் தவிர்க்கவும்',
   'qPageIdentity': 'நீங்கள் யார்',

@@ -51,21 +51,29 @@ class WebsiteAnswerField extends StatelessWidget {
     required this.controller,
     this.maxLines = 1,
     this.optional = '',
+    this.errorText,
+    this.onChanged,
     super.key,
   });
 
   final String label;
   final TextEditingController controller;
   final int maxLines;
+
+  /// When set, the label stays optional. An empty value marks the field required.
   final String optional;
+  final String? errorText;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final caption = optional.isEmpty ? label : '$label ($optional)';
+    final caption = optional.isEmpty ? '$label *' : '$label ($optional)';
     return AppTextField(
       controller: controller,
       label: caption,
       maxLines: maxLines,
+      errorText: errorText,
+      onChanged: onChanged,
       textCapitalization: TextCapitalization.sentences,
     );
   }
