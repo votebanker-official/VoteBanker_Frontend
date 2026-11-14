@@ -347,7 +347,7 @@ const taTranslations = <String, String>{
   'qPageStory': 'உங்கள் கதை',
   'qPageWork': 'உங்கள் பணி',
   'qPageContact': 'மக்கள் உங்களை எப்படி அணுகலாம்',
-  'qPageMedia': 'புகைப்படங்களும் சின்னமும்',
+  'qPageMedia': 'மேலும் புகைப்படங்களும் சின்னமும்',
   'qFullName': 'முழு பெயர்',
   'qTitle': 'தொழில் / பொது பதவி',
   'qOrganization': 'அமைப்பு / கட்சி / அலுவலகம்',
@@ -364,7 +364,7 @@ const taTranslations = <String, String>{
   'qSocial': 'சமூக ஊடக இணைப்புகள்',
   'qCta': 'வலைத்தள அழைப்பு',
   'qLinks': 'முக்கிய பொது இணைப்புகள்',
-  'qPhotos': 'புகைப்படங்கள்',
+  'qPhotos': 'மேலும் புகைப்படங்கள்',
   'qLogo': 'சின்னம்',
   'sectionsTitle': 'வலைத்தளப் பிரிவுகள்',
   'sectionsBody':

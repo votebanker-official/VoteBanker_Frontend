@@ -20,6 +20,11 @@ Future<void> main() async {
   } catch (_) {
     // A broken saved session must never stop the app from opening.
   }
+  try {
+    await AuthService.instance.completePendingSocialSignIn();
+  } catch (_) {
+    // A failed social return still opens the welcome screen.
+  }
   final themeController = ThemeController();
   await themeController.load();
   runApp(VoteBankerApp(themeController: themeController));

@@ -29,6 +29,7 @@ void main() {
     );
     expect(find.text('Every field is optional.'), findsNothing);
     expect(find.text('Leader Name *'), findsOneWidget);
+    expect(find.byKey(const ValueKey('profileEmail')), findsOneWidget);
     expect(find.text('Assembly Constituency *'), findsOneWidget);
     expect(find.text('Booth Number *'), findsOneWidget);
     expect(find.text('Booth Name *'), findsOneWidget);

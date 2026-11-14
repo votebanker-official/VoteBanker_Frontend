@@ -53,6 +53,12 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
         replaceBrowserPath(AppRoutes.profile);
         final navigator = _navigatorKey.currentState;
         if (navigator == null) return;
+        var alreadyProfile = false;
+        navigator.popUntil((route) {
+          alreadyProfile = route.settings.name == AppRoutes.profile;
+          return true;
+        });
+        if (alreadyProfile) return;
         navigator.pushNamedAndRemoveUntil(
           AppRoutes.profile,
           (route) => false,

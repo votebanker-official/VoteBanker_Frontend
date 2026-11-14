@@ -124,7 +124,7 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
                 optional: l10n.optionalLabel,
                 onLogo: () => _pick((bytes) => website.logo = bytes),
                 onPhoto: () => _pick((bytes) {
-                  if (website.photos.length < 3) {
+                  if (website.photos.length < _maxPhotos) {
                     website.photos.add(bytes);
                   }
                 }),
@@ -222,6 +222,8 @@ List<_QuestionPage> _questionPages(WebsiteDraft website) {
   ];
 }
 
+const _maxPhotos = 12;
+
 class _MediaFields extends StatelessWidget {
   const _MediaFields({
     required this.website,
@@ -260,7 +262,8 @@ class _MediaFields extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 child: Image.memory(photo, width: 72, height: 72, fit: BoxFit.cover),
               ),
-            _ImageButton(label: l10n.addPhoto, onPressed: onPhoto),
+            if (website.photos.length < _maxPhotos)
+              _ImageButton(label: l10n.addPhoto, onPressed: onPhoto),
           ],
         ),
         const SizedBox(height: 12),

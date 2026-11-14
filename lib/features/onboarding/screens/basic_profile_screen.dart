@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/localization/app_localizations.dart';
@@ -46,6 +48,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   var _ready = false;
 
   late final TextEditingController _leaderName;
+  late final TextEditingController _email;
   late final TextEditingController _boothNumber;
   late final TextEditingController _boothName;
   late final TextEditingController _party;
@@ -68,15 +71,16 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
     final draft = OnboardingScope.of(context).draft;
     if (draft.leaderName.trim().isEmpty) {
-      final socialName = formatPersonName(
-        AuthService.instance.session?.fullName ?? '',
-      );
+      final socialName = _accountDisplayName();
       if (socialName.isNotEmpty) {
         draft.leaderName = socialName;
         _socialNamePrefill = socialName;
       }
     }
     _leaderName = TextEditingController(text: draft.leaderName);
+    _email = TextEditingController(
+      text: AuthService.instance.session?.email.trim() ?? '',
+    );
     _boothNumber = TextEditingController(text: draft.boothNumber);
     _boothName = TextEditingController(text: draft.boothName);
     _party = TextEditingController(text: draft.party);
@@ -121,8 +125,25 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   Future<void> _prepareProfile(OnboardingDraft draft) async {
     final pending = AuthService.instance.takeSocialReturn();
-    final error = pending.error;
-    final ticket = pending.ticket;
+    final error = pending.error ??
+        AuthService.instance.socialLaunchError ??
+        takeSessionValue('vb_auth_error');
+    final ticket = (pending.ticket != null && pending.ticket!.isNotEmpty)
+        ? pending.ticket
+        : takeSessionValue('vb_auth_ticket');
+    if (error != null && error.isNotEmpty) {
+      AuthService.instance.socialLaunchError = null;
+    }
+    // #region agent log
+    _profileDebugLog('C', 'leader profile social return', {
+      'hasTicket': ticket != null && ticket.isNotEmpty,
+      'hasError': error != null && error.isNotEmpty,
+      'sessionEmailLength':
+          (AuthService.instance.session?.email ?? '').trim().length,
+      'sessionNameLength':
+          (AuthService.instance.session?.fullName ?? '').trim().length,
+    });
+    // #endregion
     if ((ticket != null && ticket.isNotEmpty) ||
         (error != null && error.isNotEmpty)) {
       clearAuthQuery();
@@ -142,13 +163,25 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
         return;
       }
-      final fullName = AuthService.instance.session?.fullName.trim() ?? '';
+      final fullName = _accountDisplayName();
+      final email = AuthService.instance.session?.email.trim() ?? '';
       if (fullName.isNotEmpty && draft.leaderName.trim().isEmpty) {
         draft.leaderName = fullName;
+        _socialNamePrefill ??= fullName;
       }
-      if (draft.leaderName.trim().isNotEmpty) {
-        await ProfileService.instance.saveDraft(draft);
+      if (_email.text.trim().isEmpty && email.isNotEmpty) {
+        _email.text = email;
       }
+      // #region agent log
+      _profileDebugLog('D', 'profile after google ticket', {
+        'hasSessionEmail': email.isNotEmpty,
+        'sessionEmailLength': email.length,
+        'hasSessionName': fullName.isNotEmpty,
+        'sessionNameLength': fullName.length,
+        'draftNameLength': draft.leaderName.trim().length,
+        'emailFieldLength': _email.text.trim().length,
+      });
+      // #endregion
     }
     if (!mounted) return;
     if (_leaderName.text.trim().isEmpty && draft.leaderName.isNotEmpty) {
@@ -172,22 +205,53 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     if (profile != null) {
       ProfileService.applyProfile(draft, profile);
     }
-    final socialName = formatPersonName(
-      AuthService.instance.session?.fullName ?? '',
-    );
+    final socialName = _accountDisplayName();
+    final savedName = profile != null && profile['full_name'] is String
+        ? (profile['full_name'] as String).trim()
+        : '';
     if (draft.leaderName.trim().isEmpty && socialName.isNotEmpty) {
       draft.leaderName = socialName;
     }
+    final sessionEmail = AuthService.instance.session?.email.trim() ?? '';
+    if (_email.text.trim().isEmpty && sessionEmail.isNotEmpty) {
+      _email.text = sessionEmail;
+    }
+    if (savedName.isEmpty && draft.leaderName.trim().isNotEmpty) {
+      await ProfileService.instance.saveDraft(draft);
+    }
+    if (!mounted) return;
     if (untouchedPrefill &&
         draft.leaderName.isNotEmpty &&
         _leaderName.text.trim() != draft.leaderName) {
       _leaderName.text = draft.leaderName;
     }
+    // #region agent log
+    _profileDebugLog('B', 'saved profile applied to leader form', {
+      'profileLoaded': profile != null,
+      'savedNameLength': profile == null
+          ? 0
+          : (profile['full_name'] is String
+              ? (profile['full_name'] as String).trim().length
+              : 0),
+      'profileHasEmailKey': profile != null && profile.containsKey('email'),
+      'draftNameLength': draft.leaderName.trim().length,
+      'fieldNameLength': _leaderName.text.trim().length,
+      'emailFieldLength': _email.text.trim().length,
+      'sessionEmailLength':
+          (AuthService.instance.session?.email ?? '').trim().length,
+    });
+    // #endregion
     if (profile == null) {
+      await _applyGooglePhoto(draft);
       if (!mounted) return;
-      if (untouchedPrefill && draft.leaderName.isNotEmpty) {
-        setState(() => _leaderName.text = draft.leaderName);
-      }
+      setState(() {
+        if (untouchedPrefill && draft.leaderName.isNotEmpty) {
+          _leaderName.text = draft.leaderName;
+        }
+        if (_email.text.trim().isEmpty && sessionEmail.isNotEmpty) {
+          _email.text = sessionEmail;
+        }
+      });
       return;
     }
     OnboardingScope.of(context).syncLocaleFromDraft();
@@ -201,6 +265,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       final bytes = await ProfileService.instance.downloadPhoto(photoUrl);
       if (!mounted || draft.photoRemoved || draft.photoPendingUpload) return;
       if (bytes != null) draft.photoBytes = bytes;
+    } else {
+      await _applyGooglePhoto(draft);
     }
     if (!mounted) return;
     setState(() {
@@ -212,6 +278,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       }
       if (_leaderName.text.trim().isEmpty && draft.leaderName.isNotEmpty) {
         _leaderName.text = draft.leaderName;
+      }
+      final sessionEmail = AuthService.instance.session?.email.trim() ?? '';
+      if (_email.text.trim().isEmpty && sessionEmail.isNotEmpty) {
+        _email.text = sessionEmail;
       }
       if (_party.text.trim().isEmpty && draft.party.isNotEmpty) {
         _party.text = draft.party;
@@ -232,6 +302,33 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     });
   }
 
+  /// Google display name, or the fetched email when Google sends no name.
+  String _accountDisplayName() {
+    final named = formatPersonName(
+      AuthService.instance.session?.fullName ?? '',
+    );
+    if (named.isNotEmpty) return named;
+    return AuthService.instance.session?.email.trim() ?? '';
+  }
+
+  Future<void> _applyGooglePhoto(OnboardingDraft draft) async {
+    if (draft.photoBytes != null ||
+        draft.profilePhotoUrl.isNotEmpty ||
+        draft.photoRemoved) {
+      return;
+    }
+    final avatar = AuthService.instance.session?.avatarUrl.trim() ?? '';
+    if (!avatar.startsWith('https://')) return;
+    final bytes = await ProfileService.instance.downloadPhoto(avatar);
+    if (bytes == null || !mounted || draft.photoRemoved || draft.photoBytes != null) {
+      return;
+    }
+    draft
+      ..photoBytes = bytes
+      ..photoPendingUpload = true;
+    await ProfileService.instance.saveDraft(draft);
+  }
+
   Future<void> _loadLocations(OnboardingDraft draft) async {
     try {
       final catalog = await LocationCatalog.load();
@@ -244,9 +341,36 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
   }
 
+  // #region agent log
+  void _profileDebugLog(String hypothesisId, String message, Map<String, Object?> data) {
+    http
+        .post(
+          Uri.parse(
+            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
+          ),
+          headers: const {
+            'Content-Type': 'application/json',
+            'X-Debug-Session-Id': '6d3aea',
+          },
+          body: jsonEncode({
+            'sessionId': '6d3aea',
+            'runId': 'pre-fix',
+            'hypothesisId': hypothesisId,
+            'location': 'basic_profile_screen.dart',
+            'message': message,
+            'data': data,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          }),
+        )
+        .timeout(const Duration(seconds: 2))
+        .catchError((_) => http.Response('', 599));
+  }
+  // #endregion
+
   @override
   void dispose() {
     _leaderName.dispose();
+    _email.dispose();
     _boothNumber.dispose();
     _boothName.dispose();
     _party.dispose();
@@ -541,6 +665,16 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.name],
           onChanged: (value) => draft.leaderName = value,
+        ),
+        const SizedBox(height: 14),
+        AppTextField(
+          key: const ValueKey('profileEmail'),
+          label: l10n.emailAddress,
+          hint: l10n.emailAddress,
+          prefixIcon: const Icon(Icons.mail_outline),
+          controller: _email,
+          readOnly: true,
+          keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 14),
         _ProfileDropdown(

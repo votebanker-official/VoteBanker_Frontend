@@ -294,7 +294,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     return ListView(
       padding: EdgeInsets.fromLTRB(wide ? 28 : 16, 22, wide ? 28 : 16, 28),
       children: [
-        _Header(wide: wide, colors: colors, onAdd: () => _openForm(), onBack: _goBack),
+        _Header(wide: wide, colors: colors, onAdd: () => _openForm()),
         const SizedBox(height: 18),
         _StatGrid(colors: colors, stats: stats, unavailable: _error != null && !_loaded),
         const SizedBox(height: 16),
@@ -660,45 +660,29 @@ class _Header extends StatelessWidget {
     required this.wide,
     required this.colors,
     required this.onAdd,
-    required this.onBack,
   });
 
   final bool wide;
   final DashboardColors colors;
   final VoidCallback onAdd;
-  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
     final title = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            IconButton(
-              tooltip: 'Back',
-              onPressed: onBack,
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.arrow_back, color: _blue),
-            ),
-            Expanded(
-              child: Text(
-                'My Team',
-                style: TextStyle(
-                  color: colors.text,
-                  fontSize: wide ? 28 : 24,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 48),
-          child: Text(
-            'Manage your team members, assign roles, and track their progress.',
-            style: TextStyle(color: colors.muted, fontSize: 14, height: 1.4),
+        Text(
+          'My Team',
+          style: TextStyle(
+            color: colors.text,
+            fontSize: wide ? 28 : 24,
+            fontWeight: FontWeight.w800,
           ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Manage your team members, assign roles, and track their progress.',
+          style: TextStyle(color: colors.muted, fontSize: 14, height: 1.4),
         ),
       ],
     );

@@ -389,7 +389,6 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final canPop = Navigator.of(context).canPop();
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.topBar,
@@ -430,12 +429,11 @@ class _TopBar extends StatelessWidget {
               ),
               const SizedBox(width: 8),
             ],
-            if (canPop)
-              IconButton(
-                tooltip: l10n.back,
-                onPressed: () => AppRouter.popIfPossible(context),
-                icon: Icon(Icons.arrow_back, color: colors.accent),
-              ),
+            IconButton(
+              tooltip: l10n.back,
+              onPressed: () => AppRouter.back(context, AppRoutes.ready),
+              icon: Icon(Icons.arrow_back, color: colors.accent),
+            ),
             Expanded(
               flex: 3,
               child: TextField(

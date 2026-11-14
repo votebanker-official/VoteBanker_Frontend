@@ -11,13 +11,24 @@ import 'package:votebanker/features/onboarding/state/onboarding_controller.dart'
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('dashboard hides back when it is the root route', (tester) async {
+  testWidgets('dashboard shows a back arrow on the root route', (tester) async {
     await tester.pumpWidget(_app(const DashboardPlaceholderScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.byTooltip('Back'), findsNothing);
+    expect(find.byTooltip('Back'), findsOneWidget);
     expect(find.text('VOTE BANKER'), findsWidgets);
     expect(find.byType(DashboardPlaceholderScreen), findsOneWidget);
+  });
+
+  testWidgets('dashboard back from the root opens the ready screen', (tester) async {
+    await tester.pumpWidget(_routed(AppRoutes.dashboard));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(find.text("You're all set"), findsOneWidget);
+    expect(find.byType(DashboardPlaceholderScreen), findsNothing);
   });
 
   testWidgets('dashboard back returns to the previous screen', (tester) async {
@@ -90,6 +101,32 @@ Widget _app(Widget home) {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         home: home,
+      ),
+    ),
+  );
+}
+
+Widget _routed(String route) {
+  return ThemeScope(
+    controller: ThemeController(),
+    child: OnboardingScope(
+      controller: OnboardingController(),
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        initialRoute: route,
+        onGenerateRoute: AppRouter.onGenerateRoute,
+        onGenerateInitialRoutes: (String initialRoute) {
+          return [
+            AppRouter.onGenerateRoute(RouteSettings(name: initialRoute)),
+          ];
+        },
       ),
     ),
   );

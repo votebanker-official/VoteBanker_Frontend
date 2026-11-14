@@ -81,6 +81,12 @@ class _LoginScreenState extends State<LoginScreen> {
         return l10n.socialNotConfigured;
       case 'social_denied':
         return l10n.socialDenied;
+      case 'google_secret_invalid':
+        return 'Google rejected the sign-in before your name and email could be saved. '
+            'In Google Cloud Console, copy the OAuth client secret into GOOGLE_CLIENT_SECRET. '
+            'It must be different from the client id. Restart the API, then try again.';
+      case 'social_failed':
+        return 'Google sign-in did not finish. Please try again.';
       default:
         return l10n.socialFailed;
     }
@@ -93,13 +99,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _startSocial(AppLocalizations l10n, String provider) {
+    if (_busy) return;
     if (!kIsWeb) {
       _showMessage(l10n.socialWebOnly);
       return;
     }
+    setState(() => _busy = true);
     try {
       AuthService.instance.startSocial(provider);
     } on AuthException catch (e) {
+      if (mounted) setState(() => _busy = false);
       _showMessage(e.message);
     }
   }
@@ -134,6 +143,10 @@ class _LoginScreenState extends State<LoginScreen> {
               description: l10n.welcomeBody,
             ),
             const SizedBox(height: 24),
+            if (_busy) ...[
+              const LinearProgressIndicator(),
+              const SizedBox(height: 12),
+            ],
             PrimaryButton(
               label: l10n.continueWhatsApp,
               icon: Icons.chat_rounded,

@@ -26,6 +26,7 @@ class AuthSession {
     required this.phone,
     this.fullName = '',
     this.email = '',
+    this.avatarUrl = '',
     this.expiresAt,
   });
 
@@ -35,6 +36,7 @@ class AuthSession {
   final String phone;
   final String fullName;
   final String email;
+  final String avatarUrl;
   final int? expiresAt;
 }
 
@@ -50,6 +52,7 @@ class AuthService {
   static const _prefsPhone = 'auth.phone';
   static const _prefsFullName = 'auth.full_name';
   static const _prefsEmail = 'auth.email';
+  static const _prefsAvatar = 'auth.avatar_url';
   static const _prefsExpires = 'auth.expires_at';
 
   AuthSession? session;
@@ -122,6 +125,7 @@ class AuthService {
       phone: phone,
       fullName: prefs.getString(_prefsFullName) ?? '',
       email: prefs.getString(_prefsEmail) ?? '',
+      avatarUrl: prefs.getString(_prefsAvatar) ?? '',
       expiresAt: prefs.getInt(_prefsExpires),
     );
   }
@@ -183,6 +187,54 @@ class AuthService {
     }
   }
 
+  /// Redeems a Google or Facebook return ticket before the first screen is built.
+  /// index.html moves the ticket into session storage before Flutter can read the URL.
+  Future<void> completePendingSocialSignIn() async {
+    final pending = takeSocialReturn();
+    var ticket = pending.ticket;
+    var error = pending.error;
+    var source = (ticket != null && ticket.isNotEmpty) ? 'query' : '';
+    if (ticket == null || ticket.isEmpty) {
+      ticket = takeSessionValue('vb_auth_ticket');
+      if (ticket != null && ticket.isNotEmpty) source = 'session';
+    }
+    if (error == null || error.isEmpty) {
+      error = takeSessionValue('vb_auth_error');
+    }
+    if (ticket == null || ticket.isEmpty || error == null || error.isEmpty) {
+      final location = browserLocation();
+      if (ticket == null || ticket.isEmpty) {
+        final fromLocation = location.queryParameters['auth_ticket'];
+        if (fromLocation != null && fromLocation.isNotEmpty) {
+          ticket = fromLocation;
+          source = 'location';
+        }
+      }
+      if (error == null || error.isEmpty) {
+        error = location.queryParameters['auth_error'];
+      }
+    }
+    // #region agent log
+    _sessionDebugLog('C', 'pending social return', {
+      'hasTicket': ticket != null && ticket.isNotEmpty,
+      'hasError': error != null && error.isNotEmpty,
+      'errorCode': (error != null && error.isNotEmpty) ? error : '',
+      'source': source,
+    });
+    // #endregion
+    if (error != null && error.isNotEmpty) {
+      socialLaunchError = error;
+      return;
+    }
+    if (ticket == null || ticket.isEmpty) return;
+    try {
+      await exchangeSocialTicket(ticket);
+      openProfileAfterLogin = true;
+    } on AuthException catch (error) {
+      socialLaunchError = error.code;
+    }
+  }
+
   Future<AuthSession> exchangeSocialTicket(String ticket) async {
     final body = await _post('/api/auth/oauth/exchange', {'ticket': ticket});
     final user = body['user'] as Map<String, dynamic>? ?? const {};
@@ -193,10 +245,21 @@ class AuthService {
       phone: (user['phone'] ?? '') as String,
       fullName: (user['full_name'] ?? '') as String,
       email: (user['email'] ?? '') as String,
+      avatarUrl: (user['avatar_url'] ?? '') as String,
       expiresAt: body['expires_at'] as int?,
     );
     session = result;
     await _persist(result);
+    // #region agent log
+    _sessionDebugLog('C', 'social ticket exchanged', {
+      'hasEmail': result.email.trim().isNotEmpty,
+      'emailLength': result.email.trim().length,
+      'hasFullName': result.fullName.trim().isNotEmpty,
+      'fullNameLength': result.fullName.trim().length,
+      'hasUserId': result.userId.isNotEmpty,
+      'hasAvatar': result.avatarUrl.trim().isNotEmpty,
+    });
+    // #endregion
     return result;
   }
 
@@ -229,6 +292,7 @@ class AuthService {
       _prefsPhone,
       _prefsFullName,
       _prefsEmail,
+      _prefsAvatar,
       _prefsExpires,
     ]) {
       await prefs.remove(key);
@@ -243,6 +307,7 @@ class AuthService {
     await prefs.setString(_prefsPhone, s.phone);
     await prefs.setString(_prefsFullName, s.fullName);
     await prefs.setString(_prefsEmail, s.email);
+    await prefs.setString(_prefsAvatar, s.avatarUrl);
     if (s.expiresAt != null) await prefs.setInt(_prefsExpires, s.expiresAt!);
   }
 
@@ -266,6 +331,34 @@ class AuthService {
             'runId': 'pre-fix',
             'hypothesisId': hypothesisId,
             'location': 'auth_service.dart:startSocial',
+            'message': message,
+            'data': data,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          }),
+        )
+        .timeout(const Duration(seconds: 2))
+        .catchError((_) => http.Response('', 599));
+  }
+
+  void _sessionDebugLog(
+    String hypothesisId,
+    String message,
+    Map<String, Object?> data,
+  ) {
+    http
+        .post(
+          Uri.parse(
+            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
+          ),
+          headers: const {
+            'Content-Type': 'application/json',
+            'X-Debug-Session-Id': '6d3aea',
+          },
+          body: jsonEncode({
+            'sessionId': '6d3aea',
+            'runId': 'pre-fix',
+            'hypothesisId': hypothesisId,
+            'location': 'auth_service.dart:exchangeSocialTicket',
             'message': message,
             'data': data,
             'timestamp': DateTime.now().millisecondsSinceEpoch,

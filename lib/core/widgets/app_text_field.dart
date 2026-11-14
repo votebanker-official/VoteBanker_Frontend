@@ -19,6 +19,7 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.onSubmitted,
     this.maxLines = 1,
+    this.readOnly = false,
     super.key,
   });
 
@@ -35,6 +36,7 @@ class AppTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final int maxLines;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +63,7 @@ class AppTextField extends StatelessWidget {
           onChanged: onChanged,
           onSubmitted: onSubmitted,
           maxLines: maxLines,
+          readOnly: readOnly,
           style: AppTextStyles.body(context),
           cursorColor: context.palette.accent,
           decoration: InputDecoration(

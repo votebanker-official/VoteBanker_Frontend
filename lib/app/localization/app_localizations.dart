@@ -108,6 +108,7 @@ class AppLocalizations {
   String get enterMobile => _t('enterMobile');
   String get profileStep => _t('profileStep');
   String get fullName => _t('fullName');
+  String get emailAddress => _t('emailAddress');
   String get photo => _t('photo');
   String get designation => _t('designation');
   String get assemblyConstituency => _t('assemblyConstituency');

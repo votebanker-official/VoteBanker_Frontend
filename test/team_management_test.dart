@@ -23,6 +23,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('My Team'), findsWidgets);
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     expect(find.text('No Team Members Found'), findsOneWidget);
     expect(find.text('Total Members'), findsOneWidget);
     expect(tester.widget<Text>(find.byKey(const Key('team-stat-total'))).data, '0');

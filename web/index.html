@@ -18,6 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="description" content="VOTE BANKER politician accelerator platform.">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -63,6 +64,112 @@
   </script>
 </head>
 <body>
+  <script>
+    // #region agent log
+    (function () {
+      var vv = window.visualViewport;
+      var readRawHeight = null;
+      if (vv) {
+        var proto = Object.getPrototypeOf(vv);
+        var desc = Object.getOwnPropertyDescriptor(proto, 'height') || Object.getOwnPropertyDescriptor(vv, 'height');
+        if (desc && typeof desc.get === 'function') {
+          readRawHeight = function () { return desc.get.call(vv); };
+          Object.defineProperty(vv, 'height', {
+            configurable: true,
+            get: function () {
+              var raw = desc.get.call(vv);
+              var layout = window.innerHeight;
+              if (typeof raw === 'number' && raw > layout) return layout;
+              return raw;
+            }
+          });
+        }
+      }
+      function snapshot(reason) {
+        var root = document.documentElement;
+        var dpr = window.devicePixelRatio || 1;
+        var rawVvHeight = readRawHeight ? readRawHeight() : (vv ? vv.height : null);
+        var vvHeight = vv ? vv.height : null;
+        var clientHeight = root ? root.clientHeight : null;
+        var innerHeight = window.innerHeight;
+        var active = document.activeElement;
+        return {
+          reason: reason,
+          dpr: dpr,
+          rawVvHeight: rawVvHeight,
+          vvHeight: vvHeight,
+          vvWidth: vv ? vv.width : null,
+          vvOffsetTop: vv ? vv.offsetTop : null,
+          vvScale: vv ? vv.scale : null,
+          innerHeight: innerHeight,
+          innerWidth: window.innerWidth,
+          clientHeight: clientHeight,
+          clientWidth: root ? root.clientWidth : null,
+          bottomInnerMinusVv: vvHeight == null ? null : (innerHeight - vvHeight) * dpr,
+          bottomRaw: rawVvHeight == null ? null : (innerHeight - rawVvHeight) * dpr,
+          platform: navigator.platform,
+          maxTouchPoints: navigator.maxTouchPoints,
+          uaAndroid: navigator.userAgent.indexOf('Android') !== -1,
+          uaIphone: /iPhone|iPad|iPod/.test(navigator.userAgent),
+          activeTag: active ? active.tagName : null,
+          activeType: active && active.getAttribute ? active.getAttribute('type') : null
+        };
+      }
+      function send(hypothesisId, reason) {
+        var data = snapshot(reason);
+        fetch('http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '0ac4b3' },
+          body: JSON.stringify({
+            sessionId: '0ac4b3',
+            runId: 'post-fix',
+            hypothesisId: hypothesisId,
+            location: 'web/index.html:viewport',
+            message: 'viewport metrics',
+            data: data,
+            timestamp: Date.now()
+          })
+        }).catch(function () {});
+      }
+      send('H3', 'startup');
+      window.addEventListener('error', function (event) {
+        fetch('http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '0ac4b3' },
+          body: JSON.stringify({
+            sessionId: '0ac4b3',
+            runId: 'post-fix',
+            hypothesisId: 'H1',
+            location: 'web/index.html:error',
+            message: 'window error',
+            data: { msg: String(event.message || ''), src: String(event.filename || ''), line: event.lineno || 0 },
+            timestamp: Date.now()
+          })
+        }).catch(function () {});
+      });
+      window.addEventListener('unhandledrejection', function (event) {
+        var reason = event.reason;
+        fetch('http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '0ac4b3' },
+          body: JSON.stringify({
+            sessionId: '0ac4b3',
+            runId: 'post-fix',
+            hypothesisId: 'H1',
+            location: 'web/index.html:rejection',
+            message: 'unhandled rejection',
+            data: { reason: String(reason && (reason.message || reason)).slice(0, 500) },
+            timestamp: Date.now()
+          })
+        }).catch(function () {});
+      });
+      window.addEventListener('resize', function () { send('H4', 'window-resize'); }, true);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', function () { send('H2', 'visual-viewport-resize'); }, true);
+      }
+    })();
+    // #endregion
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
