@@ -72,6 +72,7 @@ class OnboardingController {
       ..vrmRequested = false
       ..additionalProfile = <String, dynamic>{};
     draft.socialChannels.clear();
+    website.clearCampaignMedia();
     resetWebsiteFromProfile();
   }
 
