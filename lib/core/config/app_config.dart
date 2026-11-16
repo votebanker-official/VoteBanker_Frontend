@@ -10,11 +10,11 @@ abstract final class AppConfig {
     defaultValue: '',
   );
 
-  /// Local `flutter run` talks to the API on port 3000.
+  /// Local `flutter run` talks to the API on the backend's port.
   /// Release builds keep the hosted API unless API_BASE_URL is set.
   static String get apiBaseUrl {
     if (_configuredApiBaseUrl.isNotEmpty) return _configuredApiBaseUrl;
-    if (kDebugMode) return 'http://localhost:3000';
+    if (kDebugMode) return 'http://127.0.0.1:5000';
     return 'https://votebankerbackend-production.up.railway.app';
   }
 
