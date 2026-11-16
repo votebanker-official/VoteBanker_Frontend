@@ -29,14 +29,22 @@ void main() {
           ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: const WebsiteQuestionsScreen(),
+          ),
         ),
-      ),
       ),
     );
     await tester.pumpAndSettle();
 
     for (var step = 0; step < 4; step++) {
-      await tester.tap(find.text('Next'));
+      final fields = find.byType(TextField);
+      final count = fields.evaluate().length;
+      for (var i = 0; i < count; i++) {
+        await tester.enterText(fields.at(i), 'Answer $step $i');
+      }
+      await tester.pump();
+      final next = find.text('Next');
+      await tester.ensureVisible(next);
+      await tester.tap(next);
       await tester.pumpAndSettle();
     }
 

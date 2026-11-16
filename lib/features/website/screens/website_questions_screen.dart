@@ -24,16 +24,13 @@ class WebsiteQuestionsScreen extends StatefulWidget {
 }
 
 class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
-  final _picker = ImagePicker();
   static const _fillFirst = 'Fill this field first';
-
+  final _picker = ImagePicker();
   var _page = 0;
   var _ready = false;
   List<TextEditingController> _controllers = [];
   List<String?> _errors = [];
   List<_QuestionPage> _pages = [];
-  String? _logoError;
-  String? _photosError;
 
   @override
   void didChangeDependencies() {
@@ -83,39 +80,6 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
     }
   }
 
-  void _continue(_QuestionPage page, {required bool last}) {
-    if (!_requirePage(page)) return;
-    if (last) {
-      AppRouter.open(context, AppRoutes.websiteSections);
-      return;
-    }
-    setState(() => _page += 1);
-  }
-
-  bool _requirePage(_QuestionPage page) {
-    if (page.media) {
-      final website = OnboardingScope.of(context).website;
-      final logoMissing = website.logo == null;
-      final photosMissing = website.photos.isEmpty;
-      setState(() {
-        _logoError = logoMissing ? _fillFirst : null;
-        _photosError = photosMissing ? _fillFirst : null;
-      });
-      return !logoMissing && !photosMissing;
-    }
-    _writePage(page);
-    final next = List<String?>.from(_errors);
-    var missing = false;
-    for (var i = 0; i < page.fields.length; i++) {
-      final index = _controllerIndex(page, i);
-      final empty = _controllers[index].text.trim().isEmpty;
-      next[index] = empty ? _fillFirst : null;
-      missing = missing || empty;
-    }
-    setState(() => _errors = next);
-    return !missing;
-  }
-
   Future<void> _pick(void Function(Uint8List bytes) save) async {
     try {
       final image = await _picker.pickImage(
@@ -131,12 +95,7 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
       if (!mounted) {
         return;
       }
-      setState(() {
-        save(bytes);
-        final website = OnboardingScope.of(context).website;
-        if (website.logo != null) _logoError = null;
-        if (website.photos.isNotEmpty) _photosError = null;
-      });
+      setState(() => save(bytes));
     } catch (_) {
       if (!mounted) {
         return;
@@ -145,6 +104,29 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
         SnackBar(content: Text(AppLocalizations.of(context).photoError)),
       );
     }
+  }
+
+  void _advance({required bool last}) {
+    if (last) {
+      AppRouter.open(context, AppRoutes.websiteSections);
+      return;
+    }
+    setState(() => _page += 1);
+  }
+
+  bool _requirePage(_QuestionPage page) {
+    if (page.media) return true;
+    _writePage(page);
+    final next = List<String?>.from(_errors);
+    var missing = false;
+    for (var i = 0; i < page.fields.length; i++) {
+      final index = _controllerIndex(page, i);
+      final empty = _controllers[index].text.trim().isEmpty;
+      next[index] = empty ? _fillFirst : null;
+      missing = missing || empty;
+    }
+    setState(() => _errors = next);
+    return !missing;
   }
 
   @override
@@ -173,8 +155,7 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
             if (page.media)
               _MediaFields(
                 website: website,
-                logoError: _logoError,
-                photosError: _photosError,
+                optional: l10n.optionalLabel,
                 onLogo: () => _pick((bytes) => website.logo = bytes),
                 onPhoto: () => _pick((bytes) {
                   if (website.photos.length < _maxPhotos) {
@@ -210,7 +191,16 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
                 setState(() => _page -= 1);
               },
               primaryLabel: last ? l10n.line('continueAction') : l10n.next,
-              onPrimary: () => _continue(page, last: last),
+              onPrimary: () {
+                if (!_requirePage(page)) return;
+                _advance(last: last);
+              },
+              skipLabel: page.media ? l10n.line('skipThisField') : null,
+              onSkip: page.media
+                  ? () {
+                      _advance(last: true);
+                    }
+                  : null,
             ),
           ],
         ),
@@ -271,17 +261,15 @@ const _maxPhotos = 12;
 class _MediaFields extends StatelessWidget {
   const _MediaFields({
     required this.website,
+    required this.optional,
     required this.onLogo,
     required this.onPhoto,
-    this.logoError,
-    this.photosError,
   });
 
   final WebsiteDraft website;
+  final String optional;
   final VoidCallback onLogo;
   final VoidCallback onPhoto;
-  final String? logoError;
-  final String? photosError;
 
   @override
   Widget build(BuildContext context) {
@@ -289,16 +277,15 @@ class _MediaFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('${l10n.line('qLogo')} *', style: AppTextStyles.label(context)),
+        Text('${l10n.line('qLogo')} ($optional)', style: AppTextStyles.label(context)),
         const SizedBox(height: 8),
         _ImageButton(
           bytes: website.logo,
           label: l10n.addPhoto,
           onPressed: onLogo,
         ),
-        if (logoError != null) _FieldError(logoError!),
         const SizedBox(height: 16),
-        Text('${l10n.line('qPhotos')} *', style: AppTextStyles.label(context)),
+        Text('${l10n.line('qPhotos')} ($optional)', style: AppTextStyles.label(context)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -313,29 +300,8 @@ class _MediaFields extends StatelessWidget {
               _ImageButton(label: l10n.addPhoto, onPressed: onPhoto),
           ],
         ),
-        if (photosError != null) _FieldError(photosError!),
         const SizedBox(height: 12),
       ],
-    );
-  }
-}
-
-class _FieldError extends StatelessWidget {
-  const _FieldError(this.message);
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Text(
-        message,
-        style: AppTextStyles.body(context).copyWith(
-          color: context.palette.danger,
-          fontSize: 12,
-        ),
-      ),
     );
   }
 }
