@@ -179,6 +179,12 @@ Future<void> _openMedia(
   );
   await tester.pumpAndSettle();
   for (var step = 0; step < 4; step++) {
+    final fields = find.byType(TextField);
+    final count = fields.evaluate().length;
+    for (var i = 0; i < count; i++) {
+      await tester.enterText(fields.at(i), 'Answer $step $i');
+    }
+    await tester.pump();
     final next = find.text('Next');
     await tester.ensureVisible(next);
     await tester.tap(next);

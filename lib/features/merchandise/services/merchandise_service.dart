@@ -32,16 +32,18 @@ class MerchandiseService {
   final List<String> baseUrls;
 
   List<String> get _bases {
-    if (baseUrls.isNotEmpty) {
-      return baseUrls;
+    final configured = baseUrls.isNotEmpty ? baseUrls : [AppConfig.apiBaseUrl];
+    if (!kDebugMode) {
+      return configured;
     }
-    final configured = AppConfig.apiBaseUrl;
-    if (kDebugMode &&
-        !configured.contains('127.0.0.1') &&
-        !configured.contains('localhost')) {
-      return [configured, 'http://127.0.0.1:5000'];
+    const localApi = 'http://127.0.0.1:5000';
+    final alreadyLocal = configured.any(
+      (base) => base.contains('127.0.0.1:5000') || base.contains('localhost:5000'),
+    );
+    if (alreadyLocal) {
+      return configured;
     }
-    return [configured];
+    return [...configured, localApi];
   }
 
   Future<MerchandiseCatalog> loadCatalog() async {

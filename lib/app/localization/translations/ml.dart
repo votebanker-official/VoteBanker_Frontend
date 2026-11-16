@@ -340,7 +340,7 @@ const mlTranslations = <String, String>{
       'വോയ്‌സ് ഇൻപുട്ട് പിന്നീട് ബന്ധിപ്പിക്കും. ഇപ്പോൾ ടൈപ്പ് ചെയ്യുക.',
   'inputLanguageLabel': 'ഞാൻ ഈ ഭാഷയിൽ സംസാരിക്കാനും എഴുതാനും ആഗ്രഹിക്കുന്നു',
   'websiteLanguageLabel': 'എന്റെ വെബ്‌സൈറ്റ് ഈ ഭാഷയിൽ ആകട്ടെ',
-  'questionsBody': 'എല്ലാ ഉത്തരവും ഐച്ഛികമാണ്.',
+  'questionsBody': 'എല്ലാ ഉത്തരവും നിർബന്ധമാണ്.',
   'questionProgress': '{step} / {total}',
   'skipThisField': 'ഈ ഫീൽഡ് ഒഴിവാക്കുക',
   'qPageIdentity': 'നിങ്ങൾ ആരാണ്',

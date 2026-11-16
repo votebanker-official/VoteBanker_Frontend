@@ -26,10 +26,13 @@ class WebsiteQuestionsScreen extends StatefulWidget {
 }
 
 class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
+  static const _fillFirst = 'Fill this field first';
+
   var _page = 0;
   var _ready = false;
   var _mediaBusy = false;
   List<TextEditingController> _controllers = [];
+  List<String?> _errors = [];
   List<_QuestionPage> _pages = [];
 
   @override
@@ -38,12 +41,20 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
     if (_ready) {
       return;
     }
-    final website = OnboardingScope.of(context).website;
+    final onboarding = OnboardingScope.of(context);
+    final website = onboarding.website;
+    final session = AuthService.instance.session;
+    website.applyLoginName(
+      signedIn: session != null,
+      loginName: session?.fullName ?? '',
+      profileName: onboarding.draft.fullName,
+    );
     _pages = _questionPages(website);
     _controllers = [
       for (final page in _pages)
         for (final field in page.fields) TextEditingController(text: field.read()),
     ];
+    _errors = List<String?>.filled(_controllers.length, null);
     _ready = true;
   }
 
@@ -78,6 +89,29 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
       SnackBar(content: Text(AppLocalizations.of(context).line('mediaWaitForUpload'))),
     );
     return false;
+  }
+
+  void _advance({required bool last}) {
+    if (last) {
+      AppRouter.open(context, AppRoutes.websiteSections);
+      return;
+    }
+    setState(() => _page += 1);
+  }
+
+  bool _requirePage(_QuestionPage page) {
+    if (page.media) return true;
+    _writePage(page);
+    final next = List<String?>.from(_errors);
+    var missing = false;
+    for (var i = 0; i < page.fields.length; i++) {
+      final index = _controllerIndex(page, i);
+      final empty = _controllers[index].text.trim().isEmpty;
+      next[index] = empty ? _fillFirst : null;
+      missing = missing || empty;
+    }
+    setState(() => _errors = next);
+    return !missing;
   }
 
   @override
@@ -115,9 +149,16 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
               for (var i = 0; i < page.fields.length; i++) ...[
                 WebsiteAnswerField(
                   label: l10n.line(page.fields[i].labelKey),
-                  optional: l10n.optionalLabel,
                   maxLines: page.fields[i].maxLines,
                   controller: _controllers[_controllerIndex(page, i)],
+                  errorText: _errors[_controllerIndex(page, i)],
+                  onChanged: (value) {
+                    final index = _controllerIndex(page, i);
+                    if (value.trim().isEmpty || _errors[index] == null) {
+                      return;
+                    }
+                    setState(() => _errors[index] = null);
+                  },
                 ),
                 const SizedBox(height: 12),
               ],
@@ -135,23 +176,16 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
               primaryLabel: last ? l10n.line('continueAction') : l10n.next,
               onPrimary: () {
                 if (!_guardNavigation()) return;
-                _writePage(page);
-                if (last) {
-                  AppRouter.open(context, AppRoutes.websiteSections);
-                  return;
-                }
-                setState(() => _page += 1);
+                if (!_requirePage(page)) return;
+                _advance(last: last);
               },
-              skipLabel: l10n.line('skipThisField'),
-              onSkip: () {
-                if (!_guardNavigation()) return;
-                _writePage(page);
-                if (last) {
-                  AppRouter.open(context, AppRoutes.websiteSections);
-                  return;
-                }
-                setState(() => _page += 1);
-              },
+              skipLabel: page.media ? l10n.line('skipThisField') : null,
+              onSkip: page.media
+                  ? () {
+                      if (!_guardNavigation()) return;
+                      _advance(last: true);
+                    }
+                  : null,
             ),
           ],
         ),

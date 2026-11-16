@@ -70,6 +70,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   String? _boothNameError;
   String? _contactError;
 
+  static const _fillFirst = 'Fill this field first';
+
   final _nameAnchor = GlobalKey();
   final _partyAnchor = GlobalKey();
   final _designationAnchor = GlobalKey();
@@ -490,43 +492,91 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     });
   }
 
+  String? _choiceError(String current, List<String> options) {
+    return _shown(current, options) == null ? _fillFirst : null;
+  }
+
+  String? _placeError({
+    required String value,
+    required LocationIssue field,
+    required LocationIssue? invalid,
+    required String invalidMessage,
+  }) {
+    if (value.trim().isEmpty) return _fillFirst;
+    if (invalid == field) return invalidMessage;
+    return null;
+  }
+
   void _saveAndContinue() {
     final l10n = AppLocalizations.of(context);
+    final draft = OnboardingScope.of(context).draft;
     final catalog = _catalog;
+    final parties = ProfileOptions.withSaved(
+      ProfileOptions.parties,
+      _party.text,
+    );
+    final designations = ProfileOptions.withSaved(
+      ProfileOptions.designations,
+      _designation.text,
+    );
     final invalid = catalog == null ? null : _selection.issue(catalog);
-    final contactError =
-        isValidContactNumber(_contactNumber.text) ? null : l10n.invalidContact;
-    final countryError =
-        invalid == LocationIssue.country ? l10n.invalidSelection : null;
-    final stateError =
-        invalid == LocationIssue.state ? l10n.invalidSelection : null;
-    final districtError =
-        invalid == LocationIssue.district ? l10n.invalidSelection : null;
+    final contactText = _contactNumber.text.trim();
+    final nameError = _leaderName.text.trim().isEmpty ? _fillFirst : null;
+    final partyError = _choiceError(_party.text, parties);
+    final designationError = _choiceError(_designation.text, designations);
+    final countryError = _placeError(
+      value: _selection.country,
+      field: LocationIssue.country,
+      invalid: invalid,
+      invalidMessage: l10n.invalidSelection,
+    );
+    final stateError = _placeError(
+      value: _selection.state,
+      field: LocationIssue.state,
+      invalid: invalid,
+      invalidMessage: l10n.invalidSelection,
+    );
+    final districtError = _placeError(
+      value: _selection.district,
+      field: LocationIssue.district,
+      invalid: invalid,
+      invalidMessage: l10n.invalidSelection,
+    );
+    final assemblyError =
+        draft.assemblyConstituency.trim().isEmpty ? _fillFirst : null;
+    final boothNumberError =
+        _boothNumber.text.trim().isEmpty ? _fillFirst : null;
+    final boothNameError = _boothName.text.trim().isEmpty ? _fillFirst : null;
+    final contactError = contactText.isEmpty
+        ? _fillFirst
+        : (isValidContactNumber(contactText) ? null : l10n.invalidContact);
+    final missing = <(GlobalKey, String?)>[
+      (_nameAnchor, nameError),
+      (_partyAnchor, partyError),
+      (_designationAnchor, designationError),
+      (_countryAnchor, countryError),
+      (_stateAnchor, stateError),
+      (_districtAnchor, districtError),
+      (_assemblyAnchor, assemblyError),
+      (_boothNumberAnchor, boothNumberError),
+      (_boothNameAnchor, boothNameError),
+      (_contactAnchor, contactError),
+    ].where((entry) => entry.$2 != null);
 
     setState(() {
-      _nameError = null;
-      _partyError = null;
-      _designationError = null;
+      _nameError = nameError;
+      _partyError = partyError;
+      _designationError = designationError;
       _countryError = countryError;
       _stateError = stateError;
       _districtError = districtError;
-      _assemblyError = null;
-      _boothNumberError = null;
-      _boothNameError = null;
+      _assemblyError = assemblyError;
+      _boothNumberError = boothNumberError;
+      _boothNameError = boothNameError;
       _contactError = contactError;
     });
-
-    final GlobalKey? focus = contactError != null
-        ? _contactAnchor
-        : countryError != null
-            ? _countryAnchor
-            : stateError != null
-                ? _stateAnchor
-                : districtError != null
-                    ? _districtAnchor
-                    : null;
-    if (focus != null) {
-      _reveal(focus);
+    if (missing.isNotEmpty) {
+      _reveal(missing.first.$1);
       return;
     }
     _commit();
@@ -959,12 +1009,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
               errorText: _contactError,
               onChanged: (value) {
                 draft.contactNumber = value;
-                if (_contactError != null) {
-                  final next =
-                      isValidContactNumber(value) ? null : l10n.invalidContact;
-                  if (next != _contactError) {
-                    setState(() => _contactError = next);
-                  }
+                if (_contactError == null) return;
+                final text = value.trim();
+                final next = text.isEmpty
+                    ? _fillFirst
+                    : (isValidContactNumber(text) ? null : l10n.invalidContact);
+                if (next != _contactError) {
+                  setState(() => _contactError = next);
                 }
               },
             ),

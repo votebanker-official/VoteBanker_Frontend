@@ -335,7 +335,7 @@ const teTranslations = <String, String>{
   'voiceUnavailable': 'వాయిస్ ఇన్‌పుట్ తర్వాత కలుస్తుంది. ఇప్పుడు టైప్ చేయండి.',
   'inputLanguageLabel': 'నేను ఈ భాషలో మాట్లాడాలని/రాయాలని కోరుకుంటున్నాను',
   'websiteLanguageLabel': 'నా వెబ్‌సైట్ ఈ భాషలో ఉండాలి',
-  'questionsBody': 'ప్రతి సమాధానం ఐచ్ఛికం.',
+  'questionsBody': 'ప్రతి సమాధానం తప్పనిసరి.',
   'questionProgress': '{step} / {total}',
   'skipThisField': 'ఈ ఫీల్డ్‌ను దాటవేయండి',
   'qPageIdentity': 'మీరు ఎవరు',
