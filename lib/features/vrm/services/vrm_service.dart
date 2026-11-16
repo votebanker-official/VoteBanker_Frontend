@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/config/app_config.dart';
@@ -21,18 +20,7 @@ class VrmService {
   final http.Client _client;
   final List<String> baseUrls;
 
-  List<String> get _bases {
-    if (baseUrls.isNotEmpty) {
-      return baseUrls;
-    }
-    final configured = AppConfig.apiBaseUrl;
-    if (kDebugMode &&
-        !configured.contains('127.0.0.1') &&
-        !configured.contains('localhost')) {
-      return ['http://127.0.0.1:5000', configured];
-    }
-    return [configured];
-  }
+  List<String> get _bases => AppConfig.debugApiBases(baseUrls);
 
   Future<List<VrmVoterRecord>> listRecords({String query = ''}) async {
     final q = query.trim();

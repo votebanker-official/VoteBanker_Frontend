@@ -50,19 +50,7 @@ class DomainService {
   final List<String> baseUrls;
   final Duration timeout;
 
-  List<String> get _bases {
-    if (baseUrls.isNotEmpty) {
-      return baseUrls;
-    }
-    final configured = AppConfig.apiBaseUrl;
-    if (kDebugMode &&
-        !configured.contains('127.0.0.1') &&
-        !configured.contains('localhost')) {
-      // Prefer local Openprovider access in debug before using the configured API.
-      return ['http://127.0.0.1:5000', configured];
-    }
-    return [configured];
-  }
+  List<String> get _bases => AppConfig.debugApiBases(baseUrls);
 
   Future<List<DomainSuggestion>> search(
     String name, {
