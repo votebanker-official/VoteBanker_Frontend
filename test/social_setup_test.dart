@@ -11,7 +11,7 @@ import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/app/routing/app_router.dart';
-import 'package:votebanker/features/merchandise/screens/merchandise_screen.dart';
+import 'package:votebanker/features/merchandise/screens/campaign_templates_screen.dart';
 import 'package:votebanker/features/merchandise/services/merchandise_service.dart';
 import 'package:votebanker/features/onboarding/screens/social_setup_screen.dart';
 import 'package:votebanker/features/onboarding/services/social_connection_service.dart';
@@ -116,7 +116,7 @@ void main() {
 
     await tester.tap(skip);
     await tester.pumpAndSettle();
-    expect(find.text('Campaign'), findsWidgets);
+    expect(find.text('Campaign Templates'), findsOneWidget);
     expect(find.text(enTranslations['socialTitle']!), findsNothing);
 
     await tester.tap(find.byIcon(Icons.arrow_back));
@@ -125,8 +125,12 @@ void main() {
 
     await tester.tap(save);
     await tester.pumpAndSettle();
-    expect(find.text('Campaign'), findsWidgets);
+    expect(find.text('Campaign Templates'), findsOneWidget);
   });
+}
+
+class _QuietMerchandiseService extends MerchandiseService {
+  _QuietMerchandiseService() : super(baseUrls: const ['http://127.0.0.1:9']);
 }
 
 Widget _app(Widget child) {
@@ -145,14 +149,11 @@ Widget _app(Widget child) {
         ],
         home: child,
         onGenerateRoute: (settings) {
-          if (settings.name == AppRoutes.merchandise) {
+          if (settings.name == AppRoutes.campaignTemplates) {
             return MaterialPageRoute<void>(
               settings: settings,
-              builder: (_) => const MerchandiseScreen(
-                initialCatalog: MerchandiseCatalog(
-                  products: [],
-                  storageReady: true,
-                ),
+              builder: (_) => CampaignTemplatesScreen(
+                service: _QuietMerchandiseService(),
               ),
             );
           }

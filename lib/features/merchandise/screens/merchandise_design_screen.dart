@@ -63,11 +63,14 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       return;
     }
     _seeded = true;
-    final draft = formatPersonName(
-      OnboardingScope.maybeOf(context)?.draft.fullName ?? '',
-    );
+    final profile = OnboardingScope.maybeOf(context)?.draft;
+    final draft = formatPersonName(profile?.fullName ?? '');
     if (draft.isNotEmpty) {
       _name.text = draft;
+    }
+    final savedPhoto = profile?.photoBytes;
+    if (_photoBytes == null && savedPhoto != null && savedPhoto.isNotEmpty) {
+      _photoBytes = savedPhoto;
     }
     final phone = AuthService.instance.session?.phone ?? '';
     if (phone.isNotEmpty) {
@@ -218,6 +221,7 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
                 product: product,
                 line: _line.text,
                 photoBytes: _photoBytes,
+                partyName: OnboardingScope.maybeOf(context)?.draft.party ?? '',
                 size: _size,
                 color: _color,
                 quantity: _quantity,
@@ -894,6 +898,7 @@ class _PreviewColumn extends StatelessWidget {
     required this.product,
     required this.line,
     required this.photoBytes,
+    this.partyName = '',
     required this.size,
     required this.color,
     required this.quantity,
@@ -906,6 +911,7 @@ class _PreviewColumn extends StatelessWidget {
   final MerchandiseProduct product;
   final String line;
   final Uint8List? photoBytes;
+  final String partyName;
   final String size;
   final String color;
   final int quantity;
@@ -924,6 +930,7 @@ class _PreviewColumn extends StatelessWidget {
           product: product,
           line: line,
           photoBytes: photoBytes,
+          partyName: partyName,
           hint: l10n.line('merchCampaignHint'),
           size: size,
           color: color,

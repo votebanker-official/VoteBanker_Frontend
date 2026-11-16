@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../onboarding/data/political_party.dart';
+import '../../onboarding/widgets/party_symbol.dart';
 import '../models/merchandise_product.dart';
 
 /// The product beside the form, with the typed line printed on it.
@@ -19,6 +21,7 @@ class MerchandiseLivePreview extends StatelessWidget {
     required this.standardLabel,
     required this.qtyLabel,
     this.photoBytes,
+    this.partyName = '',
     super.key,
   });
 
@@ -32,6 +35,7 @@ class MerchandiseLivePreview extends StatelessWidget {
   final String standardLabel;
   final String qtyLabel;
   final Uint8List? photoBytes;
+  final String partyName;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +46,7 @@ class MerchandiseLivePreview extends StatelessWidget {
     final ink = fill.computeLuminance() < 0.45 ? Colors.white : const Color(0xFF1C2430);
     final colorLabel = color.isEmpty ? standardLabel : color;
     final hasPhoto = photoBytes != null && photoBytes!.isNotEmpty;
+    final party = PartyOption.findByName(partyName);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -116,6 +121,12 @@ class MerchandiseLivePreview extends StatelessWidget {
                         rect: bounds,
                         child: Center(child: printContent),
                       ),
+                      if (party != null)
+                        Positioned(
+                          left: 8,
+                          top: 8,
+                          child: PartySymbol(party.name, diameter: 36),
+                        ),
                     ],
                   );
                 },

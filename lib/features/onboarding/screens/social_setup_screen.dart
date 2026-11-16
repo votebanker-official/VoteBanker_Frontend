@@ -342,7 +342,7 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
             minimumSize: const Size.fromHeight(48),
             visualDensity: VisualDensity.compact,
           ),
-          onPressed: () => AppRouter.open(context, AppRoutes.merchandise),
+          onPressed: () => AppRouter.open(context, AppRoutes.campaignTemplates),
           child: Text(l10n.skipForNow),
         ),
         FilledButton(
@@ -350,7 +350,7 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
             minimumSize: const Size.fromHeight(52),
             shape: const StadiumBorder(),
           ),
-          onPressed: () => AppRouter.open(context, AppRoutes.merchandise),
+          onPressed: () => AppRouter.open(context, AppRoutes.campaignTemplates),
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Row(

@@ -6,6 +6,7 @@ import '../../core/services/profile_service.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 import '../../features/dashboard/screens/administrations_screen.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
+import '../../features/merchandise/screens/campaign_templates_screen.dart';
 import '../../features/merchandise/screens/merchandise_screen.dart';
 import '../../features/letter_generator/letter_generator_screen.dart';
 import '../../features/speech_generator/speech_generator_screen.dart';
@@ -50,6 +51,7 @@ abstract final class AppRoutes {
   static const websitePurchase = '/website/purchase';
   static const websitePublish = '/website/publish';
   static const social = '/social';
+  static const campaignTemplates = '/campaign-templates';
   static const vrm = '/vrm';
   static const vrmRecords = '/vrm/records';
   static const vrmGetMore = '/vrm/get-more';
@@ -94,6 +96,7 @@ abstract final class AppRouter {
       AppRoutes.websitePurchase => const WebsitePurchaseScreen(),
       AppRoutes.websitePublish => const WebsitePublishScreen(),
       AppRoutes.social => const SocialSetupScreen(),
+      AppRoutes.campaignTemplates => const CampaignTemplatesScreen(),
       AppRoutes.vrm => const VrmSetupScreen(),
       AppRoutes.vrmRecords => const VrmRecordsScreen(),
       AppRoutes.vrmGetMore => const VrmGetMoreScreen(),

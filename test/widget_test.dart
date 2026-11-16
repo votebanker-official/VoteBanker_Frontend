@@ -310,8 +310,8 @@ void main() {
     expect(find.text('Social Media Setup'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Campaign'), findsWidgets);
-    expect(find.text('Custom campaign merchandise'), findsWidgets);
+    expect(find.text('Campaign Templates'), findsOneWidget);
+    expect(find.text('Design & Order'), findsWidgets);
     expect(find.text('Dashboard'), findsNothing);
   });
 
