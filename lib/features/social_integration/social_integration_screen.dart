@@ -8,6 +8,7 @@ import '../../app/routing/app_router.dart';
 import '../../core/utils/person_name.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 import '../dashboard/widgets/dashboard_colors.dart';
+import '../dashboard/widgets/dashboard_sidebar.dart';
 import 'social_integration_service.dart';
 import 'social_post_media.dart';
 
@@ -18,10 +19,12 @@ class SocialIntegrationScreen extends StatefulWidget {
   final ImagePicker? picker;
 
   @override
-  State<SocialIntegrationScreen> createState() => _SocialIntegrationScreenState();
+  State<SocialIntegrationScreen> createState() =>
+      _SocialIntegrationScreenState();
 }
 
 class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   late final SocialIntegrationService _service =
       widget.service ?? SocialIntegrationService();
   final _caption = TextEditingController();
@@ -77,7 +80,9 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
   }
 
   void _notice(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _failure(AppLocalizations l10n, String code) {
@@ -115,14 +120,15 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
         action == 'publish'
             ? l10n.line('smiPublished')
             : action == 'schedule'
-                ? l10n.line('smiScheduled')
-                : l10n.line('smiDraftSaved'),
+            ? l10n.line('smiScheduled')
+            : l10n.line('smiDraftSaved'),
       );
     } on SocialIntegrationException catch (error) {
       if (!mounted) return;
-      final code = action == 'schedule' && error.code == 'publishing_not_configured'
-          ? 'scheduling'
-          : error.code;
+      final code =
+          action == 'schedule' && error.code == 'publishing_not_configured'
+              ? 'scheduling'
+              : error.code;
       _notice(_failure(l10n, code));
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -139,9 +145,18 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
       initialDate: DateTime.now(),
     );
     if (date == null || !mounted) return;
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
     if (time == null) return;
-    final when = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final when = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
     await _save('schedule', when: when);
   }
 
@@ -158,7 +173,8 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
         if (result.caption.isNotEmpty) _caption.text = result.caption;
         for (final tag in result.hashtags) {
           final clean = tag.replaceAll('#', '').trim();
-          if (clean.isNotEmpty && !_hashtags.contains(clean)) _hashtags.add(clean);
+          if (clean.isNotEmpty && !_hashtags.contains(clean))
+            _hashtags.add(clean);
         }
       });
       _notice(l10n.line('smiCaptionReady'));
@@ -177,12 +193,17 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
       return;
     }
     final picker = widget.picker ?? ImagePicker();
-    final file = kind == SocialMediaKind.image
-        ? await picker.pickImage(source: ImageSource.gallery)
-        : await picker.pickVideo(source: ImageSource.gallery);
+    final file =
+        kind == SocialMediaKind.image
+            ? await picker.pickImage(source: ImageSource.gallery)
+            : await picker.pickVideo(source: ImageSource.gallery);
     if (file == null) return;
     final bytes = await file.length();
-    final media = SocialPostMedia.validate(name: file.name, bytes: bytes, kind: kind);
+    final media = SocialPostMedia.validate(
+      name: file.name,
+      bytes: bytes,
+      kind: kind,
+    );
     if (!mounted) return;
     if (media == null) {
       _notice(l10n.line('smiFileType'));
@@ -206,139 +227,267 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
     final l10n = AppLocalizations.of(context);
     final colors = DashboardColors.of(context);
     final draft = OnboardingScope.maybeOf(context)?.draft;
-    return Scaffold(
-      backgroundColor: colors.page,
-      body: SafeArea(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        tooltip: l10n.back,
-                        onPressed: () => AppRouter.back(context, AppRoutes.dashboard),
-                        icon: Icon(Icons.arrow_back, color: colors.accent),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showSidebar = constraints.maxWidth >= 960;
+        final sidebar = DashboardSidebar(
+          colors: colors,
+          items: dashboardSidebarItems(l10n),
+          selectedRoute: AppRoutes.socialIntegration,
+        );
+        return Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: colors.page,
+          drawer:
+              showSidebar
+                  ? null
+                  : Drawer(
+                    backgroundColor: colors.sidebar,
+                    child: SafeArea(
+                      child: DashboardSidebar(
+                        colors: colors,
+                        items: dashboardSidebarItems(l10n),
+                        selectedRoute: AppRoutes.socialIntegration,
+                        onNavigate: () => Navigator.of(context).pop(),
                       ),
-                      Expanded(
-                        child: Text(
-                          l10n.line('smiTitle'),
-                          style: TextStyle(
-                            color: colors.text,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
+                    ),
+                  ),
+          body: SafeArea(
+            child: Row(
+              children: [
+                if (showSidebar) SizedBox(width: 248, child: sidebar),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (!showSidebar)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            tooltip: l10n.line('smiNav'),
+                            onPressed:
+                                () => _scaffoldKey.currentState?.openDrawer(),
+                            icon: Icon(Icons.menu, color: colors.accent),
                           ),
                         ),
+                      Expanded(
+                        child:
+                            _loading
+                                ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                : ListView(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    12,
+                                    16,
+                                    28,
+                                  ),
+                                  children: [
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          tooltip: l10n.back,
+                                          onPressed:
+                                              () => AppRouter.back(
+                                                context,
+                                                AppRoutes.dashboard,
+                                              ),
+                                          icon: Icon(
+                                            Icons.arrow_back,
+                                            color: colors.accent,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            l10n.line('smiTitle'),
+                                            style: TextStyle(
+                                              color: colors.text,
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (_error != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: Text(
+                                          _failure(l10n, _error!),
+                                          style: TextStyle(color: colors.muted),
+                                        ),
+                                      ),
+                                    _Hero(
+                                      colors: colors,
+                                      l10n: l10n,
+                                      status: _status,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      l10n.line('smiConnectedAccounts'),
+                                      style: TextStyle(
+                                        color: colors.text,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final wide =
+                                            constraints.maxWidth >= 760;
+                                        final cards = [
+                                          _AccountCard(
+                                            colors: colors,
+                                            title: 'Facebook',
+                                            connected:
+                                                _status?.facebook.connected ==
+                                                true,
+                                            detail: l10n
+                                                .line('smiFacebookPages')
+                                                .replaceAll(
+                                                  '{count}',
+                                                  '${_status?.facebook.pageCount ?? 0}',
+                                                ),
+                                            icon: Icons.facebook,
+                                            onOpen:
+                                                () => _openAccount(
+                                                  l10n,
+                                                  'Facebook',
+                                                ),
+                                          ),
+                                          _AccountCard(
+                                            colors: colors,
+                                            title: 'Instagram',
+                                            connected:
+                                                _status?.instagram.connected ==
+                                                true,
+                                            detail: l10n
+                                                .line('smiInstagramAccounts')
+                                                .replaceAll(
+                                                  '{count}',
+                                                  '${_status?.instagram.accountCount ?? 0}',
+                                                ),
+                                            icon: Icons.camera_alt_outlined,
+                                            onOpen:
+                                                () => _openAccount(
+                                                  l10n,
+                                                  'Instagram',
+                                                ),
+                                          ),
+                                          _AccountCard(
+                                            colors: colors,
+                                            title: 'WhatsApp',
+                                            connected:
+                                                _status?.whatsapp.connected ==
+                                                    true &&
+                                                _status
+                                                        ?.whatsapp
+                                                        .businessReady ==
+                                                    true,
+                                            detail:
+                                                _status
+                                                            ?.whatsapp
+                                                            .businessReady ==
+                                                        true
+                                                    ? l10n.line(
+                                                      'smiWhatsappBusiness',
+                                                    )
+                                                    : l10n.line(
+                                                      'smiWhatsappNotReady',
+                                                    ),
+                                            icon: Icons.chat_outlined,
+                                            onOpen:
+                                                () => _openAccount(
+                                                  l10n,
+                                                  'WhatsApp',
+                                                ),
+                                          ),
+                                        ];
+                                        if (!wide) {
+                                          return Column(
+                                            children: [
+                                              for (final card in cards) ...[
+                                                card,
+                                                const SizedBox(height: 10),
+                                              ],
+                                            ],
+                                          );
+                                        }
+                                        return Row(
+                                          children: [
+                                            for (final card in cards)
+                                              Expanded(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        right: 10,
+                                                      ),
+                                                  child: card,
+                                                ),
+                                              ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 16),
+                                    LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final wide =
+                                            constraints.maxWidth >= 980;
+                                        final composer = _composer(
+                                          l10n,
+                                          colors,
+                                        );
+                                        final preview = _Preview(
+                                          colors: colors,
+                                          l10n: l10n,
+                                          platform: _platform,
+                                          caption: _caption.text,
+                                          hashtags: _hashtags,
+                                          mediaName: _media?.name,
+                                          name: formatPersonName(
+                                            draft?.fullName ?? '',
+                                          ),
+                                          photo: draft?.photoBytes,
+                                          onPlatform:
+                                              (value) => setState(
+                                                () => _platform = value,
+                                              ),
+                                        );
+                                        if (!wide) {
+                                          return Column(
+                                            children: [
+                                              composer,
+                                              const SizedBox(height: 12),
+                                              preview,
+                                            ],
+                                          );
+                                        }
+                                        return Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(flex: 3, child: composer),
+                                            const SizedBox(width: 12),
+                                            Expanded(flex: 2, child: preview),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                       ),
                     ],
                   ),
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        _failure(l10n, _error!),
-                        style: TextStyle(color: colors.muted),
-                      ),
-                    ),
-                  _Hero(colors: colors, l10n: l10n, status: _status),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.line('smiConnectedAccounts'),
-                    style: TextStyle(color: colors.text, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 10),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 760;
-                      final cards = [
-                        _AccountCard(
-                          colors: colors,
-                          title: 'Facebook',
-                          connected: _status?.facebook.connected == true,
-                          detail: l10n
-                              .line('smiFacebookPages')
-                              .replaceAll('{count}', '${_status?.facebook.pageCount ?? 0}'),
-                          icon: Icons.facebook,
-                          onOpen: () => _openAccount(l10n, 'Facebook'),
-                        ),
-                        _AccountCard(
-                          colors: colors,
-                          title: 'Instagram',
-                          connected: _status?.instagram.connected == true,
-                          detail: l10n.line('smiInstagramAccounts').replaceAll(
-                                '{count}',
-                                '${_status?.instagram.accountCount ?? 0}',
-                              ),
-                          icon: Icons.camera_alt_outlined,
-                          onOpen: () => _openAccount(l10n, 'Instagram'),
-                        ),
-                        _AccountCard(
-                          colors: colors,
-                          title: 'WhatsApp',
-                          connected: _status?.whatsapp.connected == true &&
-                              _status?.whatsapp.businessReady == true,
-                          detail: _status?.whatsapp.businessReady == true
-                              ? l10n.line('smiWhatsappBusiness')
-                              : l10n.line('smiWhatsappNotReady'),
-                          icon: Icons.chat_outlined,
-                          onOpen: () => _openAccount(l10n, 'WhatsApp'),
-                        ),
-                      ];
-                      if (!wide) {
-                        return Column(
-                          children: [
-                            for (final card in cards) ...[card, const SizedBox(height: 10)],
-                          ],
-                        );
-                      }
-                      return Row(
-                        children: [
-                          for (final card in cards)
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: card,
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 980;
-                      final composer = _composer(l10n, colors);
-                      final preview = _Preview(
-                        colors: colors,
-                        l10n: l10n,
-                        platform: _platform,
-                        caption: _caption.text,
-                        hashtags: _hashtags,
-                        mediaName: _media?.name,
-                        name: formatPersonName(draft?.fullName ?? ''),
-                        photo: draft?.photoBytes,
-                        onPlatform: (value) => setState(() => _platform = value),
-                      );
-                      if (!wide) {
-                        return Column(
-                          children: [composer, const SizedBox(height: 12), preview],
-                        );
-                      }
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(flex: 3, child: composer),
-                          const SizedBox(width: 12),
-                          Expanded(flex: 2, child: preview),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-      ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -346,18 +495,19 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(platform, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(l10n.line('smiSetupBody')),
-          ],
-        ),
-      ),
+      builder:
+          (context) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(platform, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 8),
+                Text(l10n.line('smiSetupBody')),
+              ],
+            ),
+          ),
     );
   }
 
@@ -369,24 +519,40 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
         children: [
           Text(
             l10n.line('smiCreatePost'),
-            style: TextStyle(color: colors.text, fontSize: 18, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              color: colors.text,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
-          Text(l10n.line('smiCreatePostHint'), style: TextStyle(color: colors.muted)),
+          Text(
+            l10n.line('smiCreatePostHint'),
+            style: TextStyle(color: colors.muted),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             children: [
-              for (final platform in const ['facebook', 'instagram', 'whatsapp'])
+              for (final platform in const [
+                'facebook',
+                'instagram',
+                'whatsapp',
+              ])
                 ChoiceChip(
-                  label: Text(platform[0].toUpperCase() + platform.substring(1)),
+                  label: Text(
+                    platform[0].toUpperCase() + platform.substring(1),
+                  ),
                   selected: _platform == platform,
                   onSelected: (_) => setState(() => _platform = platform),
                 ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(l10n.line('smiCaption'), style: TextStyle(color: colors.text, fontWeight: FontWeight.w700)),
+          Text(
+            l10n.line('smiCaption'),
+            style: TextStyle(color: colors.text, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 6),
           TextField(
             key: const Key('smi-caption'),
@@ -423,9 +589,18 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.line('smiAiTitle'), style: TextStyle(color: colors.text, fontWeight: FontWeight.w800)),
+                Text(
+                  l10n.line('smiAiTitle'),
+                  style: TextStyle(
+                    color: colors.text,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                Text(l10n.line('smiAiBody'), style: TextStyle(color: colors.muted)),
+                Text(
+                  l10n.line('smiAiBody'),
+                  style: TextStyle(color: colors.muted),
+                ),
                 const SizedBox(height: 8),
                 FilledButton.icon(
                   onPressed: _busy ? null : _generate,
@@ -436,7 +611,10 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(l10n.line('smiHashtags'), style: TextStyle(color: colors.text, fontWeight: FontWeight.w700)),
+          Text(
+            l10n.line('smiHashtags'),
+            style: TextStyle(color: colors.text, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -444,7 +622,9 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
                 child: TextField(
                   key: const Key('smi-hashtag'),
                   controller: _hashtag,
-                  decoration: InputDecoration(hintText: l10n.line('smiHashtagHint')),
+                  decoration: InputDecoration(
+                    hintText: l10n.line('smiHashtagHint'),
+                  ),
                   onSubmitted: (_) => _addHashtag(),
                 ),
               ),
@@ -520,9 +700,11 @@ class _Hero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final any = status?.facebook.connected == true ||
+    final any =
+        status?.facebook.connected == true ||
         status?.instagram.connected == true ||
-        (status?.whatsapp.connected == true && status?.whatsapp.businessReady == true);
+        (status?.whatsapp.connected == true &&
+            status?.whatsapp.businessReady == true);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -542,13 +724,24 @@ class _Hero extends StatelessWidget {
               children: [
                 Text(
                   l10n.line('smiTitle'),
-                  style: TextStyle(color: colors.text, fontSize: 20, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    color: colors.text,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-                Text(l10n.line('smiSubtitle'), style: TextStyle(color: colors.muted)),
+                Text(
+                  l10n.line('smiSubtitle'),
+                  style: TextStyle(color: colors.muted),
+                ),
               ],
             ),
           ),
-          _StatusPill(connected: any, label: any ? l10n.line('smiConnected') : l10n.line('smiNotConnected')),
+          _StatusPill(
+            connected: any,
+            label:
+                any ? l10n.line('smiConnected') : l10n.line('smiNotConnected'),
+          ),
         ],
       ),
     );
@@ -595,15 +788,27 @@ class _AccountCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: TextStyle(color: colors.text, fontWeight: FontWeight.w800)),
                     Text(
-                      connected ? l10n.line('smiConnected') : l10n.line('smiSetupRequired'),
+                      title,
                       style: TextStyle(
-                        color: connected ? const Color(0xFF12C47A) : colors.muted,
+                        color: colors.text,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      connected
+                          ? l10n.line('smiConnected')
+                          : l10n.line('smiSetupRequired'),
+                      style: TextStyle(
+                        color:
+                            connected ? const Color(0xFF12C47A) : colors.muted,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Text(detail, style: TextStyle(color: colors.muted, fontSize: 12)),
+                    Text(
+                      detail,
+                      style: TextStyle(color: colors.muted, fontSize: 12),
+                    ),
                   ],
                 ),
               ),
@@ -647,8 +852,14 @@ class _Preview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.line('smiPreview'), style: TextStyle(color: colors.text, fontWeight: FontWeight.w800)),
-          Text(l10n.line('smiPreviewNote'), style: TextStyle(color: colors.muted, fontSize: 12)),
+          Text(
+            l10n.line('smiPreview'),
+            style: TextStyle(color: colors.text, fontWeight: FontWeight.w800),
+          ),
+          Text(
+            l10n.line('smiPreviewNote'),
+            style: TextStyle(color: colors.muted, fontSize: 12),
+          ),
           const SizedBox(height: 8),
           DropdownButton<String>(
             value: platform,
@@ -673,7 +884,10 @@ class _Preview extends StatelessWidget {
                 child: Text(
                   name.isEmpty ? l10n.line('smiNameMissing') : name,
                   key: const Key('smi-preview-name'),
-                  style: TextStyle(color: colors.text, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    color: colors.text,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -684,7 +898,12 @@ class _Preview extends StatelessWidget {
             key: const Key('smi-preview-caption'),
             style: TextStyle(color: colors.text),
           ),
-          if (tags.isNotEmpty) Text(tags, key: const Key('smi-preview-tags'), style: TextStyle(color: colors.accent)),
+          if (tags.isNotEmpty)
+            Text(
+              tags,
+              key: const Key('smi-preview-tags'),
+              style: TextStyle(color: colors.accent),
+            ),
           const SizedBox(height: 8),
           Text(
             mediaName ?? l10n.line('smiNoMedia'),
@@ -713,7 +932,10 @@ class _StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color),
       ),
-      child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontWeight: FontWeight.w700),
+      ),
     );
   }
 }

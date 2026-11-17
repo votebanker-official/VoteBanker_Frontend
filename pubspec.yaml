@@ -34,6 +34,7 @@ flutter:
   assets:
     - assets/images/brand/votebanker_logo.png
     - assets/images/merchandise/
+    - assets/images/profile/
     - assets/images/parties/
     - assets/data/locations.json
     - assets/data/assembly_constituencies.json

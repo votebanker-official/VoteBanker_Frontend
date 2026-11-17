@@ -69,7 +69,10 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       _name.text = draft;
     }
     final savedPhoto = profile?.photoBytes;
-    if (_photoBytes == null && savedPhoto != null && savedPhoto.isNotEmpty) {
+    if (AuthService.instance.isSignedIn &&
+        _photoBytes == null &&
+        savedPhoto != null &&
+        savedPhoto.isNotEmpty) {
       _photoBytes = savedPhoto;
     }
     final phone = AuthService.instance.session?.phone ?? '';
@@ -221,7 +224,9 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
                 product: product,
                 line: _line.text,
                 photoBytes: _photoBytes,
-                partyName: OnboardingScope.maybeOf(context)?.draft.party ?? '',
+                partyName: AuthService.instance.isSignedIn
+                    ? (OnboardingScope.maybeOf(context)?.draft.party ?? '')
+                    : '',
                 size: _size,
                 color: _color,
                 quantity: _quantity,

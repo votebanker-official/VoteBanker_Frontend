@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/auth_service.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/responsive.dart';
-import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../dashboard/widgets/dashboard_colors.dart';
+import '../../dashboard/widgets/dashboard_sidebar.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
+import '../../onboarding/data/political_party.dart';
+import '../../onboarding/state/onboarding_controller.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
+import 'campaign_templates_screen.dart';
 import 'merchandise_design_screen.dart';
 
 class MerchandiseScreen extends StatefulWidget {
-  const MerchandiseScreen({
-    this.service,
-    this.initialCatalog,
-    super.key,
-  });
+  const MerchandiseScreen({this.service, this.initialCatalog, super.key});
 
   final MerchandiseService? service;
   final MerchandiseCatalog? initialCatalog;
@@ -28,11 +29,11 @@ class MerchandiseScreen extends StatefulWidget {
 }
 
 class _MerchandiseScreenState extends State<MerchandiseScreen> {
-  late final MerchandiseService _service = widget.service ?? MerchandiseService();
+  late final MerchandiseService _service =
+      widget.service ?? MerchandiseService();
   MerchandiseCatalog? _catalog;
   List<MerchandiseOrder> _orders = const [];
   var _loading = true;
-  var _failed = false;
 
   @override
   void initState() {
@@ -56,16 +57,12 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
         _catalog = catalog;
         _orders = orders;
         _loading = false;
-        _failed = false;
       });
     } catch (_) {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _loading = false;
-        _failed = true;
-      });
+      setState(() => _loading = false);
     }
   }
 
@@ -74,238 +71,176 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
     final l10n = AppLocalizations.of(context);
     final catalog = _catalog;
 
-    return Scaffold(
-      backgroundColor: context.palette.background,
-      body: AppBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => AppRouter.back(context, AppRoutes.dashboard),
-                      icon: const Icon(Icons.arrow_back),
+    final draft = OnboardingScope.maybeOf(context)?.draft;
+    final signedIn = AuthService.instance.isSignedIn;
+    final party = signedIn ? PartyOption.findByName(draft?.party ?? '') : null;
+    final photo = signedIn ? draft?.photoBytes : null;
+    final products =
+        (catalog == null || catalog.products.isEmpty)
+            ? campaignTemplateProducts
+            : catalog.products;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showSidebar = constraints.maxWidth >= AppBreakpoints.tablet;
+        return Scaffold(
+          backgroundColor: const Color(0xFFF4F7FB),
+          body: SafeArea(
+            child: Row(
+              children: [
+                if (showSidebar)
+                  SizedBox(
+                    width: 248,
+                    child: DashboardSidebar(
+                      colors: DashboardColors.of(context),
+                      items: dashboardSidebarItems(l10n),
+                      selectedRoute: AppRoutes.merchandise,
                     ),
-                    Expanded(
-                      child: Text(l10n.cardMarketplace, style: AppTextStyles.wordmark(context).copyWith(fontSize: 16)),
-                    ),
-                    const ThemeToggle(),
-                    const SizedBox(width: 8),
-                    const LanguageSelector(),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: AppBreakpoints.dashboardMaxWidth),
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
-                      children: [
-                        Text(l10n.line('merchTitle'), style: AppTextStyles.headline(context)),
-                        const SizedBox(height: 8),
-                        Text(l10n.line('merchBody'), style: AppTextStyles.muted(context)),
-                        const SizedBox(height: 16),
-                        if (_loading)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 48),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else if (_failed || catalog == null)
-                          Text(l10n.line('merchLoadError'), style: AppTextStyles.body(context))
-                        else ...[
-                          if (!catalog.storageReady)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(l10n.line('merchNotReady'), style: AppTextStyles.muted(context)),
+                  ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 6, 12, 0),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              tooltip: 'Back',
+                              onPressed:
+                                  () => AppRouter.back(
+                                    context,
+                                    AppRoutes.dashboard,
+                                  ),
+                              icon: const Icon(Icons.arrow_back),
                             ),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final columns = constraints.maxWidth >= 900
-                                  ? 4
-                                  : constraints.maxWidth >= 640
-                                  ? 3
-                                  : 2;
-                              return GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                clipBehavior: Clip.none,
-                                itemCount: catalog.products.length,
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: columns,
-                                  mainAxisSpacing: 12,
-                                  crossAxisSpacing: 12,
-                                  mainAxisExtent: 124,
+                            const Spacer(),
+                            const ThemeToggle(),
+                            const SizedBox(width: 8),
+                            const LanguageSelector(),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(28, 8, 28, 28),
+                          children: [
+                            const CampaignMerchandiseHero(),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Campaign Templates',
+                              style: AppTextStyles.headline(
+                                context,
+                              ).copyWith(fontSize: 28),
+                            ),
+                            const SizedBox(height: 16),
+                            if (_loading)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 48),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
                                 ),
-                                itemBuilder: (context, index) {
-                                  final item = catalog.products[index];
-                                  return _ProductTile(
-                                    product: item,
-                                    action: l10n.line('merchOpen'),
-                                    onTap: () async {
-                                      final saved = await Navigator.of(context).push<bool>(
-                                        MaterialPageRoute<bool>(
-                                          builder: (context) => MerchandiseDesignScreen(
-                                            product: item,
-                                            service: _service,
-                                          ),
+                              )
+                            else ...[
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final columns =
+                                      constraints.maxWidth >= 860 ? 2 : 1;
+                                  final cardWidth =
+                                      (constraints.maxWidth -
+                                          (columns - 1) * 20) /
+                                      columns;
+                                  final extent =
+                                      cardWidth < 430 ? 168.0 : 220.0;
+                                  return GridView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: products.length,
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: columns,
+                                          mainAxisSpacing: 20,
+                                          crossAxisSpacing: 20,
+                                          mainAxisExtent: extent,
                                         ),
+                                    itemBuilder: (context, index) {
+                                      final item = products[index];
+                                      return CampaignTemplateCard(
+                                        product: item,
+                                        party: party,
+                                        photo: photo,
+                                        onOrder: () async {
+                                          final saved = await Navigator.of(
+                                            context,
+                                          ).push<bool>(
+                                            MaterialPageRoute<bool>(
+                                              builder:
+                                                  (context) =>
+                                                      MerchandiseDesignScreen(
+                                                        product: item,
+                                                        service: _service,
+                                                      ),
+                                            ),
+                                          );
+                                          if (saved == true) {
+                                            await _load();
+                                          }
+                                        },
                                       );
-                                      if (saved == true) {
-                                        await _load();
-                                      }
                                     },
                                   );
                                 },
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 28),
-                          Text(l10n.line('merchMyRequests'), style: AppTextStyles.label(context)),
-                          const SizedBox(height: 8),
-                          if (_orders.isEmpty)
-                            Text(
-                              l10n.line('merchNoRequests'),
-                              style: AppTextStyles.muted(context),
-                            )
-                          else
-                            for (final order in _orders) ...[
-                              AppCard(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(order.productName, style: AppTextStyles.label(context)),
-                                    const SizedBox(height: 4),
-                                    Text(order.campaignLine, style: AppTextStyles.body(context)),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${order.quantity} · ${l10n.line('merchStatusRequested')}',
-                                      style: AppTextStyles.muted(context),
-                                    ),
-                                  ],
-                                ),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 28),
+                              Text(
+                                l10n.line('merchMyRequests'),
+                                style: AppTextStyles.label(context),
+                              ),
+                              const SizedBox(height: 8),
+                              if (_orders.isEmpty)
+                                Text(
+                                  l10n.line('merchNoRequests'),
+                                  style: AppTextStyles.muted(context),
+                                )
+                              else
+                                for (final order in _orders) ...[
+                                  AppCard(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          order.productName,
+                                          style: AppTextStyles.label(context),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          order.campaignLine,
+                                          style: AppTextStyles.body(context),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${order.quantity} · ${l10n.line('merchStatusRequested')}',
+                                          style: AppTextStyles.muted(context),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
                             ],
-                        ],
-                        const SizedBox(height: 32),
-                        Center(
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: context.palette.accent,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            ),
-                            onPressed: () => AppRouter.open(context, AppRoutes.vrm),
-                            child: Text(l10n.skipForNow),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
-}
-
-class _ProductTile extends StatelessWidget {
-  const _ProductTile({
-    required this.product,
-    required this.action,
-    required this.onTap,
-  });
-
-  final MerchandiseProduct product;
-  final String action;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final radius = BorderRadius.circular(18);
-    return Material(
-      color: palette.surface,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: radius,
-        side: BorderSide(color: palette.border.withValues(alpha: 0.85)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: palette.accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _iconFor(product.slug),
-                  color: palette.accent,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                product.name,
-                style: AppTextStyles.label(context).copyWith(fontSize: 15),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      action,
-                      style: AppTextStyles.muted(context).copyWith(fontSize: 12),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_rounded,
-                    size: 14,
-                    color: palette.accent,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-IconData _iconFor(String slug) {
-  return switch (slug) {
-    't-shirt' => Icons.checkroom_outlined,
-    'scarf' => Icons.dry_cleaning_outlined,
-    'flag' => Icons.flag_outlined,
-    'badge' => Icons.military_tech_outlined,
-    'cap' => Icons.face_retouching_natural_outlined,
-    'mug' => Icons.coffee_outlined,
-    'poster' => Icons.image_outlined,
-    'sticker' => Icons.sticky_note_2_outlined,
-    'bag' => Icons.shopping_bag_outlined,
-    'pen' => Icons.edit_outlined,
-    'keychain' => Icons.vpn_key_outlined,
-    'gift-box' => Icons.card_giftcard_outlined,
-    _ => Icons.storefront_outlined,
-  };
 }

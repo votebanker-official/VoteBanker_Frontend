@@ -1,9 +1,10 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
 import '../../../app/routing/app_router.dart';
-import '../../../app/theme/app_text_styles.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../onboarding/data/political_party.dart';
@@ -13,8 +14,8 @@ import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
 import 'merchandise_design_screen.dart';
 
-/// Catalog page that follows social setup. Product art uses the leader's
-/// party symbol and profile photo when those were saved on the profile.
+/// One campaign product at a time. A signed-in leader's party symbol and
+/// profile photo are drawn on the product. Guests see the product only.
 class CampaignTemplatesScreen extends StatefulWidget {
   const CampaignTemplatesScreen({this.service, super.key});
 
@@ -26,7 +27,11 @@ class CampaignTemplatesScreen extends StatefulWidget {
 
 class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
   late final MerchandiseService _service = widget.service ?? MerchandiseService();
+  final _pages = PageController();
+  final _booked = <String>{};
   List<MerchandiseProduct> _products = campaignTemplateProducts;
+  var _index = 0;
+  var _burst = 0;
 
   @override
   void initState() {
@@ -34,11 +39,20 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
     _refresh();
   }
 
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
   Future<void> _refresh() async {
     try {
       final catalog = await _service.loadCatalog();
       if (!mounted || catalog.products.isEmpty) return;
-      setState(() => _products = catalog.products);
+      setState(() {
+        _products = catalog.products;
+        if (_index >= _products.length) _index = 0;
+      });
     } catch (_) {
       // The built-in list stays on screen when the API cannot be reached.
     }
@@ -55,15 +69,34 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
     );
   }
 
+  void _book(MerchandiseProduct product) {
+    if (_booked.contains(product.slug)) return;
+    setState(() {
+      _booked.add(product.slug);
+      _burst++;
+    });
+  }
+
+  void _go(int index) {
+    _pages.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = OnboardingScope.maybeOf(context)?.draft;
-    final party = PartyOption.findByName(draft?.party ?? '');
-    final photo = draft?.photoBytes;
+    final signedIn = AuthService.instance.isSignedIn;
+    final party = signedIn ? PartyOption.findByName(draft?.party ?? '') : null;
+    final photo = signedIn ? draft?.photoBytes : null;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
-      body: SafeArea(
+      body: Stack(
+        children: [
+          SafeArea(
         child: Column(
           children: [
             Padding(
@@ -83,60 +116,435 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
               ),
             ),
             Expanded(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 920),
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
-                    children: [
-                      const _HeroBanner(),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Campaign Templates',
-                        style: AppTextStyles.headline(context).copyWith(fontSize: 22),
-                      ),
-                      const SizedBox(height: 12),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final columns = constraints.maxWidth >= 720 ? 2 : 1;
-                          return GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _products.length,
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: columns,
-                              mainAxisSpacing: 14,
-                              crossAxisSpacing: 14,
-                              mainAxisExtent: 148,
-                            ),
-                            itemBuilder: (context, index) {
-                              final product = _products[index];
-                              return _TemplateCard(
-                                product: product,
-                                party: party,
-                                photo: photo,
-                                onOrder: () => _open(product),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 18),
-                      const _FooterBanner(),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: () => AppRouter.open(context, AppRoutes.vrm),
-                        child: const Text('Skip for now'),
-                      ),
-                    ],
-                  ),
-                ),
+              child: PageView.builder(
+                controller: _pages,
+                itemCount: _products.length,
+                onPageChanged: (index) => setState(() => _index = index),
+                itemBuilder: (context, index) {
+                  final product = _products[index];
+                  return _ProductShowcase(
+                    product: product,
+                    party: party,
+                    photo: photo,
+                    index: index,
+                    total: _products.length,
+                    booked: _booked.contains(product.slug),
+                    onDesign: () => _open(product),
+                    onBook: () => _book(product),
+                    onSkip: () => AppRouter.open(context, AppRoutes.vrm),
+                    onPrevious: index == 0 ? null : () => _go(index - 1),
+                    onNext: index == _products.length - 1 ? null : () => _go(index + 1),
+                  );
+                },
               ),
             ),
           ],
         ),
+          ),
+          if (_burst > 0)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: _ConfettiBurst(key: ValueKey(_burst)),
+              ),
+            ),
+        ],
       ),
+    );
+  }
+}
+
+class _ProductShowcase extends StatelessWidget {
+  const _ProductShowcase({
+    required this.product,
+    required this.index,
+    required this.total,
+    required this.booked,
+    required this.onDesign,
+    required this.onBook,
+    required this.onSkip,
+    this.party,
+    this.photo,
+    this.onPrevious,
+    this.onNext,
+  });
+
+  final MerchandiseProduct product;
+  final PartyOption? party;
+  final Uint8List? photo;
+  final int index;
+  final int total;
+  final bool booked;
+  final VoidCallback onDesign;
+  final VoidCallback onBook;
+  final VoidCallback onSkip;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 800;
+        final tagline = _taglineFor(product);
+        return Padding(
+          padding: EdgeInsets.fromLTRB(wide ? 36 : 16, 4, wide ? 36 : 16, wide ? 20 : 12),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 980),
+              child: Column(
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      style: TextStyle(
+                        fontSize: wide ? 32 : 22,
+                        height: 1.15,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1E3A8A),
+                      ),
+                      children: const [
+                        TextSpan(text: 'Create Your '),
+                        TextSpan(text: 'Campaign ', style: TextStyle(color: Color(0xFFF97316))),
+                        TextSpan(text: 'Merchandise'),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${index + 1} of $total',
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: wide ? 12 : 6),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, artBox) {
+                        final pad = wide ? 28.0 : 16.0;
+                        final room = math.min(artBox.maxWidth - (wide ? 120 : 72), artBox.maxHeight);
+                        final inner = room - pad * 2;
+                        final size = inner <= 48 ? math.max(inner, 1.0) : math.min(inner, wide ? 460.0 : 320.0);
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(28),
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0x140F172A), blurRadius: 28, offset: Offset(0, 14)),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.all(wide ? 28 : 16),
+                                child: _ProductArt(
+                                  slug: product.slug,
+                                  party: party,
+                                  photo: photo,
+                                  size: size,
+                                ),
+                              ),
+                            ),
+                            if (onPrevious != null)
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: _PageArrow(icon: Icons.chevron_left, onPressed: onPrevious!),
+                              ),
+                            if (onNext != null)
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: _PageArrow(icon: Icons.chevron_right, onPressed: onNext!),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(height: wide ? 16 : 8),
+                  Text(
+                    product.name,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: wide ? 32 : 26,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    tagline,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: const Color(0xFF64748B), fontSize: wide ? 16 : 14),
+                  ),
+                  const SizedBox(height: 8),
+                  _PageDots(count: total, index: index),
+                  SizedBox(height: wide ? 16 : 8),
+                  wide
+                      ? Row(
+                          children: [
+                            Expanded(child: _DesignButton(onPressed: onDesign)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _BookButton(booked: booked, onPressed: onBook)),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            SizedBox(width: double.infinity, child: _DesignButton(compact: true, onPressed: onDesign)),
+                            const SizedBox(height: 8),
+                            SizedBox(width: double.infinity, child: _BookButton(compact: true, booked: booked, onPressed: onBook)),
+                          ],
+                        ),
+                  const SizedBox(height: 4),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF64748B),
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      minimumSize: const Size(0, 28),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: onSkip,
+                    child: const Text('Skip now'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DesignButton extends StatelessWidget {
+  const _DesignButton({required this.onPressed, this.compact = false});
+
+  final VoidCallback onPressed;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color(0xFF1D4ED8),
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: compact ? 10 : 14),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        shape: const StadiumBorder(),
+      ),
+      onPressed: onPressed,
+      icon: const Icon(Icons.edit_outlined, size: 18),
+      label: const Text('Design & Order'),
+    );
+  }
+}
+
+class _BookButton extends StatelessWidget {
+  const _BookButton({required this.booked, required this.onPressed, this.compact = false});
+
+  final bool booked;
+  final VoidCallback onPressed;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      style: FilledButton.styleFrom(
+        backgroundColor: booked ? const Color(0xFF16A34A) : const Color(0xFFF97316),
+        disabledBackgroundColor: const Color(0xFF16A34A),
+        foregroundColor: Colors.white,
+        disabledForegroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: compact ? 10 : 14),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        shape: const StadiumBorder(),
+      ),
+      onPressed: booked ? null : onPressed,
+      icon: Icon(booked ? Icons.check_circle : Icons.event_available_outlined, size: 18),
+      label: Text(booked ? 'Booked' : 'Book Now'),
+    );
+  }
+}
+
+class _ConfettiBurst extends StatefulWidget {
+  const _ConfettiBurst({super.key});
+
+  @override
+  State<_ConfettiBurst> createState() => _ConfettiBurstState();
+}
+
+class _ConfettiPiece {
+  const _ConfettiPiece({
+    required this.origin,
+    required this.spread,
+    required this.reach,
+    required this.delay,
+    required this.spin,
+    required this.color,
+    required this.w,
+    required this.h,
+    required this.shape,
+  });
+
+  final double origin;
+  final double spread;
+  final double reach;
+  final double delay;
+  final double spin;
+  final Color color;
+  final double w;
+  final double h;
+  final int shape;
+}
+
+class _ConfettiBurstState extends State<_ConfettiBurst> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final List<_ConfettiPiece> _pieces;
+
+  @override
+  void initState() {
+    super.initState();
+    final random = math.Random();
+    const colors = <Color>[
+      Color(0xFFFF9933),
+      Color(0xFF138808),
+      Color(0xFF1D4ED8),
+      Color(0xFFF97316),
+      Color(0xFFFFFFFF),
+      Color(0xFFFACC15),
+      Color(0xFFFB7185),
+      Color(0xFF22C55E),
+    ];
+    _pieces = [
+      for (var i = 0; i < 100; i++)
+        _ConfettiPiece(
+          origin: 0.5 + (random.nextDouble() - 0.5) * 0.08,
+          // 70° fan aimed straight up, the same burst as confetti({ spread: 70 }).
+          spread: (random.nextDouble() - 0.5) * 70 * math.pi / 180,
+          reach: 0.72 + random.nextDouble() * 0.55,
+          delay: random.nextDouble() * 0.08,
+          spin: (random.nextDouble() - 0.5) * 12,
+          color: colors[i % colors.length],
+          w: 6 + random.nextDouble() * 8,
+          h: 8 + random.nextDouble() * 12,
+          shape: i % 3,
+        ),
+    ];
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 2400))..forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return CustomPaint(
+          painter: _ConfettiPainter(progress: _controller.value, pieces: _pieces),
+          child: const SizedBox.expand(),
+        );
+      },
+    );
+  }
+}
+
+class _ConfettiPainter extends CustomPainter {
+  const _ConfettiPainter({required this.progress, required this.pieces});
+
+  final double progress;
+  final List<_ConfettiPiece> pieces;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final piece in pieces) {
+      final span = 1 - piece.delay;
+      final t = ((progress - piece.delay) / span).clamp(0.0, 1.0);
+      if (t <= 0) continue;
+      final fade = t < 0.08 ? t / 0.08 : (t > 0.72 ? ((1 - t) / 0.28).clamp(0.0, 1.0) : 1.0);
+      // Launch from 60% down the screen and shoot upward, then gravity pulls the pieces back.
+      final vx = math.sin(piece.spread) * piece.reach;
+      final vy = -math.cos(piece.spread) * piece.reach;
+      final x = piece.origin * size.width + vx * t * size.width * 0.72;
+      final y = size.height * 0.6 + vy * t * size.height + 0.95 * t * t * size.height;
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(piece.spin * t);
+      final paint = Paint()..color = piece.color.withValues(alpha: fade);
+      switch (piece.shape) {
+        case 1:
+          canvas.drawCircle(Offset.zero, piece.w / 2, paint);
+        case 2:
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromCenter(center: Offset.zero, width: piece.w * 0.45, height: piece.h),
+              const Radius.circular(3),
+            ),
+            paint,
+          );
+        default:
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromCenter(center: Offset.zero, width: piece.w, height: piece.w * 0.62),
+              const Radius.circular(2),
+            ),
+            paint,
+          );
+      }
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ConfettiPainter oldDelegate) => oldDelegate.progress != progress;
+}
+
+class _PageArrow extends StatelessWidget {
+  const _PageArrow({required this.icon, required this.onPressed});
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      elevation: 2,
+      shadowColor: const Color(0x330F172A),
+      shape: const CircleBorder(),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, color: const Color(0xFF1D4ED8)),
+      ),
+    );
+  }
+}
+
+class _PageDots extends StatelessWidget {
+  const _PageDots({required this.count, required this.index});
+
+  final int count;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < count; i++)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: i == index ? 16 : 6,
+            height: 6,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            decoration: BoxDecoration(
+              color: i == index ? const Color(0xFF1D4ED8) : const Color(0xFFCBD5E1),
+              borderRadius: BorderRadius.circular(99),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -228,8 +636,8 @@ const campaignTemplateProducts = <MerchandiseProduct>[
   ),
 ];
 
-class _HeroBanner extends StatelessWidget {
-  const _HeroBanner();
+class CampaignMerchandiseHero extends StatelessWidget {
+  const CampaignMerchandiseHero();
 
   @override
   Widget build(BuildContext context) {
@@ -251,7 +659,7 @@ class _HeroBanner extends StatelessWidget {
         children: [
           Text.rich(
             TextSpan(
-              style: TextStyle(fontSize: 28, height: 1.15, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
+              style: TextStyle(fontSize: 40, height: 1.12, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
               children: [
                 TextSpan(text: 'Create Your\n'),
                 TextSpan(text: 'Campaign ', style: TextStyle(color: Color(0xFFF97316))),
@@ -270,8 +678,8 @@ class _HeroBanner extends StatelessWidget {
   }
 }
 
-class _TemplateCard extends StatelessWidget {
-  const _TemplateCard({
+class CampaignTemplateCard extends StatelessWidget {
+  const CampaignTemplateCard({
     required this.product,
     required this.onOrder,
     this.party,
@@ -292,57 +700,87 @@ class _TemplateCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
         onTap: onOrder,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            boxShadow: const [
-              BoxShadow(color: Color(0x120F172A), blurRadius: 18, offset: Offset(0, 8)),
-            ],
-          ),
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              _ProductArt(slug: product.slug, party: party, photo: photo),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _tagline(product),
-                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
-                    ),
-                    const SizedBox(height: 10),
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF1D4ED8),
-                        foregroundColor: Colors.white,
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        shape: const StadiumBorder(),
-                      ),
-                      onPressed: onOrder,
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Design & Order'),
-                    ),
-                  ],
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 430;
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x120F172A), blurRadius: 18, offset: Offset(0, 8)),
+                ],
               ),
-            ],
-          ),
+              padding: EdgeInsets.all(compact ? 14 : 22),
+              child: Row(
+                children: [
+                  _ProductArt(
+                    slug: product.slug,
+                    party: party,
+                    photo: photo,
+                    size: compact ? 104 : 168,
+                  ),
+                  SizedBox(width: compact ? 12 : 22),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          product.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: compact ? 18 : 26,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _taglineFor(product),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: const Color(0xFF64748B), fontSize: compact ? 13 : 16),
+                        ),
+                        SizedBox(height: compact ? 8 : 16),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF1D4ED8),
+                              foregroundColor: Colors.white,
+                              visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: compact ? 12 : 18,
+                                vertical: compact ? 8 : 14,
+                              ),
+                              textStyle: TextStyle(
+                                fontSize: compact ? 13 : 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              shape: const StadiumBorder(),
+                            ),
+                            onPressed: onOrder,
+                            icon: const Icon(Icons.edit_outlined, size: 16),
+                            label: const Text('Design & Order'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  String _tagline(MerchandiseProduct product) {
+}
+
+String _taglineFor(MerchandiseProduct product) {
     const lines = {
       't-shirt': 'Wear Your Support',
       'scarf': 'Wrap the Spirit',
@@ -358,21 +796,21 @@ class _TemplateCard extends StatelessWidget {
       'gift-box': 'Share the Support',
     };
     return lines[product.slug] ?? product.description;
-  }
 }
 
 class _ProductArt extends StatelessWidget {
-  const _ProductArt({required this.slug, this.party, this.photo});
+  const _ProductArt({required this.slug, this.party, this.photo, this.size = 168});
 
   final String slug;
   final PartyOption? party;
   final Uint8List? photo;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 104,
-      height: 104,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
@@ -396,14 +834,19 @@ class _ProductArt extends StatelessWidget {
             Positioned(
               left: 6,
               top: 6,
-              child: PartySymbol(party!.name, diameter: 28),
+              child: PartySymbol(party!.name, diameter: (size * 0.18).clamp(24, 64)),
             ),
           if (photo != null && photo!.isNotEmpty)
             Positioned(
               right: 6,
               bottom: 6,
               child: ClipOval(
-                child: Image.memory(photo!, width: 32, height: 32, fit: BoxFit.cover),
+                child: Image.memory(
+                  photo!,
+                  width: (size * 0.2).clamp(28, 72),
+                  height: (size * 0.2).clamp(28, 72),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
         ],
@@ -427,34 +870,5 @@ class _ProductArt extends StatelessWidget {
       'gift-box': 'assets/images/merchandise/merch-gift.jpg',
     };
     return files[slug] ?? 'assets/images/merchandise/merch-tshirt.jpg';
-  }
-}
-
-class _FooterBanner extends StatelessWidget {
-  const _FooterBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFF7ED), Color(0xFFFFFFFF), Color(0xFFECFDF3)],
-        ),
-      ),
-      child: const Text.rich(
-        textAlign: TextAlign.center,
-        TextSpan(
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF1E3A8A)),
-          children: [
-            TextSpan(text: 'Together for a\n', style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.w500)),
-            TextSpan(text: 'Better ', style: TextStyle(color: Color(0xFFF97316), fontWeight: FontWeight.w800)),
-            TextSpan(text: 'India', style: TextStyle(color: Color(0xFF16A34A), fontWeight: FontWeight.w800)),
-          ],
-        ),
-      ),
-    );
   }
 }

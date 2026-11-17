@@ -19,7 +19,11 @@ import 'package:votebanker/features/onboarding/state/onboarding_controller.dart'
 
 class _FakeService extends SocialConnectionService {
   _FakeService({this.error})
-      : super(client: MockClient((_) async => http.Response('{"connections":[]}', 200)));
+    : super(
+        client: MockClient(
+          (_) async => http.Response('{"connections":[]}', 200),
+        ),
+      );
 
   final String? error;
   var startCalls = 0;
@@ -43,7 +47,74 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('Connect opens the confirmation dialog and Cancel stays disconnected', (
+  testWidgets(
+    'Connect opens the confirmation dialog and Cancel stays disconnected',
+    (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(_app(SocialSetupScreen(service: _FakeService())));
+      await tester.pumpAndSettle();
+
+      expect(find.text(enTranslations['socialTitle']!), findsOneWidget);
+      expect(find.text(enTranslations['socialConnect']!), findsWidgets);
+      expect(find.text(enTranslations['socialConnectedBadge']!), findsNothing);
+
+      await tester.tap(find.text(enTranslations['socialConnect']!).first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Connect Instagram'), findsOneWidget);
+      expect(find.text(enTranslations['socialSecureTitle']!), findsOneWidget);
+      expect(
+        find.text(enTranslations['socialPermissionsTitle']!),
+        findsOneWidget,
+      );
+      expect(find.text('Continue to Instagram'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Connect Instagram'), findsNothing);
+      expect(find.text(enTranslations['socialConnectedBadge']!), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'a missing provider configuration does not mark the account Connected',
+    (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final service = _FakeService();
+      AuthService.instance.session = const AuthSession(
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        userId: 'user-1',
+        phone: '+910000000000',
+      );
+      addTearDown(() => AuthService.instance.session = null);
+      await tester.pumpWidget(_app(SocialSetupScreen(service: service)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(enTranslations['socialConnect']!).first);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Continue to Instagram'));
+      await tester.tap(find.text('Continue to Instagram'));
+      await tester.pumpAndSettle();
+
+      expect(service.startCalls, 1);
+      expect(
+        find.text(enTranslations['socialNotConfiguredProvider']!),
+        findsOneWidget,
+      );
+      expect(find.text(enTranslations['socialRetry']!), findsOneWidget);
+      expect(find.text(enTranslations['socialConnectedBadge']!), findsNothing);
+    },
+  );
+
+  testWidgets('Skip for now and Save & Continue both open Campaign', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1280, 900);
@@ -53,70 +124,16 @@ void main() {
     await tester.pumpWidget(_app(SocialSetupScreen(service: _FakeService())));
     await tester.pumpAndSettle();
 
-    expect(find.text(enTranslations['socialTitle']!), findsOneWidget);
-    expect(find.text(enTranslations['socialConnect']!), findsWidgets);
-    expect(find.text(enTranslations['socialConnectedBadge']!), findsNothing);
-
-    await tester.tap(find.text(enTranslations['socialConnect']!).first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Connect Instagram'), findsOneWidget);
-    expect(find.text(enTranslations['socialSecureTitle']!), findsOneWidget);
-    expect(find.text(enTranslations['socialPermissionsTitle']!), findsOneWidget);
-    expect(find.text('Continue to Instagram'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.close));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Connect Instagram'), findsNothing);
-    expect(find.text(enTranslations['socialConnectedBadge']!), findsNothing);
-  });
-
-  testWidgets('a missing provider configuration does not mark the account Connected', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1280, 900);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-
-    final service = _FakeService();
-    AuthService.instance.session = const AuthSession(
-      accessToken: 'token',
-      refreshToken: 'refresh',
-      userId: 'user-1',
-      phone: '+910000000000',
+    final skip = find.widgetWithText(
+      OutlinedButton,
+      enTranslations['skipForNow']!,
     );
-    addTearDown(() => AuthService.instance.session = null);
-    await tester.pumpWidget(_app(SocialSetupScreen(service: service)));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text(enTranslations['socialConnect']!).first);
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Continue to Instagram'));
-    await tester.tap(find.text('Continue to Instagram'));
-    await tester.pumpAndSettle();
-
-    expect(service.startCalls, 1);
-    expect(find.text(enTranslations['socialNotConfiguredProvider']!), findsOneWidget);
-    expect(find.text(enTranslations['socialRetry']!), findsOneWidget);
-    expect(find.text(enTranslations['socialConnectedBadge']!), findsNothing);
-  });
-
-  testWidgets('Skip for now and Save & Continue both open Campaign', (tester) async {
-    tester.view.physicalSize = const Size(1280, 900);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-
-    await tester.pumpWidget(_app(SocialSetupScreen(service: _FakeService())));
-    await tester.pumpAndSettle();
-
-    final skip = find.text(enTranslations['skipForNow']!);
     final save = find.text(enTranslations['saveAndContinue']!);
     expect(tester.getTopLeft(skip).dy, lessThan(tester.getTopLeft(save).dy));
 
     await tester.tap(skip);
     await tester.pumpAndSettle();
-    expect(find.text('Campaign Templates'), findsOneWidget);
+    expect(find.byType(CampaignTemplatesScreen), findsOneWidget);
     expect(find.text(enTranslations['socialTitle']!), findsNothing);
 
     await tester.tap(find.byIcon(Icons.arrow_back));
@@ -125,7 +142,26 @@ void main() {
 
     await tester.tap(save);
     await tester.pumpAndSettle();
-    expect(find.text('Campaign Templates'), findsOneWidget);
+    expect(find.byType(CampaignTemplatesScreen), findsOneWidget);
+  });
+
+  testWidgets('social setup lays out on phone, tablet and desktop', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    for (final size in const [
+      Size(390, 844),
+      Size(800, 1100),
+      Size(1280, 900),
+    ]) {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(_app(SocialSetupScreen(service: _FakeService())));
+      await tester.pumpAndSettle();
+      expect(find.text(enTranslations['socialTitle']!), findsOneWidget);
+      expect(find.text(enTranslations['socialInstagram']!), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
   });
 }
 
@@ -152,9 +188,10 @@ Widget _app(Widget child) {
           if (settings.name == AppRoutes.campaignTemplates) {
             return MaterialPageRoute<void>(
               settings: settings,
-              builder: (_) => CampaignTemplatesScreen(
-                service: _QuietMerchandiseService(),
-              ),
+              builder:
+                  (_) => CampaignTemplatesScreen(
+                    service: _QuietMerchandiseService(),
+                  ),
             );
           }
           return AppRouter.onGenerateRoute(settings);
