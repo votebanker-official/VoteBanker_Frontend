@@ -156,6 +156,17 @@ class AppLocalizations {
   String get renewalPrice => _t('renewalPrice');
   String get premiumDomain => _t('premiumDomain');
   String get perYear => _t('perYear');
+  String get domainCrumbHome => _t('domainCrumbHome');
+  String get domainCrumbSetup => _t('domainCrumbSetup');
+  String get domainCrumbChoose => _t('domainCrumbChoose');
+  String get domainRegistration => _t('domainRegistration');
+  String get domainRenewal => _t('domainRenewal');
+  String get domainPerYear => _t('domainPerYear');
+  String get domainContinue => _t('domainContinue');
+  String get domainTip => _t('domainTip');
+  String get domainNavDomains => _t('domainNavDomains');
+  String get domainNavMerchandise => _t('domainNavMerchandise');
+  String get domainNavTeam => _t('domainNavTeam');
   String get dashboard => _t('dashboard');
   String get dashboardSubtitle => _t('dashboardSubtitle');
   String get cardProfile => _t('cardProfile');

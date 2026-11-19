@@ -10,6 +10,7 @@ import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/onboarding/models/domain_suggestion.dart';
 import 'package:votebanker/features/onboarding/screens/domain_search_screen.dart';
+import 'package:votebanker/features/onboarding/widgets/domain_result_card.dart';
 import 'package:votebanker/features/onboarding/services/domain_service.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 
@@ -220,11 +221,14 @@ void main() {
     expect(find.text('votebanker.in'), findsNothing);
     expect(find.text('Unavailable'), findsNothing);
     expect(find.text('Available'), findsWidgets);
-    expect(find.textContaining('12.50 USD'), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('votebanker.com')).dy,
-      lessThan(tester.getTopLeft(find.text('votebanker.online')).dy),
-    );
+    expect(find.textContaining('\$12.50'), findsOneWidget);
+    final com = tester.getTopLeft(find.text('votebanker.com'));
+    final online = tester.getTopLeft(find.text('votebanker.online'));
+    if ((com.dy - online.dy).abs() < 1) {
+      expect(com.dx, lessThan(online.dx));
+    } else {
+      expect(com.dy, lessThan(online.dy));
+    }
 
     await tester.tap(find.text('Search'));
     await tester.pumpAndSettle();
@@ -296,12 +300,108 @@ void main() {
     await tester.tap(find.text('Search'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Select Portfolio Name'), findsWidgets);
-    expect(find.textContaining('1500 INR'), findsWidgets);
-    expect(find.textContaining('15870.80 INR'), findsOneWidget);
-    expect(find.textContaining('7935.40 INR'), findsOneWidget);
+    expect(find.text('Select Domain'), findsWidgets);
+    expect(find.textContaining('₹1,500'), findsWidgets);
+    expect(find.textContaining('₹15,870.80'), findsOneWidget);
+    expect(find.textContaining('₹7,935.40'), findsOneWidget);
     expect(find.textContaining('900'), findsNothing);
     expect(find.textContaining('rupees'), findsNothing);
+  });
+
+  testWidgets('domain picker lays out on desktop, tablet, and mobile', (
+    tester,
+  ) async {
+    final client = MockClient((request) async {
+      return http.Response(
+        jsonEncode({
+          'success': true,
+          'results': [
+            {
+              'domain': 'yourbrand.in',
+              'available': true,
+              'status': 'free',
+              'price': {'amount': 1500, 'currency': 'INR'},
+              'renewalPrice': {'amount': 1500, 'currency': 'INR'},
+            },
+            {
+              'domain': 'yourbrand.page',
+              'available': true,
+              'status': 'free',
+              'price': {'amount': 1500, 'currency': 'INR'},
+              'renewalPrice': {'amount': 1500, 'currency': 'INR'},
+            },
+            {
+              'domain': 'yourbrand.vote',
+              'available': true,
+              'status': 'free',
+              'price': {'amount': 1500, 'currency': 'INR'},
+              'renewalPrice': {'amount': 1500, 'currency': 'INR'},
+            },
+          ],
+        }),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+    final controller = OnboardingController();
+    addTearDown(controller.dispose);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final size in const [
+      Size(1280, 900),
+      Size(800, 900),
+      Size(360, 740),
+    ]) {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(
+        _app(
+          controller: controller,
+          child: DomainSearchScreen(
+            domainService: DomainService(
+              client: client,
+              baseUrls: const ['http://domain.test'],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull, reason: 'layout at $size');
+      expect(find.text('Name Your Website'), findsWidgets);
+      expect(
+        find.text('Tip: Keep it short, memorable and relevant to your brand.'),
+        findsOneWidget,
+      );
+      if (size.width >= 700) {
+        expect(find.text('Search'), findsOneWidget);
+      } else {
+        expect(find.byKey(const ValueKey('domainSearchButton')), findsOneWidget);
+      }
+      expect(find.text('Back'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'yourbrand');
+      await tester.tap(find.byKey(const ValueKey('domainSearchButton')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'results at $size');
+      expect(find.text('yourbrand.in'), findsOneWidget);
+      expect(find.text('Registration'), findsWidgets);
+      expect(find.text('Renewal'), findsWidgets);
+      expect(find.textContaining('₹1,500 / year'), findsWidgets);
+
+      final card = find.ancestor(
+        of: find.text('yourbrand.page'),
+        matching: find.byType(DomainResultCard),
+      );
+      await tester.ensureVisible(card);
+      await tester.tap(
+        find.descendant(of: card, matching: find.text('Select Domain')),
+      );
+      await tester.pump();
+      expect(find.byIcon(Icons.check), findsOneWidget);
+      expect(find.text('Name Your Website'), findsWidgets);
+    }
   });
 }
 

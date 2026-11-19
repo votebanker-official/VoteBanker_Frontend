@@ -304,11 +304,6 @@ class _TopBar extends StatelessWidget {
         ),
       ),
     );
-    final back = IconButton(
-      tooltip: l10n.back,
-      onPressed: () => AppRouter.back(context, AppRoutes.ready),
-      icon: Icon(Icons.arrow_back, color: colors.accent),
-    );
     final avatar = CircleAvatar(
       radius: 16,
       backgroundColor: colors.accentSoft,
@@ -360,7 +355,6 @@ class _TopBar extends StatelessWidget {
               return Row(
                 children: [
                   Expanded(child: searchField),
-                  back,
                   const ThemeToggle(),
                   const SizedBox(width: 8),
                   const LanguageSelector(),
@@ -382,7 +376,6 @@ class _TopBar extends StatelessWidget {
                   Expanded(child: brand),
                   const SizedBox(width: 8),
                   SizedBox(width: 220, child: searchField),
-                  back,
                   const ThemeToggle(),
                   const SizedBox(width: 8),
                   const LanguageSelector(),
@@ -401,7 +394,6 @@ class _TopBar extends StatelessWidget {
                       icon: Icon(Icons.menu, color: colors.accent),
                     ),
                     Expanded(child: brand),
-                    back,
                     Icon(Icons.notifications_none, color: colors.accent),
                     const SizedBox(width: 8),
                     avatar,

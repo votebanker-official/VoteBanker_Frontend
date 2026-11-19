@@ -16,7 +16,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dashboard-welcome-back')), findsOneWidget);
-    expect(find.byTooltip('Back'), findsNWidgets(2));
+    expect(find.byTooltip('Back'), findsOneWidget);
+    expect(_topBarBack, findsNothing);
     expect(find.text('VOTE BANKER'), findsWidgets);
     expect(find.byType(DashboardPlaceholderScreen), findsOneWidget);
   });
@@ -47,33 +48,13 @@ void main() {
     expect(find.byType(DashboardPlaceholderScreen), findsNothing);
   });
 
-  testWidgets('dashboard back from the root opens the ready screen', (
-    tester,
-  ) async {
+  testWidgets('dashboard top bar has no back button', (tester) async {
     await tester.pumpWidget(_routed(AppRoutes.dashboard));
     await tester.pumpAndSettle();
 
-    await tester.tap(_topBarBack);
-    await tester.pumpAndSettle();
-
-    expect(find.text("You're all set"), findsOneWidget);
-    expect(find.byType(DashboardPlaceholderScreen), findsNothing);
-  });
-
-  testWidgets('dashboard back returns to the previous screen', (tester) async {
-    await tester.pumpWidget(_stack(const DashboardPlaceholderScreen()));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Open'));
-    await tester.pumpAndSettle();
-
-    expect(_topBarBack, findsOneWidget);
-    expect(find.text('VOTE BANKER'), findsWidgets);
-
-    await tester.tap(_topBarBack);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Previous'), findsOneWidget);
-    expect(find.byType(DashboardPlaceholderScreen), findsNothing);
+    expect(_topBarBack, findsNothing);
+    expect(find.byKey(const Key('dashboard-welcome-back')), findsOneWidget);
+    expect(find.byType(DashboardPlaceholderScreen), findsOneWidget);
   });
 
   testWidgets('social setup back returns without changing actions', (
