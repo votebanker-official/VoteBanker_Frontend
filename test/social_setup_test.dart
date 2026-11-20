@@ -114,7 +114,7 @@ void main() {
     },
   );
 
-  testWidgets('Skip for now and Save & Continue both open Campaign', (
+  testWidgets('Skip for now and Save & Continue both open Blue Tik', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1280, 900);
@@ -133,7 +133,7 @@ void main() {
 
     await tester.tap(skip);
     await tester.pumpAndSettle();
-    expect(find.byType(CampaignTemplatesScreen), findsOneWidget);
+    expect(find.byKey(const Key('blue-tik-screen')), findsOneWidget);
     expect(find.text(enTranslations['socialTitle']!), findsNothing);
 
     await tester.tap(find.byIcon(Icons.arrow_back));
@@ -142,7 +142,10 @@ void main() {
 
     await tester.tap(save);
     await tester.pumpAndSettle();
-    expect(find.byType(CampaignTemplatesScreen), findsOneWidget);
+    expect(find.byKey(const Key('blue-tik-screen')), findsOneWidget);
+    expect(find.text('Get Your Blue Tik'), findsOneWidget);
+    expect(find.text(enTranslations['socialTitle']!), findsNothing);
+    expect(find.byType(CampaignTemplatesScreen), findsNothing);
   });
 
   testWidgets('social setup lays out on phone, tablet and desktop', (

@@ -405,11 +405,9 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
                               body: l10n.line('socialSkipBody'),
                               action: l10n.skipForNow,
                               compact: !wide,
-                              onSkip:
-                                  () => AppRouter.open(
-                                    context,
-                                    AppRoutes.campaignTemplates,
-                                  ),
+                              onSkip: () {
+                                AppRouter.open(context, AppRoutes.blueTik);
+                              },
                             ),
                             const SizedBox(height: 18),
                             Align(
@@ -419,11 +417,9 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
                                 ),
                                 child: _GradientContinue(
                                   label: l10n.saveAndContinue,
-                                  onPressed:
-                                      () => AppRouter.open(
-                                        context,
-                                        AppRoutes.campaignTemplates,
-                                      ),
+                                  onPressed: () {
+                                    AppRouter.open(context, AppRoutes.blueTik);
+                                  },
                                 ),
                               ),
                             ),

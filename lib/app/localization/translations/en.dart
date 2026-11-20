@@ -509,6 +509,35 @@ const enTranslations = <String, String>{
   'viewPlans': 'View Plans',
   'socialLater':
       'Social plans and connections will be added later. Continuing for now.',
+  'blueTikLead': 'Get Your',
+  'blueTikAccent': 'Blue Tik',
+  'blueTikSubtitle':
+      'Verify your social accounts and build more trust with your followers.',
+  'blueTikVerifiedOn': 'Get Verified on {platform}',
+  'blueTikBookNow': 'Book Now',
+  'blueTikBundle': 'Get all 3 Blue Tik',
+  'blueTikSkip': 'Skip Now',
+  'blueTikDisclaimer':
+      'These prices are VOTE BANKER assistance charges. Platform subscription fees, eligibility, and approval are handled separately. A blue tick is not guaranteed.',
+  'blueTikFormTitle': 'Verification assistance request',
+  'blueTikSelected': 'Selected service',
+  'blueTikLeaderName': "Leader's name",
+  'blueTikMobile': 'Mobile number',
+  'blueTikEmail': 'Email',
+  'blueTikProfileUrl': '{platform} profile URL',
+  'blueTikSubmit': 'Submit application',
+  'blueTikNameRequired': "Enter the leader's name.",
+  'blueTikMobileInvalid': 'Enter a valid mobile number.',
+  'blueTikEmailInvalid': 'Enter a valid email address.',
+  'blueTikUrlInvalid': 'Enter a profile URL that starts with https://.',
+  'blueTikConfirmTitle': 'Application submitted',
+  'blueTikConfirmBody': 'We received your request for {service} ({price}).',
+  'blueTikStatusPending': 'Pending platform review',
+  'blueTikPendingNote':
+      'The platform has not confirmed verification. VOTE BANKER cannot grant or guarantee a blue tick.',
+  'blueTikDone': 'Done',
+  'blueTikAssistanceNote':
+      'Assistance charge only. This does not approve or guarantee a blue tick.',
   'vrmTitle': 'Voter Relationship Management',
   'vrmBody':
       'Voter relationship management stays off until you choose it. No contacts are stored yet.',
