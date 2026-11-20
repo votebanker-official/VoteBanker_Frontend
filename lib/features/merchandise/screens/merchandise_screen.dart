@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../core/widgets/app_card.dart';
@@ -13,6 +12,7 @@ import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../onboarding/data/political_party.dart';
 import '../../onboarding/state/onboarding_controller.dart';
+import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
 import 'campaign_templates_screen.dart';
@@ -221,7 +221,9 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '${order.quantity} · ${l10n.line('merchStatusRequested')}',
+                                          order.lineTotalPaise == null
+                                              ? '${order.quantity} · ${l10n.line('merchStatusRequested')}'
+                                              : '${order.quantity} · ${formatMerchandisePrice(order.lineTotalPaise!)} · ${l10n.line('merchStatusRequested')}',
                                           style: AppTextStyles.muted(context),
                                         ),
                                       ],

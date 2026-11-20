@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../admin/admin_access.dart';
 import 'dashboard_colors.dart';
 
 class DashboardNavEntry {
@@ -53,7 +54,7 @@ List<DashboardNavEntry> dashboardSidebarItems(AppLocalizations l10n) {
   ];
 }
 
-class DashboardSidebar extends StatelessWidget {
+class DashboardSidebar extends StatefulWidget {
   const DashboardSidebar({
     required this.colors,
     required this.items,
@@ -70,8 +71,51 @@ class DashboardSidebar extends StatelessWidget {
   final Widget? footer;
 
   @override
+  State<DashboardSidebar> createState() => _DashboardSidebarState();
+}
+
+class _DashboardSidebarState extends State<DashboardSidebar> {
+  @override
+  void initState() {
+    super.initState();
+    AdminAccess.instance.ensureLoaded();
+    AdminAccess.instance.addListener(_onAccess);
+  }
+
+  @override
+  void dispose() {
+    AdminAccess.instance.removeListener(_onAccess);
+    super.dispose();
+  }
+
+  void _onAccess() {
+    if (mounted) setState(() {});
+  }
+
+  List<DashboardNavEntry> _items(AppLocalizations l10n) {
+    final items = widget.items;
+    if (!AdminAccess.instance.isAdmin) return items;
+    if (items.any((item) => item.route == AppRoutes.admin)) return items;
+    final admin = DashboardNavEntry(
+      icon: Icons.admin_panel_settings_outlined,
+      label: l10n.line('adminPanel'),
+      route: AppRoutes.admin,
+    );
+    final settings = items.indexWhere((item) => item.icon == Icons.settings_outlined);
+    if (settings < 0) return [...items, admin];
+    return [
+      ...items.sublist(0, settings),
+      admin,
+      ...items.sublist(settings),
+    ];
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = widget.colors;
+    final items = _items(l10n);
+    final selectedRoute = widget.selectedRoute;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.sidebar,
@@ -122,7 +166,7 @@ class DashboardSidebar extends StatelessWidget {
                       selectedRoute == AppRoutes.dashboard
                           ? null
                           : () {
-                            onNavigate?.call();
+                            widget.onNavigate?.call();
                             AppRouter.replace(context, AppRoutes.dashboard);
                           },
                 ),
@@ -137,7 +181,7 @@ class DashboardSidebar extends StatelessWidget {
                         item.route == null
                             ? null
                             : () {
-                              onNavigate?.call();
+                              widget.onNavigate?.call();
                               if (item.route == selectedRoute) return;
                               AppRouter.open(context, item.route!);
                             },
@@ -147,7 +191,7 @@ class DashboardSidebar extends StatelessWidget {
               ],
             ),
           ),
-          if (footer != null) footer!,
+          if (widget.footer != null) widget.footer!,
         ],
       ),
     );

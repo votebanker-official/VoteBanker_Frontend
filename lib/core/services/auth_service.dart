@@ -300,7 +300,20 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    final token = session?.accessToken;
     session = null;
+    if (token != null && token.isNotEmpty) {
+      try {
+        await http
+            .post(
+              Uri.parse('${AppConfig.apiBaseUrl}/api/auth/session/end'),
+              headers: {'Authorization': 'Bearer $token'},
+            )
+            .timeout(const Duration(seconds: 8));
+      } catch (_) {
+        // Signing out locally still succeeds when the activity call cannot reach the API.
+      }
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final key in [

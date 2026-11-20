@@ -38,8 +38,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _finishSocialReturn() async {
     final pending = AuthService.instance.takeSocialReturn();
-    final error = pending.error ?? AuthService.instance.socialLaunchError;
-    final ticket = pending.ticket;
+    final error =
+        pending.error ??
+        AuthService.instance.socialLaunchError ??
+        takeSessionValue('vb_auth_error');
+    final ticket =
+        (pending.ticket != null && pending.ticket!.isNotEmpty)
+            ? pending.ticket
+            : takeSessionValue('vb_auth_ticket');
     AuthService.instance.socialLaunchError = null;
     if ((error == null || error.isEmpty) &&
         (ticket == null || ticket.isEmpty)) {
@@ -90,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'In Google Cloud Console, copy the OAuth client secret into GOOGLE_CLIENT_SECRET. '
             'It must be different from the client id. Restart the API, then try again.';
       case 'social_failed':
-        return 'Google sign-in did not finish. Please try again.';
+        return l10n.socialFailed;
       default:
         return l10n.socialFailed;
     }

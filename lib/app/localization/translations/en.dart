@@ -923,4 +923,5 @@ const enTranslations = <String, String>{
       'Sign in through Google\'s official platform. We never ask for your password.',
   'socialYtPermissions':
       'We request your channel information so we can show the authorized YouTube channel.',
+  'adminPanel': 'Admin Panel',
 };

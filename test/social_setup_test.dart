@@ -18,14 +18,13 @@ import 'package:votebanker/features/onboarding/services/social_connection_servic
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 
 class _FakeService extends SocialConnectionService {
-  _FakeService({this.error})
+  _FakeService()
     : super(
         client: MockClient(
           (_) async => http.Response('{"connections":[]}', 200),
         ),
       );
 
-  final String? error;
   var startCalls = 0;
 
   @override
@@ -34,7 +33,7 @@ class _FakeService extends SocialConnectionService {
   @override
   Future<String> start(String provider, String returnTo) async {
     startCalls += 1;
-    throw SocialConnectionException(error ?? 'not_configured');
+    throw SocialConnectionException('not_configured');
   }
 }
 

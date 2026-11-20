@@ -166,7 +166,7 @@ class TeamService implements TeamRepository {
                     (first['facebookUrl'] as String).trim().isNotEmpty,
                 'responseHasInstagram': first['instagramUrl'] is String &&
                     (first['instagramUrl'] as String).trim().isNotEmpty,
-                'responseKeys': first.keys.map((key) => '$key').toList(),
+                'responseKeys': first.keys.toList(),
               },
               'timestamp': DateTime.now().millisecondsSinceEpoch,
               'hypothesisId': 'B',

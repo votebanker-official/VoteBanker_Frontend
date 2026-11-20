@@ -100,8 +100,9 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   }
 
   bool _matches(DashboardVolunteer row, String query) {
-    if (query.isNotEmpty && !row.name.toLowerCase().contains(query))
+    if (query.isNotEmpty && !row.name.toLowerCase().contains(query)) {
       return false;
+    }
     if (_status.isNotEmpty && row.status != _status) return false;
     if (_location.isNotEmpty && row.location != _location) return false;
     if (_skill.isNotEmpty && !row.skills.contains(_skill)) return false;
@@ -1672,9 +1673,12 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                       ),
                       validator: (value) {
                         final text = value?.trim() ?? '';
-                        if (text.isEmpty) return null;
-                        if (!_emailPattern.hasMatch(text))
+                        if (text.isEmpty) {
+                          return null;
+                        }
+                        if (!_emailPattern.hasMatch(text)) {
                           return 'Enter a valid email address.';
+                        }
                         return null;
                       },
                     ),
@@ -1688,9 +1692,12 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                       decoration: _fieldDecoration('Enter phone number'),
                       validator: (value) {
                         final text = value?.trim() ?? '';
-                        if (text.isEmpty) return null;
-                        if (!_phonePattern.hasMatch(text))
+                        if (text.isEmpty) {
+                          return null;
+                        }
+                        if (!_phonePattern.hasMatch(text)) {
                           return 'Enter a valid phone number.';
+                        }
                         return null;
                       },
                     ),
@@ -1772,8 +1779,7 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              borderRadius:
-                  radius is BorderRadius ? radius : BorderRadius.circular(14),
+              borderRadius: radius,
               items: items,
               onChanged: onChanged,
             ),

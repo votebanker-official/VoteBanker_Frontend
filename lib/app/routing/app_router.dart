@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/services/profile_service.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
+import '../../features/admin/admin_client_screen.dart';
+import '../../features/admin/admin_panel_screen.dart';
 import '../../features/dashboard/screens/administrations_screen.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
 import '../../features/merchandise/screens/campaign_templates_screen.dart';
@@ -62,6 +64,8 @@ abstract final class AppRoutes {
   static const ready = '/ready';
   static const dashboard = '/dashboard';
   static const administrations = '/administrations';
+  static const admin = '/admin';
+  static const adminClient = '/admin/client';
   static const merchandise = '/merchandise';
   static const speech = '/speech';
   static const letter = '/letter';
@@ -109,6 +113,10 @@ abstract final class AppRouter {
       AppRoutes.ready => const ReadyScreen(),
       AppRoutes.dashboard => const DashboardPlaceholderScreen(),
       AppRoutes.administrations => const AdministrationsScreen(),
+      AppRoutes.admin => const AdminPanelScreen(),
+      AppRoutes.adminClient => AdminClientScreen(
+          clientId: settings.arguments is String ? settings.arguments! as String : '',
+        ),
       AppRoutes.merchandise => const MerchandiseScreen(),
       AppRoutes.speech => const SpeechGeneratorScreen(),
       AppRoutes.letter => const LetterGeneratorScreen(),

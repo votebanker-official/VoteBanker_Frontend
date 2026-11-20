@@ -174,8 +174,9 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
         if (result.caption.isNotEmpty) _caption.text = result.caption;
         for (final tag in result.hashtags) {
           final clean = tag.replaceAll('#', '').trim();
-          if (clean.isNotEmpty && !_hashtags.contains(clean))
+          if (clean.isNotEmpty && !_hashtags.contains(clean)) {
             _hashtags.add(clean);
+          }
         }
       });
       _notice(l10n.line('smiCaptionReady'));
