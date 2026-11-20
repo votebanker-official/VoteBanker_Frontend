@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _startSocial(AppLocalizations l10n, String provider) {
+  Future<void> _startSocial(AppLocalizations l10n, String provider) async {
     if (_busy) return;
     if (!kIsWeb) {
       _showMessage(l10n.socialWebOnly);
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     setState(() => _busy = true);
     try {
-      AuthService.instance.startSocial(provider);
+      await AuthService.instance.startSocial(provider);
     } on AuthException catch (e) {
       if (mounted) setState(() => _busy = false);
       _showMessage(e.message);

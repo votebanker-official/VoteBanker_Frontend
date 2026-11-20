@@ -10,6 +10,7 @@ import '../../features/onboarding/state/onboarding_controller.dart';
 import '../dashboard/widgets/dashboard_colors.dart';
 import '../dashboard/widgets/dashboard_sidebar.dart';
 import 'social_integration_service.dart';
+import 'social_platform_mark.dart';
 import 'social_post_media.dart';
 
 class SocialIntegrationScreen extends StatefulWidget {
@@ -351,7 +352,10 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
                                                   '{count}',
                                                   '${_status?.facebook.pageCount ?? 0}',
                                                 ),
-                                            icon: Icons.facebook,
+                                            leading: Icon(
+                                              Icons.facebook,
+                                              color: colors.accent,
+                                            ),
                                             onOpen:
                                                 () => _openAccount(
                                                   l10n,
@@ -370,7 +374,9 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
                                                   '{count}',
                                                   '${_status?.instagram.accountCount ?? 0}',
                                                 ),
-                                            icon: Icons.camera_alt_outlined,
+                                            leading: const SocialPlatformMark(
+                                              platform: 'instagram',
+                                            ),
                                             onOpen:
                                                 () => _openAccount(
                                                   l10n,
@@ -398,7 +404,9 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
                                                     : l10n.line(
                                                       'smiWhatsappNotReady',
                                                     ),
-                                            icon: Icons.chat_outlined,
+                                            leading: const SocialPlatformMark(
+                                              platform: 'whatsapp',
+                                            ),
                                             onOpen:
                                                 () => _openAccount(
                                                   l10n,
@@ -540,8 +548,21 @@ class _SocialIntegrationScreenState extends State<SocialIntegrationScreen> {
                 'whatsapp',
               ])
                 ChoiceChip(
-                  label: Text(
-                    platform[0].toUpperCase() + platform.substring(1),
+                  showCheckmark: true,
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SocialPlatformMark(
+                        platform: platform,
+                        size: 18,
+                        facebookColor:
+                            _platform == platform
+                                ? Colors.white
+                                : colors.accent,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(platform[0].toUpperCase() + platform.substring(1)),
+                    ],
                   ),
                   selected: _platform == platform,
                   onSelected: (_) => setState(() => _platform = platform),
@@ -754,7 +775,7 @@ class _AccountCard extends StatelessWidget {
     required this.title,
     required this.connected,
     required this.detail,
-    required this.icon,
+    required this.leading,
     required this.onOpen,
   });
 
@@ -762,7 +783,7 @@ class _AccountCard extends StatelessWidget {
   final String title;
   final bool connected;
   final String detail;
-  final IconData icon;
+  final Widget leading;
   final VoidCallback onOpen;
 
   @override
@@ -782,7 +803,7 @@ class _AccountCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: colors.accent),
+              leading,
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -863,10 +884,27 @@ class _Preview extends StatelessWidget {
           const SizedBox(height: 8),
           DropdownButton<String>(
             value: platform,
-            items: const [
-              DropdownMenuItem(value: 'facebook', child: Text('Facebook')),
-              DropdownMenuItem(value: 'instagram', child: Text('Instagram')),
-              DropdownMenuItem(value: 'whatsapp', child: Text('WhatsApp')),
+            items: [
+              for (final item in const [
+                ('facebook', 'Facebook'),
+                ('instagram', 'Instagram'),
+                ('whatsapp', 'WhatsApp'),
+              ])
+                DropdownMenuItem(
+                  value: item.$1,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SocialPlatformMark(
+                        platform: item.$1,
+                        size: 18,
+                        facebookColor: colors.accent,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(item.$2),
+                    ],
+                  ),
+                ),
             ],
             onChanged: (value) {
               if (value != null) onPlatform(value);

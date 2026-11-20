@@ -304,11 +304,6 @@ class _TopBar extends StatelessWidget {
         ),
       ),
     );
-    final back = IconButton(
-      tooltip: l10n.back,
-      onPressed: () => AppRouter.back(context, AppRoutes.ready),
-      icon: Icon(Icons.arrow_back, color: colors.accent),
-    );
     final avatar = CircleAvatar(
       radius: 16,
       backgroundColor: colors.accentSoft,
@@ -360,7 +355,6 @@ class _TopBar extends StatelessWidget {
               return Row(
                 children: [
                   Expanded(child: searchField),
-                  back,
                   const ThemeToggle(),
                   const SizedBox(width: 8),
                   const LanguageSelector(),
@@ -382,7 +376,6 @@ class _TopBar extends StatelessWidget {
                   Expanded(child: brand),
                   const SizedBox(width: 8),
                   SizedBox(width: 220, child: searchField),
-                  back,
                   const ThemeToggle(),
                   const SizedBox(width: 8),
                   const LanguageSelector(),
@@ -401,7 +394,6 @@ class _TopBar extends StatelessWidget {
                       icon: Icon(Icons.menu, color: colors.accent),
                     ),
                     Expanded(child: brand),
-                    back,
                     Icon(Icons.notifications_none, color: colors.accent),
                     const SizedBox(width: 8),
                     avatar,
@@ -565,14 +557,23 @@ class _WelcomeBanner extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      greeting,
-                      style: TextStyle(
-                        color: colors.text,
-                        fontSize: wide ? 28 : 22,
-                        fontWeight: FontWeight.w800,
-                        height: 1.15,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _WelcomeBackButton(colors: colors, compact: !wide),
+                        SizedBox(width: wide ? 12 : 10),
+                        Expanded(
+                          child: Text(
+                            greeting,
+                            style: TextStyle(
+                              color: colors.text,
+                              fontSize: wide ? 28 : 22,
+                              fontWeight: FontWeight.w800,
+                              height: 1.15,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -622,6 +623,41 @@ class _WelcomeBanner extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _WelcomeBackButton extends StatelessWidget {
+  const _WelcomeBackButton({required this.colors, required this.compact});
+
+  final DashboardColors colors;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final size = compact ? 36.0 : 40.0;
+    return IconButton(
+      key: const Key('dashboard-welcome-back'),
+      tooltip: l10n.back,
+      onPressed: () => AppRouter.popIfPossible(context),
+      style: IconButton.styleFrom(
+        backgroundColor: colors.accentSoft,
+        foregroundColor: colors.accent,
+        hoverColor: colors.accent.withValues(alpha: 0.16),
+        highlightColor: colors.accent.withValues(alpha: 0.12),
+        fixedSize: Size(size, size),
+        minimumSize: Size(size, size),
+        maximumSize: Size(size, size),
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const CircleBorder(),
+      ),
+      icon: Icon(
+        Icons.arrow_back,
+        size: compact ? 18 : 20,
+        color: colors.accent,
       ),
     );
   }
