@@ -716,6 +716,7 @@ const enTranslations = <String, String>{
   'speechTitle': 'Speech Generator',
   'speechSubtitle':
       'Create a complete speech from your topic, context and key points.',
+  'speechAiPowered': 'AI Powered',
   'speechPromptLabel': 'What should the speech be about?',
   'speechPromptHint':
       'Describe the topic, event, audience, key points and message you want to communicate...',

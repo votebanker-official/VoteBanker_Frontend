@@ -9,17 +9,15 @@ import '../../core/widgets/app_background.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/language_selector.dart';
 import '../../core/widgets/theme_toggle.dart';
+import '../dashboard/widgets/dashboard_colors.dart';
+import '../dashboard/widgets/dashboard_sidebar.dart';
 import 'letter_form_screen.dart';
 import 'letter_model.dart';
 import 'letter_preview_screen.dart';
 import 'letter_service.dart';
 
 class LetterGeneratorScreen extends StatefulWidget {
-  const LetterGeneratorScreen({
-    this.service,
-    this.shareText,
-    super.key,
-  });
+  const LetterGeneratorScreen({this.service, this.shareText, super.key});
 
   final LetterService? service;
   final Future<void> Function(String text, {String? subject})? shareText;
@@ -29,6 +27,7 @@ class LetterGeneratorScreen extends StatefulWidget {
 }
 
 class _LetterGeneratorScreenState extends State<LetterGeneratorScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   late final LetterService _service = widget.service ?? LetterService();
   final _senderName = TextEditingController();
   final _senderAddress = TextEditingController();
@@ -137,74 +136,132 @@ class _LetterGeneratorScreenState extends State<LetterGeneratorScreen> {
     final l10n = AppLocalizations.of(context);
     final letter = _letter;
 
-    return Scaffold(
-      backgroundColor: context.palette.background,
-      body: AppBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: _back,
-                      icon: const Icon(Icons.arrow_back),
-                    ),
-                    Expanded(
-                      child: Text(
-                        l10n.line('letterTitle'),
-                        style: AppTextStyles.wordmark(context).copyWith(fontSize: 16),
+    final colors = DashboardColors.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showSidebar = constraints.maxWidth >= 960;
+        final sidebar = DashboardSidebar(
+          colors: colors,
+          items: dashboardSidebarItems(l10n),
+          selectedRoute: AppRoutes.letter,
+        );
+        return Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: context.palette.background,
+          drawer:
+              showSidebar
+                  ? null
+                  : Drawer(
+                    backgroundColor: colors.sidebar,
+                    child: SafeArea(
+                      child: DashboardSidebar(
+                        colors: colors,
+                        items: dashboardSidebarItems(l10n),
+                        selectedRoute: AppRoutes.letter,
+                        onNavigate: () => Navigator.of(context).pop(),
                       ),
                     ),
-                    const ThemeToggle(),
-                    const SizedBox(width: 8),
-                    const LanguageSelector(),
-                  ],
-                ),
-              ),
+                  ),
+          body: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showSidebar) SizedBox(width: 248, child: sidebar),
               Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: AppBreakpoints.dashboardMaxWidth),
-                    child: switch (_phase) {
-                      _LetterPhase.loading => const _LetterLoading(),
-                      _LetterPhase.preview when letter != null => LetterPreviewScreen(
-                          letter: letter,
-                          shareText: widget.shareText,
-                          onChanged: (updated) => setState(() => _letter = updated),
-                          onEditDetails: () => setState(() => _phase = _LetterPhase.form),
+                child: AppBackground(
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+                          child: Row(
+                            children: [
+                              if (!showSidebar)
+                                IconButton(
+                                  tooltip: l10n.dashboard,
+                                  onPressed:
+                                      () =>
+                                          _scaffoldKey.currentState
+                                              ?.openDrawer(),
+                                  icon: const Icon(Icons.menu),
+                                ),
+                              IconButton(
+                                onPressed: _back,
+                                icon: const Icon(Icons.arrow_back),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  l10n.line('letterTitle'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.wordmark(
+                                    context,
+                                  ).copyWith(fontSize: 16),
+                                ),
+                              ),
+                              const ThemeToggle(),
+                              const SizedBox(width: 8),
+                              const LanguageSelector(),
+                            ],
+                          ),
                         ),
-                      _ => LetterFormScreen(
-                          senderName: _senderName,
-                          senderAddress: _senderAddress,
-                          mobile: _mobile,
-                          email: _email,
-                          politicianName: _politicianName,
-                          designation: _designation,
-                          designationDetail: _designationDetail,
-                          constituency: _constituency,
-                          subject: _subject,
-                          purpose: _purpose,
-                          message: _message,
-                          date: _date,
-                          errors: _errors,
-                          busy: false,
-                          error: _error,
-                          onChanged: () => setState(() {}),
-                          onDesignation: (value) => setState(() => _designation = value),
-                          onDate: (value) => setState(() => _date = value),
-                          onGenerate: _generate,
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: AppBreakpoints.dashboardMaxWidth,
+                              ),
+                              child: switch (_phase) {
+                                _LetterPhase.loading => const _LetterLoading(),
+                                _LetterPhase.preview when letter != null =>
+                                  LetterPreviewScreen(
+                                    letter: letter,
+                                    shareText: widget.shareText,
+                                    onChanged:
+                                        (updated) =>
+                                            setState(() => _letter = updated),
+                                    onEditDetails:
+                                        () => setState(
+                                          () => _phase = _LetterPhase.form,
+                                        ),
+                                  ),
+                                _ => LetterFormScreen(
+                                  senderName: _senderName,
+                                  senderAddress: _senderAddress,
+                                  mobile: _mobile,
+                                  email: _email,
+                                  politicianName: _politicianName,
+                                  designation: _designation,
+                                  designationDetail: _designationDetail,
+                                  constituency: _constituency,
+                                  subject: _subject,
+                                  purpose: _purpose,
+                                  message: _message,
+                                  date: _date,
+                                  errors: _errors,
+                                  busy: false,
+                                  error: _error,
+                                  onChanged: () => setState(() {}),
+                                  onDesignation:
+                                      (value) =>
+                                          setState(() => _designation = value),
+                                  onDate:
+                                      (value) => setState(() => _date = value),
+                                  onGenerate: _generate,
+                                ),
+                              },
+                            ),
+                          ),
                         ),
-                    },
+                      ],
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -226,7 +283,10 @@ class _LetterLoading extends StatelessWidget {
               const SizedBox(height: 12),
               CircularProgressIndicator(color: context.palette.accent),
               const SizedBox(height: 16),
-              Text(l10n.line('letterCreating'), style: AppTextStyles.label(context)),
+              Text(
+                l10n.line('letterCreating'),
+                style: AppTextStyles.label(context),
+              ),
               const SizedBox(height: 8),
               Text(
                 l10n.line('letterCreatingBody'),
