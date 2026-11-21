@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/config/app_config.dart';
 import '../../../core/services/auth_service.dart';
+import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 
 class MerchandiseException implements Exception {
@@ -77,6 +78,30 @@ class MerchandiseService {
       for (final row in rows)
         if (row is Map<String, dynamic>) MerchandiseOrder.fromJson(row),
     ];
+  }
+
+  Future<MerchandiseQuote> quote(String slug, int quantity) async {
+    final response = await _send('POST', '/api/merchandise/quote', {
+      'product_slug': slug,
+      'quantity': quantity,
+    });
+    if (response == null) {
+      throw const MerchandiseException('quote_failed');
+    }
+    final body = _json(response);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final unit = body['unit_price_paise'];
+      final total = body['line_total_paise'];
+      if (unit is! int || total is! int) {
+        throw const MerchandiseException('price_not_configured');
+      }
+      return MerchandiseQuote(
+        quantity: body['quantity'] is int ? body['quantity'] as int : quantity,
+        unitPricePaise: unit,
+        lineTotalPaise: total,
+      );
+    }
+    throw MerchandiseException(body['error'] as String? ?? 'quote_failed');
   }
 
   Future<MerchandiseOrder> placeOrder(Map<String, dynamic> payload) async {

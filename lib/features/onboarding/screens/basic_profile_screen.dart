@@ -16,8 +16,9 @@ import '../../../core/services/profile_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/utils/person_name.dart';
 import '../../../core/services/selfie_capture.dart';
-import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/language_selector.dart';
+import '../../../core/widgets/theme_toggle.dart';
 import '../../website/services/portfolio_store.dart';
 import '../../website/services/website_builder_store.dart';
 import '../data/assembly_constituency.dart';
@@ -31,7 +32,6 @@ import '../models/onboarding_draft.dart';
 import '../state/onboarding_controller.dart';
 import '../data/political_party.dart';
 import '../widgets/assembly_constituency_field.dart';
-import '../widgets/onboarding_frame.dart';
 import '../widgets/party_symbol.dart';
 import '../widgets/searchable_state_dropdown.dart';
 
@@ -87,6 +87,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   /// Bumped when the user skips so a late GET /api/profile cannot fill the draft.
   int _profileLoadToken = 0;
+  var _saving = false;
 
   @override
   void didChangeDependencies() {
@@ -117,9 +118,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     _contactNumber = TextEditingController(
       text: extractIndianNationalNumber(draft.contactNumber),
     );
-    _preferredLanguage = ProfileLanguages.supports(draft.preferredLanguage)
-        ? draft.preferredLanguage
-        : 'en';
+    _preferredLanguage =
+        ProfileLanguages.supports(draft.preferredLanguage)
+            ? draft.preferredLanguage
+            : 'en';
     draft.preferredLanguage = _preferredLanguage;
     _ready = true;
     unawaited(_prepareProfile(draft));
@@ -150,12 +152,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   Future<void> _prepareProfile(OnboardingDraft draft) async {
     final pending = AuthService.instance.takeSocialReturn();
-    final error = pending.error ??
+    final error =
+        pending.error ??
         AuthService.instance.socialLaunchError ??
         takeSessionValue('vb_auth_error');
-    final ticket = (pending.ticket != null && pending.ticket!.isNotEmpty)
-        ? pending.ticket
-        : takeSessionValue('vb_auth_ticket');
+    final ticket =
+        (pending.ticket != null && pending.ticket!.isNotEmpty)
+            ? pending.ticket
+            : takeSessionValue('vb_auth_ticket');
     if (error != null && error.isNotEmpty) {
       AuthService.instance.socialLaunchError = null;
     }
@@ -176,7 +180,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     if (error != null && error.isNotEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Google sign-in failed. Please try again.')),
+        const SnackBar(
+          content: Text('Google sign-in failed. Please try again.'),
+        ),
       );
       return;
     }
@@ -185,7 +191,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         await AuthService.instance.exchangeSocialTicket(ticket);
       } on AuthException catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
         return;
       }
       final fullName = _accountDisplayName();
@@ -238,9 +246,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       ProfileService.applyProfile(draft, profile);
     }
     final socialName = _accountDisplayName();
-    final savedName = profile != null && profile['full_name'] is String
-        ? (profile['full_name'] as String).trim()
-        : '';
+    final savedName =
+        profile != null && profile['full_name'] is String
+            ? (profile['full_name'] as String).trim()
+            : '';
     if (draft.leaderName.trim().isEmpty && socialName.isNotEmpty) {
       draft.leaderName = socialName;
     }
@@ -260,11 +269,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     // #region agent log
     _profileDebugLog('B', 'saved profile applied to leader form', {
       'profileLoaded': profile != null,
-      'savedNameLength': profile == null
-          ? 0
-          : (profile['full_name'] is String
-              ? (profile['full_name'] as String).trim().length
-              : 0),
+      'savedNameLength':
+          profile == null
+              ? 0
+              : (profile['full_name'] is String
+                  ? (profile['full_name'] as String).trim().length
+                  : 0),
       'profileHasEmailKey': profile != null && profile.containsKey('email'),
       'draftNameLength': draft.leaderName.trim().length,
       'fieldNameLength': _leaderName.text.trim().length,
@@ -352,7 +362,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     final avatar = AuthService.instance.session?.avatarUrl.trim() ?? '';
     if (!avatar.startsWith('https://')) return;
     final bytes = await ProfileService.instance.downloadPhoto(avatar);
-    if (bytes == null || !mounted || draft.photoRemoved || draft.photoBytes != null) {
+    if (bytes == null ||
+        !mounted ||
+        draft.photoRemoved ||
+        draft.photoBytes != null) {
       return;
     }
     draft
@@ -374,7 +387,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   }
 
   // #region agent log
-  void _profileDebugLog(String hypothesisId, String message, Map<String, Object?> data) {
+  void _profileDebugLog(
+    String hypothesisId,
+    String message,
+    Map<String, Object?> data,
+  ) {
     http
         .post(
           Uri.parse(
@@ -508,6 +525,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   }
 
   void _saveAndContinue() {
+    if (_saving) return;
     final l10n = AppLocalizations.of(context);
     final draft = OnboardingScope.of(context).draft;
     final catalog = _catalog;
@@ -547,9 +565,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     final boothNumberError =
         _boothNumber.text.trim().isEmpty ? _fillFirst : null;
     final boothNameError = _boothName.text.trim().isEmpty ? _fillFirst : null;
-    final contactError = contactText.isEmpty
-        ? _fillFirst
-        : (isValidContactNumber(contactText) ? null : l10n.invalidContact);
+    final contactError =
+        contactText.isEmpty
+            ? _fillFirst
+            : (isValidContactNumber(contactText) ? null : l10n.invalidContact);
     final missing = <(GlobalKey, String?)>[
       (_nameAnchor, nameError),
       (_partyAnchor, partyError),
@@ -579,6 +598,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       _reveal(missing.first.$1);
       return;
     }
+    setState(() => _saving = true);
     _commit();
     AppRouter.open(context, AppRoutes.additionalProfile);
   }
@@ -623,17 +643,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         const SizedBox(width: 8),
         Text(
           '+91',
-          style: AppTextStyles.body(context).copyWith(
-            color: palette.text,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.body(
+            context,
+          ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
         ),
         const SizedBox(width: 8),
-        Container(
-          width: 1,
-          height: 20,
-          color: palette.border,
-        ),
+        Container(width: 1, height: 20, color: palette.border),
         const SizedBox(width: 10),
       ],
     );
@@ -732,18 +747,19 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     final draft = OnboardingScope.of(context).draft;
     final photo = draft.photoBytes;
     final catalog = _catalog;
-    final states = catalog == null
-        ? const <String>[]
-        : catalog.statesOf(_selection.country);
-    final districts = catalog == null
-        ? const <String>[]
-        : catalog.districtsOf(_selection.country, _selection.state);
+    final states =
+        catalog == null
+            ? const <String>[]
+            : catalog.statesOf(_selection.country);
+    final districts =
+        catalog == null
+            ? const <String>[]
+            : catalog.districtsOf(_selection.country, _selection.state);
     final countryEnabled = catalog != null && catalog.countries.isNotEmpty;
     final stateEnabled =
         countryEnabled && _selection.country.isNotEmpty && states.isNotEmpty;
     final districtEnabled =
         stateEnabled && _selection.state.isNotEmpty && districts.isNotEmpty;
-    final wideBooth = MediaQuery.sizeOf(context).width >= 560;
     final designations = ProfileOptions.withSaved(
       ProfileOptions.designations,
       _designation.text,
@@ -753,318 +769,526 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       _party.text,
     );
 
-    final form = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _ProfileHeader(
-          l10n: l10n,
-          onBack: () {
-            _commit();
-            AppRouter.back(context, AppRoutes.login);
-          },
-        ),
-        const SizedBox(height: 16),
-        _PhotoCard(
-          title: l10n.profilePhotoTitle,
-          hint: l10n.profilePhotoHint,
-          takeLabel: l10n.takePhoto,
-          deleteLabel: l10n.deletePhoto,
-          bytes: photo,
-          onAdd: _choosePhotoSource,
-          onDelete: photo == null ? null : _deletePhoto,
-        ),
-        const SizedBox(height: 16),
-        KeyedSubtree(
-          key: _nameAnchor,
-          child: AppTextField(
-          key: const ValueKey('profileLeaderName'),
-          label: '${l10n.fullName} *',
-          hint: l10n.enterFullName,
-          prefixIcon: const Icon(Icons.person_outline),
-          controller: _leaderName,
-          textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.next,
-          autofillHints: const [AutofillHints.name],
-          errorText: _nameError,
-          onChanged: (value) {
-            draft.leaderName = value;
-            if (_nameError != null && value.trim().isNotEmpty) {
-              setState(() => _nameError = null);
+    final nameField = KeyedSubtree(
+      key: _nameAnchor,
+      child: AppTextField(
+        key: const ValueKey('profileLeaderName'),
+        label: '${l10n.fullName} *',
+        hint: l10n.enterFullName,
+        prefixIcon: const Icon(Icons.person_outline),
+        controller: _leaderName,
+        textCapitalization: TextCapitalization.words,
+        textInputAction: TextInputAction.next,
+        autofillHints: const [AutofillHints.name],
+        errorText: _nameError,
+        onChanged: (value) {
+          draft.leaderName = value;
+          if (_nameError != null && value.trim().isNotEmpty) {
+            setState(() => _nameError = null);
+          }
+        },
+      ),
+    );
+    final emailField = AppTextField(
+      key: const ValueKey('profileEmail'),
+      label: l10n.emailAddress,
+      hint: l10n.emailAddress,
+      prefixIcon: const Icon(Icons.mail_outline),
+      controller: _email,
+      readOnly: true,
+      keyboardType: TextInputType.emailAddress,
+    );
+    final partyField = KeyedSubtree(
+      key: _partyAnchor,
+      child: _ProfileDropdown(
+        fieldKey: const ValueKey('profileParty'),
+        label: '${l10n.organization} *',
+        hint: l10n.selectParty,
+        icon: Icons.flag_outlined,
+        value: _shown(_party.text, parties),
+        options: parties,
+        showPartySymbols: true,
+        nationalPartiesLabel: l10n.nationalParties,
+        regionalPartiesLabel: l10n.regionalParties,
+        enabled: true,
+        searchable: true,
+        searchHint: 'Search party',
+        noResultsLabel: 'No results found',
+        clearSearchLabel: l10n.clearStateSearch,
+        prepareOptions: (options) => options,
+        searchFieldKey: const ValueKey('partySearch'),
+        clearButtonKey: const ValueKey('clearPartySearch'),
+        emptyMessageKey: const ValueKey('noPartiesFound'),
+        listKey: const ValueKey('partyMenuList'),
+        filterOptions: (options, query) {
+          final q = query.trim().toLowerCase();
+          if (q.isEmpty) return options;
+          return options.where((name) {
+            final party = PartyOption.findByName(name);
+            if (party != null) {
+              return party.name.toLowerCase().contains(q) ||
+                  party.abbreviation.toLowerCase().contains(q);
             }
-          },
-        ),
-        ),
-        const SizedBox(height: 14),
-        AppTextField(
-          key: const ValueKey('profileEmail'),
-          label: l10n.emailAddress,
-          hint: l10n.emailAddress,
-          prefixIcon: const Icon(Icons.mail_outline),
-          controller: _email,
-          readOnly: true,
-          keyboardType: TextInputType.emailAddress,
-        ),
-        const SizedBox(height: 14),
-        KeyedSubtree(
-          key: _partyAnchor,
-          child: _ProfileDropdown(
-          fieldKey: const ValueKey('profileParty'),
-          label: '${l10n.organization} *',
-          hint: l10n.selectParty,
-          icon: Icons.flag_outlined,
-          value: _shown(_party.text, parties),
-          options: parties,
-          showPartySymbols: true,
-          nationalPartiesLabel: l10n.nationalParties,
-          regionalPartiesLabel: l10n.regionalParties,
-          enabled: true,
-          searchable: true,
-          searchHint: 'Search party',
-          noResultsLabel: 'No results found',
-          clearSearchLabel: l10n.clearStateSearch,
-          prepareOptions: (options) => options,
-          searchFieldKey: const ValueKey('partySearch'),
-          clearButtonKey: const ValueKey('clearPartySearch'),
-          emptyMessageKey: const ValueKey('noPartiesFound'),
-          listKey: const ValueKey('partyMenuList'),
-          filterOptions: (options, query) {
-            final q = query.trim().toLowerCase();
-            if (q.isEmpty) return options;
-            return options.where((name) {
-              final party = PartyOption.findByName(name);
-              if (party != null) {
-                return party.name.toLowerCase().contains(q) ||
-                    party.abbreviation.toLowerCase().contains(q);
-              }
-              return name.toLowerCase().contains(q);
-            }).toList();
-          },
-          onChanged: (value) {
-            setState(() {
-              _party.text = value ?? '';
-              if (_party.text.trim().isNotEmpty) _partyError = null;
-            });
-            draft.party = _party.text;
-          },
-          errorText: _partyError,
-        ),
-        ),
-        const SizedBox(height: 14),
-        KeyedSubtree(
-          key: _designationAnchor,
-          child: _ProfileDropdown(
-          fieldKey: const ValueKey('profileDesignation'),
-          label: '${l10n.designation} *',
-          hint: l10n.selectDesignation,
-          icon: Icons.work_outline,
-          value: _shown(_designation.text, designations),
-          options: designations,
-          enabled: true,
-          searchable: true,
-          searchHint: 'Search designation',
-          noResultsLabel: 'No results found',
-          clearSearchLabel: l10n.clearStateSearch,
-          prepareOptions: (options) => options,
-          searchFieldKey: const ValueKey('designationSearch'),
-          clearButtonKey: const ValueKey('clearDesignationSearch'),
-          emptyMessageKey: const ValueKey('noDesignationsFound'),
-          listKey: const ValueKey('designationMenuList'),
-          filterOptions: (options, query) {
-            final q = query.trim().toLowerCase();
-            if (q.isEmpty) return options;
-            return options.where((o) => o.toLowerCase().contains(q)).toList();
-          },
-          onChanged: (value) {
-            setState(() {
-              _designation.text = value ?? '';
-              if (_designation.text.trim().isNotEmpty) _designationError = null;
-            });
-            draft.designation = _designation.text;
-          },
-          errorText: _designationError,
-        ),
-        ),
-        const SizedBox(height: 16),
-        _SectionCard(
-          icon: Icons.location_on_outlined,
-          title: l10n.locationSection,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              KeyedSubtree(
-                key: _countryAnchor,
-                child: _ProfileDropdown(
-                fieldKey: const ValueKey('profileCountry'),
-                label: '${l10n.country} *',
-                hint: l10n.selectCountry,
-                icon: Icons.public,
-                value: _shown(
-                  _selection.country,
-                  catalog?.countries ?? const [],
-                ),
-                options: catalog?.countries ?? const [],
-                enabled: countryEnabled,
-                errorText: _countryError,
-                onChanged: _selectCountry,
-              ),
-              ),
-              const SizedBox(height: 14),
-              KeyedSubtree(
-                key: _stateAnchor,
-                child: _ProfileDropdown(
-                fieldKey: const ValueKey('profileState'),
-                label: '${l10n.stateRegion} *',
-                hint: l10n.selectState,
-                icon: Icons.location_on_outlined,
-                value: _shown(_selection.state, states),
-                options: states,
-                enabled: stateEnabled,
-                searchable: true,
-                searchHint: l10n.searchStates,
-                noResultsLabel: l10n.noStatesFound,
-                clearSearchLabel: l10n.clearStateSearch,
-                errorText: _stateError,
-                onChanged: _selectState,
-              ),
-              ),
-              const SizedBox(height: 14),
-              KeyedSubtree(
-                key: _districtAnchor,
-                child: _ProfileDropdown(
-                fieldKey: const ValueKey('profileDistrict'),
-                label: '${l10n.constituency} *',
-                hint: l10n.selectDistrict,
-                icon: Icons.account_balance_outlined,
-                value: _shown(_selection.district, districts),
-                options: districts,
-                enabled: districtEnabled,
-                searchable: true,
-                searchHint: l10n.searchDistricts,
-                noResultsLabel: l10n.noDistrictsFound,
-                clearSearchLabel: l10n.clearStateSearch,
-                prepareOptions: uniqueNames,
-                searchFieldKey: const ValueKey('districtSearch'),
-                clearButtonKey: const ValueKey('clearDistrictSearch'),
-                emptyMessageKey: const ValueKey('noDistrictsFound'),
-                listKey: const ValueKey('districtMenuList'),
-                errorText: _districtError,
-                onChanged: _selectDistrict,
-              ),
-              ),
-              const SizedBox(height: 14),
-              KeyedSubtree(
-                key: _assemblyAnchor,
-                child: _assemblyField(l10n, draft),
-              ),
-              const SizedBox(height: 14),
-              if (wideBooth)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: KeyedSubtree(
-                        key: _boothNumberAnchor,
-                        child: _boothNumberField(l10n, draft),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: KeyedSubtree(
-                        key: _boothNameAnchor,
-                        child: _boothNameField(l10n, draft),
-                      ),
-                    ),
-                  ],
-                )
-              else ...[
-                KeyedSubtree(
-                  key: _boothNumberAnchor,
-                  child: _boothNumberField(l10n, draft),
-                ),
-                const SizedBox(height: 14),
-                KeyedSubtree(
-                  key: _boothNameAnchor,
-                  child: _boothNameField(l10n, draft),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        _SectionCard(
-          icon: Icons.phone_outlined,
-          title: l10n.contactSection,
-          child: KeyedSubtree(
-            key: _contactAnchor,
-            child: AppTextField(
-              key: const ValueKey('profileContact'),
-              label: '${l10n.publicContact} *',
-              hint: 'Enter 10-digit mobile number',
-              prefixIcon: _buildPhonePrefix(context),
-              controller: _contactNumber,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.telephoneNumber],
-              inputFormatters: const [_phoneInput],
-              errorText: _contactError,
-              onChanged: (value) {
-                draft.contactNumber = value;
-                if (_contactError == null) return;
-                final text = value.trim();
-                final next = text.isEmpty
-                    ? _fillFirst
-                    : (isValidContactNumber(text) ? null : l10n.invalidContact);
-                if (next != _contactError) {
-                  setState(() => _contactError = next);
-                }
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 22),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _commit();
-                  AppRouter.back(context, AppRoutes.login);
-                },
-                icon: const Icon(Icons.arrow_back),
-                label: Text(l10n.back),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: FilledButton(
-                onPressed: _saveAndContinue,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(l10n.saveAndContinue),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward, size: 18),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        Center(
-          child: TextButton(
-            onPressed: _skipForNow,
-            child: Text(l10n.skipForNow),
-          ),
-        ),
-      ],
+            return name.toLowerCase().contains(q);
+          }).toList();
+        },
+        onChanged: (value) {
+          setState(() {
+            _party.text = value ?? '';
+            if (_party.text.trim().isNotEmpty) _partyError = null;
+          });
+          draft.party = _party.text;
+        },
+        errorText: _partyError,
+      ),
+    );
+    final designationField = KeyedSubtree(
+      key: _designationAnchor,
+      child: _ProfileDropdown(
+        fieldKey: const ValueKey('profileDesignation'),
+        label: '${l10n.designation} *',
+        hint: l10n.selectDesignation,
+        icon: Icons.work_outline,
+        value: _shown(_designation.text, designations),
+        options: designations,
+        enabled: true,
+        searchable: true,
+        searchHint: 'Search designation',
+        noResultsLabel: 'No results found',
+        clearSearchLabel: l10n.clearStateSearch,
+        prepareOptions: (options) => options,
+        searchFieldKey: const ValueKey('designationSearch'),
+        clearButtonKey: const ValueKey('clearDesignationSearch'),
+        emptyMessageKey: const ValueKey('noDesignationsFound'),
+        listKey: const ValueKey('designationMenuList'),
+        filterOptions: (options, query) {
+          final q = query.trim().toLowerCase();
+          if (q.isEmpty) return options;
+          return options.where((o) => o.toLowerCase().contains(q)).toList();
+        },
+        onChanged: (value) {
+          setState(() {
+            _designation.text = value ?? '';
+            if (_designation.text.trim().isNotEmpty) _designationError = null;
+          });
+          draft.designation = _designation.text;
+        },
+        errorText: _designationError,
+      ),
+    );
+    final countryField = KeyedSubtree(
+      key: _countryAnchor,
+      child: _ProfileDropdown(
+        fieldKey: const ValueKey('profileCountry'),
+        label: '${l10n.country} *',
+        hint: l10n.selectCountry,
+        icon: Icons.public,
+        value: _shown(_selection.country, catalog?.countries ?? const []),
+        options: catalog?.countries ?? const [],
+        enabled: countryEnabled,
+        errorText: _countryError,
+        onChanged: _selectCountry,
+      ),
+    );
+    final stateField = KeyedSubtree(
+      key: _stateAnchor,
+      child: _ProfileDropdown(
+        fieldKey: const ValueKey('profileState'),
+        label: '${l10n.stateRegion} *',
+        hint: l10n.selectState,
+        icon: Icons.location_on_outlined,
+        value: _shown(_selection.state, states),
+        options: states,
+        enabled: stateEnabled,
+        searchable: true,
+        searchHint: l10n.searchStates,
+        noResultsLabel: l10n.noStatesFound,
+        clearSearchLabel: l10n.clearStateSearch,
+        errorText: _stateError,
+        onChanged: _selectState,
+      ),
+    );
+    final districtField = KeyedSubtree(
+      key: _districtAnchor,
+      child: _ProfileDropdown(
+        fieldKey: const ValueKey('profileDistrict'),
+        label: '${l10n.constituency} *',
+        hint: l10n.selectDistrict,
+        icon: Icons.account_balance_outlined,
+        value: _shown(_selection.district, districts),
+        options: districts,
+        enabled: districtEnabled,
+        searchable: true,
+        searchHint: l10n.searchDistricts,
+        noResultsLabel: l10n.noDistrictsFound,
+        clearSearchLabel: l10n.clearStateSearch,
+        prepareOptions: uniqueNames,
+        searchFieldKey: const ValueKey('districtSearch'),
+        clearButtonKey: const ValueKey('clearDistrictSearch'),
+        emptyMessageKey: const ValueKey('noDistrictsFound'),
+        listKey: const ValueKey('districtMenuList'),
+        errorText: _districtError,
+        onChanged: _selectDistrict,
+      ),
+    );
+    final photoCard = _PhotoCard(
+      title: l10n.profilePhotoTitle,
+      hint: l10n.profilePhotoHint,
+      takeLabel: l10n.takePhoto,
+      deleteLabel: l10n.deletePhoto,
+      bytes: photo,
+      onAdd: _choosePhotoSource,
+      onDelete: photo == null ? null : _deletePhoto,
     );
 
-    return OnboardingFrame(
-      child: context.palette.isDark ? form : AppCard(child: form),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 48 || constraints.maxHeight < 48) {
+          return const SizedBox.shrink();
+        }
+        final wide = constraints.maxWidth >= 760;
+        final desktop = constraints.maxWidth >= 1100;
+        final palette = context.palette;
+        final page =
+            palette.isDark ? palette.background : const Color(0xFFF5F8FC);
+        final gap = wide ? 16.0 : 14.0;
+        Widget pair(Widget left, Widget right) {
+          if (!wide) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [left, SizedBox(height: gap), right],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: left),
+              SizedBox(width: gap),
+              Expanded(child: right),
+            ],
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: page,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _ProfileTopBar(
+                  l10n: l10n,
+                  photo: photo,
+                  onBack: () {
+                    _commit();
+                    AppRouter.back(context, AppRoutes.login);
+                  },
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: EdgeInsets.fromLTRB(
+                      wide ? 28 : 16,
+                      4,
+                      wide ? 28 : 16,
+                      32,
+                    ),
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        inputDecorationTheme: Theme.of(
+                          context,
+                        ).inputDecorationTheme.copyWith(
+                          filled: true,
+                          fillColor:
+                              palette.isDark
+                                  ? palette.surfaceSecondary
+                                  : const Color(0xFFF7FAFE),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 14,
+                          ),
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE3EDF6),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE3EDF6),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1200),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                height: wide ? 148 : 124,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: const [_LeaderBackdrop()],
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  wide ? 8 : 2,
+                                  0,
+                                  wide ? 8 : 2,
+                                  16,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 18),
+                                    Text(
+                                      l10n.basicProfile,
+                                      style: TextStyle(
+                                        fontSize: wide ? 30 : 24,
+                                        height: 1.15,
+                                        fontWeight: FontWeight.w800,
+                                        color:
+                                            palette.isDark
+                                                ? palette.text
+                                                : const Color(0xFF102A56),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      l10n.profileDescription,
+                                      style: TextStyle(
+                                        color: palette.textMuted,
+                                        fontSize: wide ? 15 : 14,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: 36,
+                                      height: 3,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF10B981),
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              wide
+                                  ? IntrinsicHeight(
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(flex: 3, child: photoCard),
+                                        SizedBox(width: gap),
+                                        const Expanded(
+                                          flex: 2,
+                                          child: _QuoteCard(),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                  : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      photoCard,
+                                      SizedBox(height: gap),
+                                      const _QuoteCard(),
+                                    ],
+                                  ),
+                              SizedBox(height: gap),
+                              _SectionCard(
+                                icon: Icons.badge_outlined,
+                                title: l10n.line('personalInformation'),
+                                subtitle: l10n.line('personalInformationBody'),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    pair(nameField, emailField),
+                                    SizedBox(height: gap),
+                                    pair(partyField, designationField),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: gap),
+                              _SectionCard(
+                                icon: Icons.location_on_outlined,
+                                title: l10n.locationSection,
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    desktop
+                                        ? Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(child: countryField),
+                                            const SizedBox(width: 12),
+                                            Expanded(child: stateField),
+                                            const SizedBox(width: 12),
+                                            Expanded(child: districtField),
+                                          ],
+                                        )
+                                        : Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            countryField,
+                                            const SizedBox(height: 12),
+                                            stateField,
+                                            const SizedBox(height: 12),
+                                            districtField,
+                                          ],
+                                        ),
+                                    const SizedBox(height: 14),
+                                    KeyedSubtree(
+                                      key: _assemblyAnchor,
+                                      child: _assemblyField(l10n, draft),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    pair(
+                                      KeyedSubtree(
+                                        key: _boothNumberAnchor,
+                                        child: _boothNumberField(l10n, draft),
+                                      ),
+                                      KeyedSubtree(
+                                        key: _boothNameAnchor,
+                                        child: _boothNameField(l10n, draft),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: gap),
+                              _SectionCard(
+                                icon: Icons.phone_outlined,
+                                title: l10n.contactSection,
+                                child: KeyedSubtree(
+                                  key: _contactAnchor,
+                                  child: AppTextField(
+                                    key: const ValueKey('profileContact'),
+                                    label: '${l10n.publicContact} *',
+                                    hint: 'Enter 10-digit mobile number',
+                                    prefixIcon: _buildPhonePrefix(context),
+                                    controller: _contactNumber,
+                                    keyboardType: TextInputType.phone,
+                                    textInputAction: TextInputAction.done,
+                                    autofillHints: const [
+                                      AutofillHints.telephoneNumber,
+                                    ],
+                                    inputFormatters: const [_phoneInput],
+                                    errorText: _contactError,
+                                    onChanged: (value) {
+                                      draft.contactNumber = value;
+                                      if (_contactError == null) return;
+                                      final text = value.trim();
+                                      final next =
+                                          text.isEmpty
+                                              ? _fillFirst
+                                              : (isValidContactNumber(text)
+                                                  ? null
+                                                  : l10n.invalidContact);
+                                      if (next != _contactError) {
+                                        setState(() => _contactError = next);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 22),
+                              Center(
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: wide ? 320 : double.infinity,
+                                  ),
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF2563EB),
+                                          Color(0xFF10B981),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0x262563EB),
+                                          blurRadius: 14,
+                                          offset: Offset(0, 6),
+                                        ),
+                                      ],
+                                    ),
+                                    child: FilledButton(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        disabledBackgroundColor:
+                                            Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        foregroundColor: Colors.white,
+                                        minimumSize: const Size.fromHeight(52),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                        ),
+                                        textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      onPressed:
+                                          _saving ? null : _saveAndContinue,
+                                      child:
+                                          _saving
+                                              ? const SizedBox(
+                                                width: 22,
+                                                height: 22,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2.4,
+                                                      color: Colors.white,
+                                                    ),
+                                              )
+                                              : Text(l10n.saveAndContinue),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Center(
+                                child: TextButton(
+                                  onPressed: _skipForNow,
+                                  child: Text(l10n.skipForNow),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1093,10 +1317,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           noResultsLabel: l10n.noConstituenciesFound,
           clearSearchLabel: l10n.clearStateSearch,
           loadingLabel: l10n.loadingAssemblyConstituencies,
-          onLoad: () => AssemblyConstituencies.load(
-            state: _selection.state,
-            district: _selection.district,
-          ),
+          onLoad:
+              () => AssemblyConstituencies.load(
+                state: _selection.state,
+                district: _selection.district,
+              ),
           errorText: _assemblyError,
           onChanged: (item) {
             if (item == null) return;
@@ -1162,52 +1387,151 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.l10n, required this.onBack});
+class _ProfileTopBar extends StatelessWidget {
+  const _ProfileTopBar({required this.l10n, required this.onBack, this.photo});
 
   final AppLocalizations l10n;
   final VoidCallback onBack;
+  final Uint8List? photo;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            IconButton(
-              tooltip: l10n.back,
-              onPressed: onBack,
-              icon: const Icon(Icons.arrow_back),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 16, 4),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: l10n.back,
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF0F2744)),
+          ),
+          ClipOval(
+            child: Image.asset(
+              AppAssets.logo,
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
             ),
-            ClipOval(
-              child: Image.asset(
-                AppAssets.logo,
-                width: 36,
-                height: 36,
-                fit: BoxFit.cover,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              l10n.appName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF0F2744),
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                letterSpacing: 0.4,
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.appName, style: AppTextStyles.wordmark(context)),
-                  Text(
-                    l10n.profilePlatform,
-                    style: AppTextStyles.descriptor(context),
-                  ),
+          ),
+          const ThemeToggle(),
+          const SizedBox(width: 8),
+          const LanguageSelector(),
+          const SizedBox(width: 10),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: const Color(0xFFD7E6F5),
+            backgroundImage: photo == null ? null : MemoryImage(photo!),
+            child:
+                photo == null
+                    ? const Icon(
+                      Icons.person,
+                      color: Color(0xFF0F2744),
+                      size: 18,
+                    )
+                    : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LeaderBackdrop extends StatelessWidget {
+  const _LeaderBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/images/profile/leader-profile-hero.jpg',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Color(0xD9F7FBFF),
+                  Color(0x66F7FBFF),
+                  Color(0x00FFFFFF),
                 ],
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuoteCard extends StatelessWidget {
+  const _QuoteCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 112),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF3FFF8), Color(0xFFE7F8EF), Color(0xFFF4FBFF)],
         ),
-        const SizedBox(height: 8),
-        Text(l10n.basicProfile, style: AppTextStyles.headline(context)),
-        const SizedBox(height: 4),
-        Text(l10n.profileDescription, style: AppTextStyles.muted(context)),
-      ],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x120F2744),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.format_quote_rounded,
+            color: Color(0xFF10B981),
+            size: 28,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '“${AppLocalizations.of(context).line('profileQuote')}”',
+            style: TextStyle(
+              color:
+                  context.palette.isDark
+                      ? context.palette.text
+                      : const Color(0xFF166534),
+              fontSize: 18,
+              height: 1.35,
+              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1217,10 +1541,12 @@ class _SectionCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.child,
+    this.subtitle,
   });
 
   final IconData icon;
   final String title;
+  final String? subtitle;
   final Widget child;
 
   @override
@@ -1228,12 +1554,19 @@ class _SectionCard extends StatelessWidget {
     final palette = context.palette;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: palette.border),
+        color: palette.isDark ? palette.surface : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: palette.border.withValues(alpha: 0.65)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x120F2744),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1241,7 +1574,7 @@ class _SectionCard extends StatelessWidget {
               children: [
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: palette.accent.withValues(alpha: 0.16),
+                    color: palette.surfaceSecondary,
                     shape: BoxShape.circle,
                   ),
                   child: Padding(
@@ -1251,13 +1584,34 @@ class _SectionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.headline(
-                      context,
-                    ).copyWith(fontSize: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color:
+                              palette.isDark
+                                  ? palette.text
+                                  : const Color(0xFF102A56),
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: TextStyle(
+                            color: palette.textMuted,
+                            fontSize: 13,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
@@ -1293,67 +1647,74 @@ class _PhotoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final diameter = MediaQuery.sizeOf(context).width < 760 ? 104.0 : 120.0;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: palette.border),
+        color: palette.isDark ? palette.surface : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: palette.border.withValues(alpha: 0.65)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x120F2744),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(diameter < 80 ? 12 : 16),
         child: Row(
           children: [
             SizedBox(
-              width: 92,
-              height: 92,
+              width: diameter,
+              height: diameter,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
                   DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: palette.background,
-                      border: Border.all(color: palette.accent, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: palette.accent.withValues(alpha: 0.35),
-                          blurRadius: 12,
-                        ),
+                      color: const Color(0xFFE8F1FF),
+                      border: Border.all(color: Colors.white, width: 3),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x332563EB), blurRadius: 12),
                       ],
-                      image: bytes == null
-                          ? null
-                          : DecorationImage(
-                              image: MemoryImage(bytes!),
-                              fit: BoxFit.cover,
-                            ),
+                      image:
+                          bytes == null
+                              ? null
+                              : DecorationImage(
+                                image: MemoryImage(bytes!),
+                                fit: BoxFit.cover,
+                              ),
                     ),
                     child: SizedBox(
-                      width: 92,
-                      height: 92,
-                      child: bytes == null
-                          ? Icon(
-                              Icons.person,
-                              size: 40,
-                              color: palette.textMuted,
-                            )
-                          : null,
+                      width: diameter,
+                      height: diameter,
+                      child:
+                          bytes == null
+                              ? Icon(
+                                Icons.person,
+                                size: diameter * 0.44,
+                                color: const Color(0xFF64748B),
+                              )
+                              : null,
                     ),
                   ),
                   Positioned(
                     right: -2,
                     bottom: -2,
                     child: Material(
-                      color: palette.accent,
+                      color: const Color(0xFF2563EB),
                       shape: const CircleBorder(),
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: onAdd,
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
+                        child: const Padding(
+                          padding: EdgeInsets.all(8),
                           child: Icon(
                             Icons.photo_camera,
-                            size: 14,
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 18,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -1369,23 +1730,43 @@ class _PhotoCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: AppTextStyles.headline(
-                      context,
-                    ).copyWith(fontSize: 16),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color:
+                          palette.isDark
+                              ? palette.text
+                              : const Color(0xFF102A56),
+                    ),
                   ),
                   const SizedBox(height: 2),
-                  Text(hint, style: AppTextStyles.muted(context)),
+                  Text(
+                    hint,
+                    style: TextStyle(color: palette.textMuted, fontSize: 13),
+                  ),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      OutlinedButton.icon(
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          visualDensity: VisualDensity.compact,
+                          shape: const StadiumBorder(),
+                        ),
                         onPressed: onAdd,
                         icon: const Icon(Icons.photo_camera_outlined, size: 16),
                         label: Text(takeLabel),
                       ),
                       OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF0F2744),
+                          visualDensity: VisualDensity.compact,
+                          side: const BorderSide(color: Color(0xFFD5E2EF)),
+                          shape: const StadiumBorder(),
+                        ),
                         onPressed: onDelete,
                         icon: const Icon(Icons.delete_outline, size: 16),
                         label: Text(deleteLabel),
@@ -1446,7 +1827,7 @@ class _ProfileDropdown extends StatelessWidget {
   final String clearSearchLabel;
   final List<String> Function(List<String> options)? prepareOptions;
   final List<String> Function(List<String> options, String query)?
-      filterOptions;
+  filterOptions;
   final Key? searchFieldKey;
   final Key? clearButtonKey;
   final Key? emptyMessageKey;
@@ -1481,22 +1862,24 @@ class _ProfileDropdown extends StatelessWidget {
             prepareOptions: prepareOptions,
             filterOptions: filterOptions,
             showPrefix: !showPartySymbols,
-            selectedWidget: showPartySymbols && value != null
-                ? (context, val) => _PartyOptionLabel(name: val)
-                : null,
-            menuContentBuilder: showPartySymbols
-                ? (context, visible, selected, onSelect, palette) =>
-                    _partyMenuContent(
-                      context: context,
-                      visibleOptions: visible,
-                      selected: selected,
-                      onSelect: onSelect,
-                      nationalLabel: nationalPartiesLabel,
-                      regionalLabel: regionalPartiesLabel,
-                      listKey: listKey ?? const ValueKey('partyMenuList'),
-                      palette: palette,
-                    )
-                : null,
+            selectedWidget:
+                showPartySymbols && value != null
+                    ? (context, val) => _PartyOptionLabel(name: val)
+                    : null,
+            menuContentBuilder:
+                showPartySymbols
+                    ? (context, visible, selected, onSelect, palette) =>
+                        _partyMenuContent(
+                          context: context,
+                          visibleOptions: visible,
+                          selected: selected,
+                          onSelect: onSelect,
+                          nationalLabel: nationalPartiesLabel,
+                          regionalLabel: regionalPartiesLabel,
+                          listKey: listKey ?? const ValueKey('partyMenuList'),
+                          palette: palette,
+                        )
+                    : null,
             searchFieldKey: searchFieldKey ?? const ValueKey('stateSearch'),
             clearButtonKey:
                 clearButtonKey ?? const ValueKey('clearStateSearch'),
@@ -1514,29 +1897,31 @@ class _ProfileDropdown extends StatelessWidget {
             menuMaxHeight: MediaQuery.sizeOf(context).height * 0.5,
             itemHeight: showPartySymbols ? 56 : kMinInteractiveDimension,
             decoration: InputDecoration(
-              prefixIcon: showPartySymbols
-                  ? null
-                  : Icon(icon, color: palette.textMuted),
+              prefixIcon:
+                  showPartySymbols
+                      ? null
+                      : Icon(icon, color: palette.textMuted),
               errorText: errorText,
             ),
-            items: showPartySymbols
-                ? _partyMenuItems(
-                    options,
-                    nationalPartiesLabel,
-                    regionalPartiesLabel,
-                    palette,
-                  )
-                : [
-                    for (final option in options)
-                      DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(
-                          option,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+            items:
+                showPartySymbols
+                    ? _partyMenuItems(
+                      options,
+                      nationalPartiesLabel,
+                      regionalPartiesLabel,
+                      palette,
+                    )
+                    : [
+                      for (final option in options)
+                        DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(
+                            option,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
             onChanged: enabled ? onChanged : null,
           ),
       ],
@@ -1575,9 +1960,10 @@ Widget _partyMenuContent({
   required AppPalette palette,
 }) {
   final visibleSet = visibleOptions.toSet();
-  final saved = visibleOptions
-      .where((name) => PartyOption.findByName(name) == null)
-      .toList();
+  final saved =
+      visibleOptions
+          .where((name) => PartyOption.findByName(name) == null)
+          .toList();
   final national =
       PartyOption.national.where((p) => visibleSet.contains(p.name)).toList();
   final regional =

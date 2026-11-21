@@ -35,6 +35,7 @@ flutter:
     - assets/images/brand/votebanker_logo.png
     - assets/images/brand/sansad_bhavan.png
     - assets/images/merchandise/
+    - assets/images/profile/
     - assets/images/parties/
     - assets/images/website_samples/
     - assets/data/locations.json

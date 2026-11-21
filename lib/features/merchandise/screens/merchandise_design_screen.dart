@@ -15,21 +15,28 @@ import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../onboarding/state/onboarding_controller.dart';
+import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
 import '../widgets/merchandise_preview.dart';
+import '../widgets/merchandise_price_details.dart';
+import '../widgets/merchandise_quantity_selector.dart';
 
 class MerchandiseDesignScreen extends StatefulWidget {
   const MerchandiseDesignScreen({
     required this.product,
     this.service,
     this.onSubmit,
+    this.initialQuantity = merchandiseMinimumQuantity,
+    this.onQuantityChanged,
     super.key,
   });
 
   final MerchandiseProduct product;
   final MerchandiseService? service;
   final Future<void> Function(Map<String, dynamic> payload)? onSubmit;
+  final int initialQuantity;
+  final ValueChanged<int>? onQuantityChanged;
 
   @override
   State<MerchandiseDesignScreen> createState() => _MerchandiseDesignScreenState();
@@ -42,7 +49,7 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
   final _notes = TextEditingController();
   final _picker = ImagePicker();
   Uint8List? _photoBytes;
-  var _quantity = 1;
+  late int _quantity = normalizeMerchandiseQuantity(widget.initialQuantity);
   var _size = '';
   var _color = '';
   var _saving = false;
@@ -69,7 +76,10 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       _name.text = draft;
     }
     final savedPhoto = profile?.photoBytes;
-    if (_photoBytes == null && savedPhoto != null && savedPhoto.isNotEmpty) {
+    if (AuthService.instance.isSignedIn &&
+        _photoBytes == null &&
+        savedPhoto != null &&
+        savedPhoto.isNotEmpty) {
       _photoBytes = savedPhoto;
     }
     final phone = AuthService.instance.session?.phone ?? '';
@@ -211,7 +221,10 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
                 color: _color,
                 photoBytes: _photoBytes,
                 onLine: (value) => setState(() {}),
-                onQuantity: (value) => setState(() => _quantity = value),
+                onQuantity: (value) {
+                  setState(() => _quantity = value);
+                  widget.onQuantityChanged?.call(value);
+                },
                 onSize: (value) => setState(() => _size = value),
                 onColor: (value) => setState(() => _color = value),
                 onPickPhoto: _pickPhoto,
@@ -221,7 +234,9 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
                 product: product,
                 line: _line.text,
                 photoBytes: _photoBytes,
-                partyName: OnboardingScope.maybeOf(context)?.draft.party ?? '',
+                partyName: AuthService.instance.isSignedIn
+                    ? (OnboardingScope.maybeOf(context)?.draft.party ?? '')
+                    : '',
                 size: _size,
                 color: _color,
                 quantity: _quantity,
@@ -509,29 +524,22 @@ class _FormCard extends StatelessWidget {
               onRemove: onRemovePhoto,
             ),
             const SizedBox(height: 14),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _QuantityField(
-                    label: l10n.line('merchQuantity'),
-                    quantity: quantity,
-                    onChanged: onQuantity,
-                  ),
-                ),
-                if (product.sizes.isNotEmpty) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _SizeField(
-                      label: l10n.line('merchSize'),
-                      value: size,
-                      options: product.sizes,
-                      onChanged: onSize,
-                    ),
-                  ),
-                ],
-              ],
+            MerchandiseQuantitySelector(
+              quantity: quantity,
+              priceSlabs: product.priceSlabs,
+              onChanged: onQuantity,
             ),
+            const SizedBox(height: 8),
+            MerchandisePriceDetails(product: product, quantity: quantity),
+            if (product.sizes.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              _SizeField(
+                label: l10n.line('merchSize'),
+                value: size,
+                options: product.sizes,
+                onChanged: onSize,
+              ),
+            ],
             if (product.colors.isNotEmpty) ...[
               const SizedBox(height: 16),
               _ColorLabel(
@@ -650,75 +658,6 @@ class _ColorLabel extends StatelessWidget {
           TextSpan(text: '  $optional'),
         ],
       ),
-    );
-  }
-}
-
-class _QuantityField extends StatelessWidget {
-  const _QuantityField({
-    required this.label,
-    required this.quantity,
-    required this.onChanged,
-  });
-
-  final String label;
-  final int quantity;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTextStyles.label(context).copyWith(fontSize: 13, color: palette.textMuted)),
-        const SizedBox(height: 8),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: palette.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: palette.border),
-          ),
-          child: SizedBox(
-            height: 52,
-            child: Row(
-              children: [
-                _StepperButton(
-                  icon: Icons.remove,
-                  onPressed: quantity > 1 ? () => onChanged(quantity - 1) : null,
-                ),
-                Expanded(
-                  child: Text(
-                    '$quantity',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.label(context).copyWith(fontSize: 16),
-                  ),
-                ),
-                _StepperButton(
-                  icon: Icons.add,
-                  onPressed: quantity < 500 ? () => onChanged(quantity + 1) : null,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StepperButton extends StatelessWidget {
-  const _StepperButton({required this.icon, required this.onPressed});
-
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      color: context.palette.textMuted,
     );
   }
 }
@@ -939,6 +878,8 @@ class _PreviewColumn extends StatelessWidget {
           standardLabel: l10n.line('merchStandard'),
           qtyLabel: l10n.line('merchQty'),
         ),
+        const SizedBox(height: 14),
+        MerchandisePriceDetails(product: product, quantity: quantity),
         const SizedBox(height: 14),
         if (saved)
           Text(l10n.line('merchSaved'), style: AppTextStyles.body(context))

@@ -15,39 +15,51 @@ void main() {
     await tester.pumpWidget(_app(const DashboardPlaceholderScreen()));
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const Key('dashboard-welcome-back')), findsOneWidget);
     expect(find.byTooltip('Back'), findsOneWidget);
+    expect(_topBarBack, findsNothing);
     expect(find.text('VOTE BANKER'), findsWidgets);
     expect(find.byType(DashboardPlaceholderScreen), findsOneWidget);
   });
 
-  testWidgets('dashboard back from the root opens the ready screen', (tester) async {
-    await tester.pumpWidget(_routed(AppRoutes.dashboard));
+  testWidgets('welcome back stays on the dashboard when it is the root', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(const DashboardPlaceholderScreen()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Back'));
+    await tester.tap(find.byKey(const Key('dashboard-welcome-back')));
     await tester.pumpAndSettle();
 
-    expect(find.text("You're all set"), findsOneWidget);
-    expect(find.byType(DashboardPlaceholderScreen), findsNothing);
+    expect(find.byType(DashboardPlaceholderScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
-  testWidgets('dashboard back returns to the previous screen', (tester) async {
+  testWidgets('welcome back returns to the previous screen', (tester) async {
     await tester.pumpWidget(_stack(const DashboardPlaceholderScreen()));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    expect(find.byTooltip('Back'), findsOneWidget);
-    expect(find.text('VOTE BANKER'), findsWidgets);
-
-    await tester.tap(find.byTooltip('Back'));
+    await tester.tap(find.byKey(const Key('dashboard-welcome-back')));
     await tester.pumpAndSettle();
 
     expect(find.text('Previous'), findsOneWidget);
     expect(find.byType(DashboardPlaceholderScreen), findsNothing);
   });
 
-  testWidgets('social setup back returns without changing actions', (tester) async {
+  testWidgets('dashboard top bar has no back button', (tester) async {
+    await tester.pumpWidget(_routed(AppRoutes.dashboard));
+    await tester.pumpAndSettle();
+
+    expect(_topBarBack, findsNothing);
+    expect(find.byKey(const Key('dashboard-welcome-back')), findsOneWidget);
+    expect(find.byType(DashboardPlaceholderScreen), findsOneWidget);
+  });
+
+  testWidgets('social setup back returns without changing actions', (
+    tester,
+  ) async {
     await tester.pumpWidget(_stack(const SocialSetupScreen()));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Open'));
@@ -86,6 +98,13 @@ void main() {
   });
 }
 
+final _topBarBack = find.byWidgetPredicate(
+  (widget) =>
+      widget is IconButton &&
+      widget.tooltip == 'Back' &&
+      widget.key != const Key('dashboard-welcome-back'),
+);
+
 Widget _app(Widget home) {
   return ThemeScope(
     controller: ThemeController(),
@@ -123,9 +142,7 @@ Widget _routed(String route) {
         initialRoute: route,
         onGenerateRoute: AppRouter.onGenerateRoute,
         onGenerateInitialRoutes: (String initialRoute) {
-          return [
-            AppRouter.onGenerateRoute(RouteSettings(name: initialRoute)),
-          ];
+          return [AppRouter.onGenerateRoute(RouteSettings(name: initialRoute))];
         },
       ),
     ),

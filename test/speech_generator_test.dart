@@ -39,200 +39,270 @@ void main() {
     expect(speechFileName('Address on roads'), 'Address on roads.txt');
   });
 
-  test('the speech service posts the brief and reads the structured speech', () async {
-    http.Request? sentRequest;
-    final client = MockClient((request) async {
-      sentRequest = request;
-      return http.Response.bytes(
-        utf8.encode(jsonEncode({
-          'success': true,
-          'speech': {
-            'title': 'ರಸ್ತೆಗಳ ಕುರಿತ ಭಾಷಣ',
-            'language': 'Kannada',
-            'speechType': 'Public Meeting',
-            'duration': '5 minutes',
-            'tone': 'Formal',
-            'source': 'ai',
-            'sections': [
-              {'heading': 'ನಮಸ್ಕಾರ', 'content': 'ರಸ್ತೆಗಳ ಬಗ್ಗೆ ಮಾತ್ರ ಮಾತನಾಡುತ್ತೇವೆ.'},
-            ],
-            'fullText': 'ರಸ್ತೆಗಳ ಕುರಿತ ಭಾಷಣ',
-          },
-        })),
-        200,
-        headers: const {'content-type': 'application/json; charset=utf-8'},
+  test(
+    'the speech service posts the brief and reads the structured speech',
+    () async {
+      http.Request? sentRequest;
+      final client = MockClient((request) async {
+        sentRequest = request;
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode({
+              'success': true,
+              'speech': {
+                'title': 'ರಸ್ತೆಗಳ ಕುರಿತ ಭಾಷಣ',
+                'language': 'Kannada',
+                'speechType': 'Public Meeting',
+                'duration': '5 minutes',
+                'tone': 'Formal',
+                'source': 'ai',
+                'sections': [
+                  {
+                    'heading': 'ನಮಸ್ಕಾರ',
+                    'content': 'ರಸ್ತೆಗಳ ಬಗ್ಗೆ ಮಾತ್ರ ಮಾತನಾಡುತ್ತೇವೆ.',
+                  },
+                ],
+                'fullText': 'ರಸ್ತೆಗಳ ಕುರಿತ ಭಾಷಣ',
+              },
+            }),
+          ),
+          200,
+          headers: const {'content-type': 'application/json; charset=utf-8'},
+        );
+      });
+
+      final speech = await SpeechService(
+        client: client,
+        baseUrls: const ['http://speech.test'],
+      ).generate(
+        const SpeechRequest(
+          prompt: 'improving roads in the constituency',
+          speechType: 'Public Meeting',
+          language: 'Kannada',
+          duration: '5 minutes',
+          tone: 'Formal',
+        ),
       );
-    });
 
-    final speech = await SpeechService(
-      client: client,
-      baseUrls: const ['http://speech.test'],
-    ).generate(
-      const SpeechRequest(
-        prompt: 'improving roads in the constituency',
-        speechType: 'Public Meeting',
-        language: 'Kannada',
-        duration: '5 minutes',
-        tone: 'Formal',
-      ),
-    );
+      expect(sentRequest?.url.path, '/api/speeches/generate');
+      final posted = jsonDecode(sentRequest!.body) as Map<String, dynamic>;
+      expect(posted['prompt'], contains('roads'));
+      expect(posted['language'], 'Kannada');
+      expect(speech.title, 'ರಸ್ತೆಗಳ ಕುರಿತ ಭಾಷಣ');
+      expect(speech.isMock, isFalse);
+      expect(speech.sections.single.heading, 'ನಮಸ್ಕಾರ');
+    },
+  );
 
-    expect(sentRequest?.url.path, '/api/speeches/generate');
-    final posted = jsonDecode(sentRequest!.body) as Map<String, dynamic>;
-    expect(posted['prompt'], contains('roads'));
-    expect(posted['language'], 'Kannada');
-    expect(speech.title, 'ರಸ್ತೆಗಳ ಕುರಿತ ಭಾಷಣ');
-    expect(speech.isMock, isFalse);
-    expect(speech.sections.single.heading, 'ನಮಸ್ಕಾರ');
-  });
-
-  test('a template reply is skipped when another server can write the speech', () async {
-    final client = MockClient((request) async {
-      if (request.url.host == 'template.test') {
+  test(
+    'a template reply is skipped when another server can write the speech',
+    () async {
+      final client = MockClient((request) async {
+        if (request.url.host == 'template.test') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'speech': {
+                'title': 'Draft',
+                'language': 'English',
+                'speechType': 'Public Meeting',
+                'duration': '5 minutes',
+                'tone': 'Formal',
+                'source': 'mock',
+                'sections': [
+                  {
+                    'heading': 'Opening',
+                    'content': 'This is a development draft.',
+                  },
+                ],
+                'fullText': 'Draft',
+              },
+            }),
+            200,
+            headers: const {'content-type': 'application/json'},
+          );
+        }
         return http.Response(
           jsonEncode({
             'success': true,
             'speech': {
-              'title': 'Draft',
-              'language': 'English',
+              'title': 'शिक्षा पर भाषण',
+              'language': 'Hindi',
               'speechType': 'Public Meeting',
               'duration': '5 minutes',
               'tone': 'Formal',
-              'source': 'mock',
+              'source': 'ai',
               'sections': [
-                {'heading': 'Opening', 'content': 'This is a development draft.'},
+                {
+                  'heading': 'अभिवादन',
+                  'content': 'शिक्षा हमारे बच्चों का हक है।',
+                },
               ],
-              'fullText': 'Draft',
+              'fullText': 'शिक्षा पर भाषण',
             },
           }),
           200,
           headers: const {'content-type': 'application/json'},
         );
-      }
-      return http.Response(
-        jsonEncode({
-          'success': true,
-          'speech': {
-            'title': 'शिक्षा पर भाषण',
-            'language': 'Hindi',
-            'speechType': 'Public Meeting',
-            'duration': '5 minutes',
-            'tone': 'Formal',
-            'source': 'ai',
-            'sections': [
-              {'heading': 'अभिवादन', 'content': 'शिक्षा हमारे बच्चों का हक है।'},
-            ],
-            'fullText': 'शिक्षा पर भाषण',
-          },
-        }),
-        200,
-        headers: const {'content-type': 'application/json'},
+      });
+
+      final speech = await SpeechService(
+        client: client,
+        baseUrls: const ['http://template.test', 'http://model.test'],
+      ).generate(
+        const SpeechRequest(
+          prompt: 'education in the constituency',
+          speechType: 'Public Meeting',
+          language: 'Hindi',
+          duration: '5 minutes',
+          tone: 'Formal',
+        ),
       );
-    });
 
-    final speech = await SpeechService(
-      client: client,
-      baseUrls: const ['http://template.test', 'http://model.test'],
-    ).generate(
-      const SpeechRequest(
-        prompt: 'education in the constituency',
-        speechType: 'Public Meeting',
-        language: 'Hindi',
-        duration: '5 minutes',
-        tone: 'Formal',
-      ),
-    );
+      expect(speech.isMock, isFalse);
+      expect(speech.title, 'शिक्षा पर भाषण');
+    },
+  );
 
-    expect(speech.isMock, isFalse);
-    expect(speech.title, 'शिक्षा पर भाषण');
-  });
+  testWidgets(
+    'an empty prompt cannot generate, and a brief returns a full speech',
+    (tester) async {
+      tester.view.physicalSize = const Size(1280, 2200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-  testWidgets('an empty prompt cannot generate, and a brief returns a full speech', (tester) async {
-    tester.view.physicalSize = const Size(1280, 2200);
+      SpeechRequest? sent;
+      final gate = Completer<GeneratedSpeech>();
+      await tester.pumpWidget(
+        _app(
+          SpeechGeneratorScreen(
+            stageDelay: Duration.zero,
+            service: _ScriptedSpeechService((request) {
+              sent = request;
+              return gate.future;
+            }),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Speech Generator'), findsWidgets);
+      expect(find.text('What should the speech be about?'), findsOneWidget);
+      expect(find.text('हिन्दी'), findsOneWidget);
+      final generate = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Generate Speech'),
+      );
+      expect(generate.onPressed, isNull);
+
+      await tester.enterText(
+        find.byKey(const Key('speech-prompt')),
+        'improving education, roads and employment',
+      );
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<ElevatedButton>(
+              find.widgetWithText(ElevatedButton, 'Generate Speech'),
+            )
+            .onPressed,
+        isNotNull,
+      );
+
+      await tester.ensureVisible(find.text('Generate Speech'));
+      await tester.tap(find.text('Generate Speech'));
+      await tester.pump();
+
+      expect(find.text('Creating your speech...'), findsOneWidget);
+      expect(find.text('Understanding your topic'), findsOneWidget);
+      expect(sent?.prompt, 'improving education, roads and employment');
+      expect(sent?.language, 'Hindi');
+
+      gate.complete(
+        GeneratedSpeech(
+          title: 'Address on education',
+          language: sent!.language,
+          speechType: sent!.speechType,
+          duration: sent!.duration,
+          tone: sent!.tone,
+          source: 'mock',
+          fullText: sent!.prompt,
+          sections: [
+            SpeechSection(
+              heading: 'Greeting / Opening',
+              content: 'Welcome. ${sent!.prompt}',
+            ),
+            const SpeechSection(
+              heading: 'Closing',
+              content: 'Thank you for attending this public meeting.',
+            ),
+          ],
+        ),
+      );
+      for (var i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+
+      expect(sent?.prompt, 'improving education, roads and employment');
+      expect(find.text('Address on education'), findsOneWidget);
+      expect(
+        find.textContaining('improving education, roads and employment'),
+        findsWidgets,
+      );
+      expect(find.text('Greeting / Opening'), findsOneWidget);
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Regenerate'), findsOneWidget);
+      expect(find.text('Copy'), findsOneWidget);
+      expect(find.text('Download'), findsOneWidget);
+      expect(find.text('Translate'), findsOneWidget);
+      expect(find.textContaining('development draft'), findsOneWidget);
+
+      await tester.tap(find.text('Edit'));
+      await tester.pump();
+      await tester.enterText(
+        find.byType(TextField).at(1),
+        'A revised opening about education and roads.',
+      );
+      await tester.tap(find.text('Done'));
+      await tester.pump();
+
+      expect(
+        find.text('A revised opening about education and roads.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('speech generator lays out on a phone', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    SpeechRequest? sent;
-    final gate = Completer<GeneratedSpeech>();
     await tester.pumpWidget(
       _app(
         SpeechGeneratorScreen(
-          stageDelay: Duration.zero,
-          service: _ScriptedSpeechService((request) {
-            sent = request;
-            return gate.future;
-          }),
+          service: _ScriptedSpeechService(
+            (_) async => const GeneratedSpeech(
+              title: '',
+              language: 'Hindi',
+              speechType: 'Public Meeting',
+              duration: '5 minutes',
+              tone: 'Formal',
+              source: 'mock',
+              fullText: '',
+              sections: [],
+            ),
+          ),
         ),
       ),
     );
     await tester.pump();
 
-    expect(find.text('Speech Generator'), findsWidgets);
-    expect(find.text('What should the speech be about?'), findsOneWidget);
-    expect(find.text('हिन्दी'), findsOneWidget);
-    final generate = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Generate Speech'),
-    );
-    expect(generate.onPressed, isNull);
-
-    await tester.enterText(
-      find.byKey(const Key('speech-prompt')),
-      'improving education, roads and employment',
-    );
-    await tester.pump();
-
-    expect(
-      tester.widget<ElevatedButton>(find.widgetWithText(ElevatedButton, 'Generate Speech')).onPressed,
-      isNotNull,
-    );
-
-    await tester.ensureVisible(find.text('Generate Speech'));
-    await tester.tap(find.text('Generate Speech'));
-    await tester.pump();
-
-    expect(find.text('Creating your speech...'), findsOneWidget);
-    expect(find.text('Understanding your topic'), findsOneWidget);
-    expect(sent?.prompt, 'improving education, roads and employment');
-    expect(sent?.language, 'Hindi');
-
-    gate.complete(
-      GeneratedSpeech(
-        title: 'Address on education',
-        language: sent!.language,
-        speechType: sent!.speechType,
-        duration: sent!.duration,
-        tone: sent!.tone,
-        source: 'mock',
-        fullText: sent!.prompt,
-        sections: [
-          SpeechSection(heading: 'Greeting / Opening', content: 'Welcome. ${sent!.prompt}'),
-          const SpeechSection(heading: 'Closing', content: 'Thank you for attending this public meeting.'),
-        ],
-      ),
-    );
-    for (var i = 0; i < 8; i++) {
-      await tester.pump(const Duration(milliseconds: 20));
-    }
-
-    expect(sent?.prompt, 'improving education, roads and employment');
-    expect(find.text('Address on education'), findsOneWidget);
-    expect(find.textContaining('improving education, roads and employment'), findsWidgets);
-    expect(find.text('Greeting / Opening'), findsOneWidget);
-    expect(find.text('Edit'), findsOneWidget);
-    expect(find.text('Regenerate'), findsOneWidget);
-    expect(find.text('Copy'), findsOneWidget);
-    expect(find.text('Download'), findsOneWidget);
-    expect(find.text('Translate'), findsOneWidget);
-    expect(find.textContaining('development draft'), findsOneWidget);
-
-    await tester.tap(find.text('Edit'));
-    await tester.pump();
-    await tester.enterText(find.byType(TextField).at(1), 'A revised opening about education and roads.');
-    await tester.tap(find.text('Done'));
-    await tester.pump();
-
-    expect(find.text('A revised opening about education and roads.'), findsOneWidget);
+    expect(find.text('Speech Generator'), findsOneWidget);
+    expect(find.text('Generate Speech'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

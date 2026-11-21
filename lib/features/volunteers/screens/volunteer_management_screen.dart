@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../core/services/theme_controller.dart';
 import '../../../core/utils/person_name.dart';
+import '../../dashboard/widgets/dashboard_colors.dart';
+import '../../dashboard/widgets/dashboard_sidebar.dart';
 import '../models/volunteer_dashboard.dart';
 import '../models/volunteer_models.dart';
 import '../services/volunteer_service.dart';
@@ -33,6 +36,7 @@ class VolunteerManagementScreen extends StatefulWidget {
 class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   static const _pageSize = 5;
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _search = TextEditingController();
 
   List<DashboardVolunteer> _volunteers = [];
@@ -87,13 +91,18 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
         if (_matches(row, query)) row,
     ];
     if (_nameSort != 0) {
-      rows.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()) * _nameSort);
+      rows.sort(
+        (a, b) =>
+            a.name.toLowerCase().compareTo(b.name.toLowerCase()) * _nameSort,
+      );
     }
     return rows;
   }
 
   bool _matches(DashboardVolunteer row, String query) {
-    if (query.isNotEmpty && !row.name.toLowerCase().contains(query)) return false;
+    if (query.isNotEmpty && !row.name.toLowerCase().contains(query)) {
+      return false;
+    }
     if (_status.isNotEmpty && row.status != _status) return false;
     if (_location.isNotEmpty && row.location != _location) return false;
     if (_skill.isNotEmpty && !row.skills.contains(_skill)) return false;
@@ -125,7 +134,8 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
       if (!mounted) return;
       setState(() {
         _volunteers = [
-          for (final record in page.volunteers) dashboardVolunteerFromRecord(record),
+          for (final record in page.volunteers)
+            dashboardVolunteerFromRecord(record),
         ];
         _loading = false;
       });
@@ -142,7 +152,8 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
       'fullName': volunteer.name,
       'mobile': volunteer.phone ?? '',
       'email': volunteer.email,
-      'role': volunteer.role.trim().isEmpty ? 'General Volunteer' : volunteer.role,
+      'role':
+          volunteer.role.trim().isEmpty ? 'General Volunteer' : volunteer.role,
       'location': location.isEmpty || location == '—' ? null : location,
       'skills': volunteer.skills.join(', '),
       'availability': volunteer.availability,
@@ -154,11 +165,13 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   Future<void> _addOrEdit({DashboardVolunteer? existing}) async {
     final saved = await showDialog<bool>(
       context: context,
-      builder: (context) => _VolunteerFormDialog(
-        existing: existing,
-        id: existing?.id ?? 'vol-${DateTime.now().microsecondsSinceEpoch}',
-        onSave: (volunteer) => _commitVolunteer(volunteer, existing: existing),
-      ),
+      builder:
+          (context) => _VolunteerFormDialog(
+            existing: existing,
+            id: existing?.id ?? 'vol-${DateTime.now().microsecondsSinceEpoch}',
+            onSave:
+                (volunteer) => _commitVolunteer(volunteer, existing: existing),
+          ),
     );
     if (saved == true && mounted) {
       _toast(existing == null ? 'Volunteer added.' : 'Volunteer updated.');
@@ -174,11 +187,17 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
       return null;
     }
     try {
-      final record = existing == null
-          ? await _service.createVolunteer(_payload(saved))
-          : await _service.updateVolunteer(existing.id, _payload(saved));
+      final record =
+          existing == null
+              ? await _service.createVolunteer(_payload(saved))
+              : await _service.updateVolunteer(existing.id, _payload(saved));
       if (!mounted) return 'Could not save the volunteer.';
-      setState(() => _storeVolunteer(dashboardVolunteerFromRecord(record), existing: existing));
+      setState(
+        () => _storeVolunteer(
+          dashboardVolunteerFromRecord(record),
+          existing: existing,
+        ),
+      );
       // #region agent log
       _agentLog('H3', 'save succeeded', {
         'runId': 'post-fix',
@@ -191,14 +210,20 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
       // #region agent log
       _agentLog('H3', 'save failed', {
         'runId': 'post-fix',
-        'code': error is VolunteerException ? error.code : error.runtimeType.toString(),
+        'code':
+            error is VolunteerException
+                ? error.code
+                : error.runtimeType.toString(),
       });
       // #endregion
       return _errorText(error, removing: false);
     }
   }
 
-  void _storeVolunteer(DashboardVolunteer saved, {DashboardVolunteer? existing}) {
+  void _storeVolunteer(
+    DashboardVolunteer saved, {
+    DashboardVolunteer? existing,
+  }) {
     if (existing == null) {
       _volunteers = [saved, ..._volunteers];
       _page = 1;
@@ -220,22 +245,23 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   Future<void> _delete(DashboardVolunteer volunteer) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove volunteer'),
-        content: const Text(
-          'Are you sure you want to permanently remove this volunteer?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Remove volunteer'),
+            content: const Text(
+              'Are you sure you want to permanently remove this volunteer?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Remove Volunteer'),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove Volunteer'),
-          ),
-        ],
-      ),
     );
     if (confirmed != true || !mounted) return;
     if (_persist) {
@@ -264,11 +290,13 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
       'invalid_name' => 'Enter a valid name.',
       'unauthorized' => 'Sign in again to save volunteers.',
       'not_found' => 'That volunteer is no longer in the database.',
-      'duplicate_mobile' => 'A volunteer with this phone number already exists.',
+      'duplicate_mobile' =>
+        'A volunteer with this phone number already exists.',
       'volunteers_not_ready' => 'Volunteer storage is not ready.',
-      _ => removing
-          ? 'Could not remove the volunteer. It is still saved.'
-          : 'Could not save the volunteer.',
+      _ =>
+        removing
+            ? 'Could not remove the volunteer. It is still saved.'
+            : 'Could not save the volunteer.',
     };
   }
 
@@ -282,7 +310,9 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   }
 
   void _toast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _toggleTheme() {
@@ -294,21 +324,62 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final colors = _DashColors(dark);
+    final sideColors = DashboardColors.of(context);
+    final l10n = AppLocalizations.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
+        final showSidebar = constraints.maxWidth >= 960;
+        final sidebar = DashboardSidebar(
+          colors: sideColors,
+          items: dashboardSidebarItems(l10n),
+          selectedRoute: AppRoutes.volunteers,
+        );
         return Scaffold(
+          key: _scaffoldKey,
           backgroundColor: colors.page,
+          drawer:
+              showSidebar
+                  ? null
+                  : Drawer(
+                    backgroundColor: sideColors.sidebar,
+                    child: SafeArea(
+                      child: DashboardSidebar(
+                        colors: sideColors,
+                        items: dashboardSidebarItems(l10n),
+                        selectedRoute: AppRoutes.volunteers,
+                        onNavigate: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                  ),
           body: SafeArea(
-            child: Column(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _TopBar(
-                  colors: colors,
-                  onBack: _goBack,
-                  onHelp: _showHelp,
-                  onTheme: _toggleTheme,
-                  onAlerts: _showAlerts,
+                if (showSidebar) SizedBox(width: 248, child: sidebar),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _TopBar(
+                        colors: colors,
+                        onBack: _goBack,
+                        onHelp: _showHelp,
+                        onTheme: _toggleTheme,
+                        onAlerts: _showAlerts,
+                        onMenu:
+                            showSidebar
+                                ? null
+                                : () => _scaffoldKey.currentState?.openDrawer(),
+                      ),
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder:
+                              (context, content) =>
+                                  _volunteersBody(colors, content.maxWidth),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Expanded(child: _volunteersBody(colors, constraints.maxWidth)),
               ],
             ),
           ),
@@ -328,7 +399,12 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
     final to = visible.isEmpty ? 0 : start + slice.length;
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(compact ? 16 : 28, 22, compact ? 16 : 28, 28),
+      padding: EdgeInsets.fromLTRB(
+        compact ? 16 : 28,
+        22,
+        compact ? 16 : 28,
+        28,
+      ),
       children: [
         _Heading(colors: colors, onAdd: () => _addOrEdit()),
         const SizedBox(height: 18),
@@ -362,9 +438,10 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
           page: page,
           pageCount: pageCount,
           nameSort: _nameSort,
-          onSortName: () => setState(() {
-            _nameSort = _nameSort == 1 ? -1 : 1;
-          }),
+          onSortName:
+              () => setState(() {
+                _nameSort = _nameSort == 1 ? -1 : 1;
+              }),
           onPage: (next) => setState(() => _page = next),
           onView: _view,
           onEdit: (volunteer) => _addOrEdit(existing: volunteer),
@@ -379,39 +456,42 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
   Future<void> _showHelp() async {
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Volunteers help'),
-        content: const Text(
-          'Search by name and combine the status, location, skill, and availability filters. Use the row actions to view, edit, or remove a volunteer.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Volunteers help'),
+            content: const Text(
+              'Search by name and combine the status, location, skill, and availability filters. Use the row actions to view, edit, or remove a volunteer.',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
   Future<void> _showAlerts() async {
-    final onboarding = _volunteers.where((row) => row.status == 'Onboarding').length;
+    final onboarding =
+        _volunteers.where((row) => row.status == 'Onboarding').length;
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Notifications'),
-        content: Text(
-          onboarding == 0
-              ? 'No new notifications.'
-              : '$onboarding volunteer${onboarding == 1 ? ' is' : 's are'} still onboarding.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Notifications'),
+            content: Text(
+              onboarding == 0
+                  ? 'No new notifications.'
+                  : '$onboarding volunteer${onboarding == 1 ? ' is' : 's are'} still onboarding.',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
@@ -430,8 +510,10 @@ class _DashColors {
   Color get button => const Color(0xFF1E4ED8);
   Color get field => dark ? const Color(0xFF0E1726) : Colors.white;
   Color get skillBg => dark ? const Color(0xFF1C2838) : const Color(0xFFF2F4F7);
-  Color get skillText => dark ? const Color(0xFFD5DEE8) : const Color(0xFF5E6E82);
-  Color get availabilityBg => dark ? const Color(0xFF163056) : const Color(0xFFE8F1FF);
+  Color get skillText =>
+      dark ? const Color(0xFFD5DEE8) : const Color(0xFF5E6E82);
+  Color get availabilityBg =>
+      dark ? const Color(0xFF163056) : const Color(0xFFE8F1FF);
   Color get availabilityText => const Color(0xFF2F6FD0);
 }
 
@@ -457,6 +539,7 @@ class _TopBar extends StatelessWidget {
     required this.onHelp,
     required this.onTheme,
     required this.onAlerts,
+    this.onMenu,
   });
 
   final _DashColors colors;
@@ -464,6 +547,7 @@ class _TopBar extends StatelessWidget {
   final VoidCallback onHelp;
   final VoidCallback onTheme;
   final VoidCallback onAlerts;
+  final VoidCallback? onMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -476,6 +560,12 @@ class _TopBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         child: Row(
           children: [
+            if (onMenu != null)
+              IconButton(
+                tooltip: 'Menu',
+                onPressed: onMenu,
+                icon: Icon(Icons.menu, color: colors.heading),
+              ),
             IconButton(
               tooltip: 'Back',
               onPressed: onBack,
@@ -491,9 +581,10 @@ class _TopBar extends StatelessWidget {
             const SizedBox(width: 8),
             _RoundIconButton(
               colors: colors,
-              icon: Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
+              icon:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
               tooltip: 'Theme',
               onPressed: onTheme,
             ),
@@ -681,25 +772,26 @@ class _FilterCard extends StatelessWidget {
       decoration: _cardDecoration(colors),
       child: Padding(
         padding: const EdgeInsets.all(14),
-        child: stacked
-            ? Column(
-                children: [
-                  searchField,
-                  for (final menu in menus) ...[
-                    const SizedBox(height: 10),
-                    menu,
+        child:
+            stacked
+                ? Column(
+                  children: [
+                    searchField,
+                    for (final menu in menus) ...[
+                      const SizedBox(height: 10),
+                      menu,
+                    ],
                   ],
-                ],
-              )
-            : Row(
-                children: [
-                  Expanded(flex: 5, child: searchField),
-                  for (final menu in menus) ...[
-                    const SizedBox(width: 10),
-                    Expanded(flex: 3, child: menu),
+                )
+                : Row(
+                  children: [
+                    Expanded(flex: 5, child: searchField),
+                    for (final menu in menus) ...[
+                      const SizedBox(width: 10),
+                      Expanded(flex: 3, child: menu),
+                    ],
                   ],
-                ],
-              ),
+                ),
       ),
     );
   }
@@ -801,14 +893,16 @@ class _TableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showing = total == 0
-        ? 'Showing 0 of 0 volunteers'
-        : 'Showing $from–$to of $total volunteers';
+    final showing =
+        total == 0
+            ? 'Showing 0 of 0 volunteers'
+            : 'Showing $from–$to of $total volunteers';
     return DecoratedBox(
       decoration: _cardDecoration(colors),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final tableWidth = constraints.maxWidth < 1080 ? 1080.0 : constraints.maxWidth;
+          final tableWidth =
+              constraints.maxWidth < 1080 ? 1080.0 : constraints.maxWidth;
           return Column(
             children: [
               SingleChildScrollView(
@@ -855,7 +949,10 @@ class _TableCard extends StatelessWidget {
                   border: Border(top: BorderSide(color: colors.border)),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -949,7 +1046,9 @@ class _HeaderRow extends StatelessWidget {
                     label('NAME'),
                     const SizedBox(width: 4),
                     Icon(
-                      nameSort == -1 ? Icons.arrow_downward : Icons.arrow_upward,
+                      nameSort == -1
+                          ? Icons.arrow_downward
+                          : Icons.arrow_upward,
                       size: 12,
                       color: colors.muted,
                     ),
@@ -1025,7 +1124,13 @@ class _VolunteerRow extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(flex: 3, child: Align(alignment: Alignment.centerLeft, child: _StatusPill(status: volunteer.status))),
+            Expanded(
+              flex: 3,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _StatusPill(status: volunteer.status),
+              ),
+            ),
             Expanded(
               flex: 6,
               child: Align(
@@ -1039,7 +1144,10 @@ class _VolunteerRow extends StatelessWidget {
                       for (var i = 0; i < volunteer.skills.length; i++) ...[
                         if (i > 0) const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: colors.skillBg,
                             borderRadius: BorderRadius.circular(999),
@@ -1061,30 +1169,37 @@ class _VolunteerRow extends StatelessWidget {
             ),
             Expanded(
               flex: 2,
-              child: (volunteer.availability ?? '').isEmpty
-                  ? Text('—', style: TextStyle(color: colors.muted, fontSize: 16))
-                  : Align(
-                      alignment: Alignment.centerLeft,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
+              child:
+                  (volunteer.availability ?? '').isEmpty
+                      ? Text(
+                        '—',
+                        style: TextStyle(color: colors.muted, fontSize: 16),
+                      )
+                      : Align(
                         alignment: Alignment.centerLeft,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: colors.availabilityBg,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            volunteer.availability!,
-                            style: TextStyle(
-                              color: colors.availabilityText,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.availabilityBg,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              volunteer.availability!,
+                              style: TextStyle(
+                                color: colors.availabilityText,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
             ),
             SizedBox(
               width: 132,
@@ -1117,11 +1232,21 @@ class _VolunteerRow extends StatelessWidget {
                           onDelete();
                       }
                     },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'view', child: Text('View details')),
-                      PopupMenuItem(value: 'edit', child: Text('Edit volunteer')),
-                      PopupMenuItem(value: 'delete', child: Text('Remove volunteer')),
-                    ],
+                    itemBuilder:
+                        (context) => const [
+                          PopupMenuItem(
+                            value: 'view',
+                            child: Text('View details'),
+                          ),
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit volunteer'),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Remove volunteer'),
+                          ),
+                        ],
                     child: Container(
                       width: 32,
                       height: 32,
@@ -1131,7 +1256,11 @@ class _VolunteerRow extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0xFFC5D9F5)),
                       ),
-                      child: Icon(Icons.more_horiz, size: 16, color: colors.link),
+                      child: Icon(
+                        Icons.more_horiz,
+                        size: 16,
+                        color: colors.link,
+                      ),
                     ),
                   ),
                 ],
@@ -1186,14 +1315,16 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final onboarding = status == 'Onboarding';
     final inactive = status == 'Inactive';
-    final background = onboarding
-        ? const Color(0xFFFFF4D8)
-        : inactive
+    final background =
+        onboarding
+            ? const Color(0xFFFFF4D8)
+            : inactive
             ? const Color(0xFFEEF2F6)
             : const Color(0xFFE5F8EC);
-    final foreground = onboarding
-        ? const Color(0xFFC89212)
-        : inactive
+    final foreground =
+        onboarding
+            ? const Color(0xFFC89212)
+            : inactive
             ? const Color(0xFF5C6D82)
             : const Color(0xFF1E9D55);
     return FittedBox(
@@ -1211,7 +1342,10 @@ class _StatusPill extends StatelessWidget {
             Container(
               width: 7,
               height: 7,
-              decoration: BoxDecoration(color: foreground, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: foreground,
+                shape: BoxShape.circle,
+              ),
             ),
             const SizedBox(width: 6),
             Text(
@@ -1308,11 +1442,13 @@ class _InitialsAvatar extends StatelessWidget {
     ];
     final color = palette[name.hashCode.abs() % palette.length];
     final parts = name.trim().split(RegExp(r'\s+'));
-    final initials = parts.isEmpty || parts.first.isEmpty
-        ? '?'
-        : parts.length == 1
+    final initials =
+        parts.isEmpty || parts.first.isEmpty
+            ? '?'
+            : parts.length == 1
             ? parts.first.substring(0, 1).toUpperCase()
-            : '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'.toUpperCase();
+            : '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+                .toUpperCase();
     return CircleAvatar(
       radius: radius,
       backgroundColor: color.withValues(alpha: 0.16),
@@ -1457,8 +1593,11 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                       controller: _name,
                       textInputAction: TextInputAction.next,
                       decoration: _fieldDecoration('Enter full name'),
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty ? 'Name is required.' : null,
+                      validator:
+                          (value) =>
+                              value == null || value.trim().isEmpty
+                                  ? 'Name is required.'
+                                  : null,
                       onFieldSubmitted: (_) => _save(),
                     ),
                   ),
@@ -1478,12 +1617,13 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                         for (final status in dashboardStatuses)
                           DropdownMenuItem(value: status, child: Text(status)),
                       ],
-                      onChanged: _saving
-                          ? null
-                          : (value) {
-                              if (value == null) return;
-                              setState(() => _status = value);
-                            },
+                      onChanged:
+                          _saving
+                              ? null
+                              : (value) {
+                                if (value == null) return;
+                                setState(() => _status = value);
+                              },
                     ),
                   ),
                   _labeledField(
@@ -1500,15 +1640,22 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                       value: _availability,
                       items: const [
                         DropdownMenuItem(value: '', child: Text('Not set')),
-                        DropdownMenuItem(value: 'Regular', child: Text('Regular')),
-                        DropdownMenuItem(value: 'Ad Hoc', child: Text('Ad Hoc')),
+                        DropdownMenuItem(
+                          value: 'Regular',
+                          child: Text('Regular'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Ad Hoc',
+                          child: Text('Ad Hoc'),
+                        ),
                       ],
-                      onChanged: _saving
-                          ? null
-                          : (value) {
-                              if (value == null) return;
-                              setState(() => _availability = value);
-                            },
+                      onChanged:
+                          _saving
+                              ? null
+                              : (value) {
+                                if (value == null) return;
+                                setState(() => _availability = value);
+                              },
                     ),
                   ),
                   _labeledField(
@@ -1519,13 +1666,19 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
                       textInputAction: TextInputAction.next,
-                      decoration: _fieldDecoration('Enter email address').copyWith(
+                      decoration: _fieldDecoration(
+                        'Enter email address',
+                      ).copyWith(
                         constraints: const BoxConstraints(minHeight: 52),
                       ),
                       validator: (value) {
                         final text = value?.trim() ?? '';
-                        if (text.isEmpty) return null;
-                        if (!_emailPattern.hasMatch(text)) return 'Enter a valid email address.';
+                        if (text.isEmpty) {
+                          return null;
+                        }
+                        if (!_emailPattern.hasMatch(text)) {
+                          return 'Enter a valid email address.';
+                        }
                         return null;
                       },
                     ),
@@ -1539,8 +1692,12 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                       decoration: _fieldDecoration('Enter phone number'),
                       validator: (value) {
                         final text = value?.trim() ?? '';
-                        if (text.isEmpty) return null;
-                        if (!_phonePattern.hasMatch(text)) return 'Enter a valid phone number.';
+                        if (text.isEmpty) {
+                          return null;
+                        }
+                        if (!_phonePattern.hasMatch(text)) {
+                          return 'Enter a valid phone number.';
+                        }
                         return null;
                       },
                     ),
@@ -1561,7 +1718,9 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         _error!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
                     ),
                 ],
@@ -1577,13 +1736,14 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
         ),
         FilledButton(
           onPressed: _saving ? null : _save,
-          child: _saving
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Save'),
+          child:
+              _saving
+                  ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : const Text('Save'),
         ),
       ],
     );
@@ -1596,8 +1756,14 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
   }) {
     final decoration = Theme.of(context).inputDecorationTheme;
     final border = decoration.enabledBorder;
-    final radius = border is OutlineInputBorder ? border.borderRadius : BorderRadius.circular(14);
-    final borderColor = border is OutlineInputBorder ? border.borderSide.color : const Color(0xFF2A4562);
+    final radius =
+        border is OutlineInputBorder
+            ? border.borderRadius
+            : BorderRadius.circular(14);
+    final borderColor =
+        border is OutlineInputBorder
+            ? border.borderSide.color
+            : const Color(0xFF2A4562);
     return SizedBox(
       height: 52,
       width: double.infinity,
@@ -1613,7 +1779,7 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              borderRadius: radius is BorderRadius ? radius : BorderRadius.circular(14),
+              borderRadius: radius,
               items: items,
               onChanged: onChanged,
             ),
@@ -1657,7 +1823,9 @@ void _agentLog(String hypothesisId, String message, Map<String, Object?> data) {
   // #region agent log
   http
       .post(
-        Uri.parse('http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c'),
+        Uri.parse(
+          'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
+        ),
         headers: const {
           'Content-Type': 'application/json',
           'X-Debug-Session-Id': '89cc1e',
@@ -1690,7 +1858,10 @@ class _VolunteerDetailsDialog extends StatelessWidget {
           children: [
             SizedBox(
               width: 110,
-              child: Text(label, style: const TextStyle(color: Color(0xFF7C8DA3))),
+              child: Text(
+                label,
+                style: const TextStyle(color: Color(0xFF7C8DA3)),
+              ),
             ),
             Expanded(child: Text(value)),
           ],

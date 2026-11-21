@@ -135,7 +135,7 @@ class AuthService {
   }
 
   /// Opens a social provider in the browser. The provider sends the user back here.
-  void startSocial(String provider) {
+  Future<void> startSocial(String provider) async {
     if (!kIsWeb) {
       throw const AuthException(
         'social_web_only',
@@ -144,8 +144,9 @@ class AuthService {
     }
     final origin = browserOrigin();
     final returnTo = provider == 'google' ? '$origin/profile' : '$origin/auth/callback';
+    final apiBase = await _reachableApiBase();
     final uri =
-        Uri.parse('${AppConfig.apiBaseUrl}/api/auth/oauth/$provider/start')
+        Uri.parse('$apiBase/api/auth/oauth/$provider/start')
             .replace(queryParameters: {'return_to': returnTo});
     // #region agent log
     _debugSessionLog('B', 'social start', {
@@ -153,6 +154,16 @@ class AuthService {
       'apiHost': uri.host,
       'apiPort': uri.hasPort ? uri.port : 0,
       'returnTo': returnTo,
+    });
+    // #endregion
+    // #region agent log
+    _googleDebugLog('A', 'continue with google navigation', {
+      'provider': provider,
+      'apiHost': uri.host,
+      'apiPort': uri.hasPort ? uri.port : 0,
+      'apiPath': uri.path,
+      'returnTo': returnTo,
+      'phase': 'post-fix',
     });
     // #endregion
     redirectBrowser(uri.toString());
@@ -223,6 +234,12 @@ class AuthService {
     });
     // #endregion
     if (error != null && error.isNotEmpty) {
+      // #region agent log
+      _googleDebugLog('E', 'social return error', {
+        'errorCode': error,
+        'source': source,
+      });
+      // #endregion
       socialLaunchError = error;
       return;
     }
@@ -283,7 +300,20 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    final token = session?.accessToken;
     session = null;
+    if (token != null && token.isNotEmpty) {
+      try {
+        await http
+            .post(
+              Uri.parse('${AppConfig.apiBaseUrl}/api/auth/session/end'),
+              headers: {'Authorization': 'Bearer $token'},
+            )
+            .timeout(const Duration(seconds: 8));
+      } catch (_) {
+        // Signing out locally still succeeds when the activity call cannot reach the API.
+      }
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final key in [
@@ -313,6 +343,26 @@ class AuthService {
     await prefs.setString(_prefsEmail, s.email);
     await prefs.setString(_prefsAvatar, s.avatarUrl);
     if (s.expiresAt != null) await prefs.setInt(_prefsExpires, s.expiresAt!);
+  }
+
+  /// Debug builds try port 5000, then 3000. A full-page Google redirect can
+  /// only use one address, so pick the API that is actually listening.
+  Future<String> _reachableApiBase() async {
+    final bases = AppConfig.debugApiBases();
+    if (bases.length <= 1) return bases.first;
+    for (final base in bases) {
+      try {
+        final response = await http
+            .get(Uri.parse('$base/api/health'))
+            .timeout(const Duration(milliseconds: 800));
+        if (response.statusCode >= 200 && response.statusCode < 500) {
+          return base;
+        }
+      } catch (_) {
+        // Try the next local port.
+      }
+    }
+    return bases.first;
   }
 
   // #region agent log
@@ -387,6 +437,34 @@ class AuthService {
             'runId': 'pre-fix',
             'hypothesisId': hypothesisId,
             'location': 'auth_service.dart',
+            'message': message,
+            'data': data,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          }),
+        )
+        .timeout(const Duration(seconds: 2))
+        .catchError((_) => http.Response('', 599));
+  }
+
+  void _googleDebugLog(
+    String hypothesisId,
+    String message,
+    Map<String, Object?> data,
+  ) {
+    http
+        .post(
+          Uri.parse(
+            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
+          ),
+          headers: const {
+            'Content-Type': 'application/json',
+            'X-Debug-Session-Id': '90cc82',
+          },
+          body: jsonEncode({
+            'sessionId': '90cc82',
+            'runId': 'pre-fix',
+            'hypothesisId': hypothesisId,
+            'location': 'auth_service.dart:startSocial',
             'message': message,
             'data': data,
             'timestamp': DateTime.now().millisecondsSinceEpoch,

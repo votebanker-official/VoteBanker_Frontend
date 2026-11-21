@@ -1216,18 +1216,16 @@ class _ProfileLink extends StatelessWidget {
   const _ProfileLink({
     required this.url,
     required this.style,
-    this.emptyLabel = '',
   });
 
   final String url;
   final TextStyle style;
-  final String emptyLabel;
 
   @override
   Widget build(BuildContext context) {
     if (url.trim().isEmpty) {
       return Text(
-        emptyLabel,
+        '',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: style,

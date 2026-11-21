@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -110,10 +110,7 @@ void main() {
       SharedPreferences.setMockInitialValues({
         WebsiteBuilderStore.prefsKey: jsonEncode({
           'templateId': WebsiteTemplates.professional,
-          'profileData': {
-            'fullName': 'Someone Else',
-            'party': 'Other Party',
-          },
+          'profileData': {'fullName': 'Someone Else', 'party': 'Other Party'},
         }),
       });
       AuthService.instance.session = const AuthSession(
@@ -269,13 +266,16 @@ void main() {
     // Header Skip opens domain search for portfolio name selection.
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
-    expect(find.text('Portfolio Name Search'), findsOneWidget);
+    expect(find.text('Name Your Website'), findsWidgets);
 
-    await tester.enterText(find.byType(TextField).hitTestable().first, 'Arjun Verma');
+    await tester.enterText(
+      find.byType(TextField).hitTestable().first,
+      'Arjun Verma',
+    );
     await tester.tap(find.text('Search'));
     await tester.pumpAndSettle();
     expect(find.text('arjunverma.com'), findsOneWidget);
-    expect(find.textContaining('12.50 USD'), findsOneWidget);
+    expect(find.textContaining('\$12.50'), findsOneWidget);
 
     final card = find.ancestor(
       of: find.text('arjunverma.com'),
@@ -283,11 +283,16 @@ void main() {
     );
     await tester.ensureVisible(card);
     await tester.tap(
-      find.descendant(of: card, matching: find.text('Select Portfolio Name')),
+      find.descendant(of: card, matching: find.text('Select Domain')),
     );
     await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    await _tapLabel(tester, 'Continue');
     expect(find.text('Your website is ready'), findsOneWidget);
-    expect(find.byKey(const ValueKey('purchaseWebsitePreview')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('purchaseWebsitePreview')),
+      findsOneWidget,
+    );
     await tester.ensureVisible(find.byKey(const ValueKey('payWebsite')));
     expect(find.textContaining('₹999'), findsWidgets);
     await tester.ensureVisible(find.byKey(const ValueKey('publishWebsite')));
@@ -305,12 +310,14 @@ void main() {
 
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
-    expect(find.text('Portfolio Name Search'), findsOneWidget);
+    expect(find.text('Name Your Website'), findsWidgets);
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Campaign Templates'), findsOneWidget);
+    expect(find.text('Get Your Blue Tik'), findsOneWidget);
+    await _tapLabel(tester, 'Skip Now');
+    expect(find.text('Create Your Campaign Merchandise'), findsOneWidget);
     expect(find.text('Design & Order'), findsWidgets);
     expect(find.text('Dashboard'), findsNothing);
   });
@@ -359,7 +366,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).hitTestable(), 'Arjun Verma');
     await tester.pump();
-    await tester.tap(find.text(mlTranslations['domainSearch']!));
+    await tester.tap(find.byKey(const ValueKey('domainSearchButton')));
     await tester.pumpAndSettle();
     expect(find.text('arjunverma.com'), findsOneWidget);
     expect(tester.takeException(), isNull);

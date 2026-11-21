@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
-import '../../core/services/profile_service.dart';
-import '../../features/onboarding/state/onboarding_controller.dart';
+import '../../features/admin/admin_client_screen.dart';
+import '../../features/admin/admin_panel_screen.dart';
 import '../../features/dashboard/screens/administrations_screen.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
 import '../../features/merchandise/screens/campaign_templates_screen.dart';
@@ -22,6 +20,7 @@ import '../../features/onboarding/password_reset/verify_otp_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/otp_login_screen.dart';
 import '../../features/onboarding/screens/ready_screen.dart';
+import '../../features/onboarding/blue_tik/blue_tik_screen.dart';
 import '../../features/onboarding/screens/social_setup_screen.dart';
 import '../../features/onboarding/screens/vrm_setup_screen.dart';
 import '../../features/vrm/screens/vrm_get_more_screen.dart';
@@ -39,50 +38,14 @@ import '../../features/website/screens/website_publish_screen.dart';
 import '../../features/website/screens/website_purchase_screen.dart';
 import '../../features/website/screens/website_questions_screen.dart';
 import '../../features/website/screens/website_sections_screen.dart';
+import 'app_routes.dart';
+export 'app_routes.dart';
 
 String? _phoneArgument(Object? arguments) {
   if (arguments is! String) return null;
   final value = arguments.trim();
   if (value.isEmpty || value == 'whatsapp') return null;
   return value;
-}
-
-abstract final class AppRoutes {
-  static const login = '/';
-  static const forgotPassword = '/forgot-password';
-  static const resetChannel = '/forgot-password/channel';
-  static const resetOtp = '/forgot-password/otp';
-  static const resetPassword = '/forgot-password/new';
-  static const resetSuccess = '/forgot-password/success';
-  static const authCallback = '/auth/callback';
-  static const otp = '/otp';
-  static const profile = '/profile';
-  static const additionalProfile = '/profile/additional';
-  static const domain = '/domain';
-  static const website = '/website';
-  static const websiteInfo = '/website/info';
-  static const websiteQuestions = '/website/questions';
-  static const websiteSections = '/website/sections';
-  static const websiteGenerating = '/website/generating';
-  static const websitePreview = '/website/preview';
-  static const websiteEdit = '/website/edit';
-  static const websitePurchase = '/website/purchase';
-  static const websitePublish = '/website/publish';
-  static const social = '/social';
-  static const campaignTemplates = '/campaign-templates';
-  static const vrm = '/vrm';
-  static const vrmRecords = '/vrm/records';
-  static const vrmGetMore = '/vrm/get-more';
-  static const volunteers = '/volunteers';
-  static const team = '/team';
-  static const socialContacts = '/social-media';
-  static const socialIntegration = '/social-integration';
-  static const ready = '/ready';
-  static const dashboard = '/dashboard';
-  static const administrations = '/administrations';
-  static const merchandise = '/merchandise';
-  static const speech = '/speech';
-  static const letter = '/letter';
 }
 
 abstract final class AppRouter {
@@ -96,7 +59,8 @@ abstract final class AppRouter {
   }
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    final page = switch (normalizeRouteName(settings.name)) {
+    final normalized = normalizeRouteName(settings.name);
+    final page = switch (normalized) {
       AppRoutes.authCallback => const LoginScreen(),
       AppRoutes.forgotPassword => const ForgotPasswordScreen(),
       AppRoutes.resetChannel => OtpChannelScreen(
@@ -132,19 +96,25 @@ abstract final class AppRouter {
       AppRoutes.websitePurchase => const WebsitePurchaseScreen(),
       AppRoutes.websitePublish => const WebsitePublishScreen(),
       AppRoutes.social => const SocialSetupScreen(),
+      AppRoutes.blueTik => const BlueTikScreen(),
       AppRoutes.campaignTemplates => const CampaignTemplatesScreen(),
       AppRoutes.vrm => const VrmSetupScreen(),
       AppRoutes.vrmRecords => const VrmRecordsScreen(),
       AppRoutes.vrmGetMore => const VrmGetMoreScreen(),
       AppRoutes.volunteers => VolunteerManagementScreen(
-          openAddOnLoad: settings.arguments == 'add',
-        ),
+        openAddOnLoad: settings.arguments == 'add',
+      ),
       AppRoutes.team => const TeamManagementScreen(),
       AppRoutes.socialContacts => const SocialMediaScreen(),
       AppRoutes.socialIntegration => const SocialIntegrationScreen(),
       AppRoutes.ready => const ReadyScreen(),
       AppRoutes.dashboard => const DashboardPlaceholderScreen(),
       AppRoutes.administrations => const AdministrationsScreen(),
+      AppRoutes.admin => const AdminPanelScreen(),
+      AppRoutes.adminClient => AdminClientScreen(
+        clientId:
+            settings.arguments is String ? settings.arguments! as String : '',
+      ),
       AppRoutes.merchandise => const MerchandiseScreen(),
       AppRoutes.speech => const SpeechGeneratorScreen(),
       AppRoutes.letter => const LetterGeneratorScreen(),
@@ -163,20 +133,7 @@ abstract final class AppRouter {
   }
 
   static void open(BuildContext context, String route, {Object? arguments}) {
-    // Ignore repeat taps while this route is already leaving the screen.
-    final current = ModalRoute.of(context);
-    if (current != null && !current.isCurrent) {
-      return;
-    }
-
-    // Every onboarding step moves forward through here, so this is where the
-    // answers collected so far are saved for signed-in users.
-    final draft = OnboardingScope.maybeOf(context)?.draft;
-    if (draft != null) {
-      unawaited(ProfileService.instance.saveDraft(draft));
-    }
-    unawaited(ProfileService.instance.saveLastRoute(route));
-    Navigator.of(context).pushNamed(route, arguments: arguments);
+    AppNav.open(context, route, arguments: arguments);
   }
 
   static void replace(BuildContext context, String route) {
@@ -184,12 +141,7 @@ abstract final class AppRouter {
   }
 
   static void back(BuildContext context, String fallbackRoute) {
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.pop();
-      return;
-    }
-    navigator.pushReplacementNamed(fallbackRoute);
+    AppNav.back(context, fallbackRoute);
   }
 
   /// Returns to the previous route. Does nothing when this screen is the root,

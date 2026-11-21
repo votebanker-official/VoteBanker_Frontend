@@ -7,11 +7,12 @@ import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
-import '../../../core/widgets/onboarding_header.dart';
+import '../../../core/widgets/language_selector.dart';
+import '../../../core/widgets/theme_toggle.dart';
 import '../services/social_connection_service.dart';
-import '../widgets/onboarding_frame.dart';
 import '../widgets/social_connect_dialog.dart';
 
 class SocialSetupScreen extends StatefulWidget {
@@ -95,16 +96,18 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
       final row = _connections[provider];
       await showDialog<void>(
         context: context,
-        builder: (_) => SocialConnectedDialog(
-          provider: _label(l10n, provider),
-          account: account.isEmpty
-              ? (row?.displayName.isNotEmpty == true
-                  ? row!.displayName
-                  : _label(l10n, provider))
-              : account,
-          mark: _markFor(provider),
-          detail: row?.detail ?? '',
-        ),
+        builder:
+            (_) => SocialConnectedDialog(
+              provider: _label(l10n, provider),
+              account:
+                  account.isEmpty
+                      ? (row?.displayName.isNotEmpty == true
+                          ? row!.displayName
+                          : _label(l10n, provider))
+                      : account,
+              mark: _markFor(provider),
+              detail: row?.detail ?? '',
+            ),
       );
       return;
     }
@@ -149,8 +152,10 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
                   if (kIsWeb) {
                     redirectBrowser(url);
                   } else {
-                    await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.externalApplication);
+                    await launchUrl(
+                      Uri.parse(url),
+                      mode: LaunchMode.externalApplication,
+                    );
                   }
                 } on SocialConnectionException catch (error) {
                   setDialog(() {
@@ -217,8 +222,9 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
   }
 
   void _toast(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _returnTo() {
@@ -276,106 +282,173 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
       _SocialOption(
         id: 'instagram',
         label: l10n.socialInstagram,
+        description: l10n.line('socialInstagramBody'),
         mark: const _PlatformIcon(_SocialMark.instagram),
       ),
       _SocialOption(
         id: 'facebook',
         label: l10n.socialFacebook,
+        description: l10n.line('socialFacebookBody'),
         mark: const _PlatformIcon(_SocialMark.facebook),
       ),
       _SocialOption(
         id: 'whatsapp',
         label: l10n.socialWhatsApp,
+        description: l10n.line('socialWhatsAppBody'),
         mark: const _PlatformIcon(_SocialMark.whatsapp),
       ),
       _SocialOption(
         id: 'x',
         label: l10n.socialX,
+        description: l10n.line('socialXBody'),
         mark: const _PlatformIcon(_SocialMark.x),
       ),
       _SocialOption(
         id: 'youtube',
         label: l10n.socialYouTube,
+        description: l10n.line('socialYouTubeBody'),
         mark: const _PlatformIcon(_SocialMark.youtube),
       ),
     ];
 
-    final form = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (Navigator.of(context).canPop())
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              tooltip: l10n.back,
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-              onPressed: () => AppRouter.popIfPossible(context),
-              icon: const Icon(Icons.arrow_back),
-            ),
-          ),
-        OnboardingHeader(
-          compact: true,
-          showDescriptor: false,
-          title: l10n.socialTitle,
-          description: l10n.socialBody,
-        ),
-        const SizedBox(height: 18),
-        for (final option in options) ...[
-          _SocialConnectRow(
-            option: option,
-            connection: _connections[option.id],
-            connectLabel: l10n.socialConnect,
-            connectedLabel: l10n.line('socialConnectedBadge'),
-            manageLabel: l10n.line('socialManage'),
-            onConnect: () => _connect(option),
-            onManage: _connections[option.id] == null
-                ? null
-                : () => _manage(_connections[option.id]!),
-          ),
-          const SizedBox(height: 10),
-        ],
-        const SizedBox(height: 8),
-        TextButton(
-          style: TextButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            visualDensity: VisualDensity.compact,
-          ),
-          onPressed: () => AppRouter.open(context, AppRoutes.campaignTemplates),
-          child: Text(l10n.skipForNow),
-        ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(52),
-            shape: const StadiumBorder(),
-          ),
-          onPressed: () => AppRouter.open(context, AppRoutes.campaignTemplates),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(l10n.saveAndContinue),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward, size: 18),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+    final palette = context.palette;
+    final pageColor =
+        palette.isDark ? palette.background : const Color(0xFFF5F8FC);
 
-    return OnboardingFrame(child: form);
+    return Scaffold(
+      backgroundColor: pageColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const _SocialTopBar(),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 860;
+                  final gutter = wide ? 28.0 : 16.0;
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 28),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1080),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _SocialHero(
+                              title: l10n.socialTitle,
+                              subtitle: l10n.socialBody,
+                              backLabel: l10n.line('backToProfile'),
+                              onBack: () => AppRouter.popIfPossible(context),
+                            ),
+                            const SizedBox(height: 16),
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: palette.surface,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        palette.isDark
+                                            ? palette.cardShadow
+                                            : const Color(0x12102A56),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: wide ? 8 : 4,
+                                  vertical: 6,
+                                ),
+                                child: Column(
+                                  children: [
+                                    for (
+                                      var i = 0;
+                                      i < options.length;
+                                      i++
+                                    ) ...[
+                                      _SocialConnectRow(
+                                        option: options[i],
+                                        connection: _connections[options[i].id],
+                                        connectLabel: l10n.socialConnect,
+                                        connectedLabel: l10n.line(
+                                          'socialConnectedBadge',
+                                        ),
+                                        manageLabel: l10n.line('socialManage'),
+                                        busy: _busyId == options[i].id,
+                                        onConnect: () => _connect(options[i]),
+                                        onManage:
+                                            _connections[options[i].id] == null
+                                                ? null
+                                                : () => _manage(
+                                                  _connections[options[i].id]!,
+                                                ),
+                                      ),
+                                      if (i != options.length - 1)
+                                        Divider(
+                                          height: 1,
+                                          indent: 18,
+                                          endIndent: 18,
+                                          color: palette.border.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                        ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            _SkipCard(
+                              title: l10n.skipForNow,
+                              body: l10n.line('socialSkipBody'),
+                              action: l10n.skipForNow,
+                              compact: !wide,
+                              onSkip: () {
+                                AppRouter.open(context, AppRoutes.blueTik);
+                              },
+                            ),
+                            const SizedBox(height: 18),
+                            Align(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: wide ? 420 : double.infinity,
+                                ),
+                                child: _GradientContinue(
+                                  label: l10n.saveAndContinue,
+                                  onPressed: () {
+                                    AppRouter.open(context, AppRoutes.blueTik);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class _SocialOption {
-  const _SocialOption(
-      {required this.id, required this.label, required this.mark});
+  const _SocialOption({
+    required this.id,
+    required this.label,
+    required this.description,
+    required this.mark,
+  });
 
   final String id;
   final String label;
+  final String description;
   final Widget mark;
 }
 
@@ -386,6 +459,7 @@ class _SocialConnectRow extends StatelessWidget {
     required this.connectLabel,
     required this.connectedLabel,
     required this.manageLabel,
+    required this.busy,
     required this.onConnect,
     required this.onManage,
   });
@@ -395,95 +469,138 @@ class _SocialConnectRow extends StatelessWidget {
   final String connectLabel;
   final String connectedLabel;
   final String manageLabel;
+  final bool busy;
   final VoidCallback onConnect;
   final VoidCallback? onManage;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.border),
-        boxShadow: [
-          BoxShadow(
-            color: palette.cardShadow,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    final connected = connection != null && connection!.connected;
+    final titleColor = palette.isDark ? palette.text : const Color(0xFF102A56);
+    final muted = palette.isDark ? palette.textMuted : const Color(0xFF64748B);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        children: [
+          option.mark,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  option.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.label(context).copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: titleColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  connected && connection!.displayName.isNotEmpty
+                      ? connection!.displayName
+                      : option.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.muted(
+                    context,
+                  ).copyWith(color: muted, height: 1.3),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 10),
+          if (connected) ...[
+            _StatusChip(label: connectedLabel),
+            const SizedBox(width: 6),
+            TextButton(onPressed: onManage, child: Text(manageLabel)),
+          ] else
+            _ConnectButton(
+              label: connectLabel,
+              busy: busy,
+              onPressed: busy ? null : onConnect,
+            ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            option.mark,
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    option.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.label(context).copyWith(fontSize: 16),
-                  ),
-                  if (connection != null && connection!.connected) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      connection!.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.muted(context),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            if (connection != null && connection!.connected)
-              TextButton(
-                onPressed: onManage,
-                child: Text(manageLabel),
-              ),
-            if (connection != null && connection!.connected)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F8EE),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  connectedLabel,
-                  style: const TextStyle(
-                    color: Color(0xFF157A3A),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                  ),
+    );
+  }
+}
+
+class _ConnectButton extends StatelessWidget {
+  const _ConnectButton({
+    required this.label,
+    required this.busy,
+    required this.onPressed,
+  });
+
+  final String label;
+  final bool busy;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final background =
+        palette.isDark ? palette.surfaceHighlight : const Color(0xFFEAF2FE);
+    final foreground = palette.isDark ? palette.text : const Color(0xFF2563EB);
+    return TextButton(
+      style: TextButton.styleFrom(
+        backgroundColor: background,
+        foregroundColor: foreground,
+        disabledForegroundColor: foreground.withValues(alpha: 0.6),
+        minimumSize: const Size(0, 40),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+      ),
+      onPressed: onPressed,
+      child:
+          busy
+              ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: foreground,
                 ),
               )
-            else
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  minimumSize: const Size(0, 36),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  shape: const StadiumBorder(),
-                ),
-                onPressed: onConnect,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(connectLabel),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right, size: 18),
-                  ],
-                ),
+              : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.link, size: 16, color: foreground),
+                  const SizedBox(width: 6),
+                  Text(label),
+                  const SizedBox(width: 2),
+                  Icon(Icons.chevron_right, size: 18, color: foreground),
+                ],
               ),
-          ],
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F8EE),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFF157A3A),
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
         ),
       ),
     );
@@ -493,9 +610,10 @@ class _SocialConnectRow extends StatelessWidget {
 enum _SocialMark { instagram, facebook, whatsapp, x, youtube }
 
 class _PlatformIcon extends StatelessWidget {
-  const _PlatformIcon(this.mark);
+  const _PlatformIcon(this.mark, {this.size = 42});
 
   final _SocialMark mark;
+  final double size;
 
   static const _icons = <_SocialMark, String>{
     _SocialMark.instagram: '''
@@ -528,7 +646,7 @@ class _PlatformIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = SvgPicture.string(_icons[mark]!, width: 42, height: 42);
+    final icon = SvgPicture.string(_icons[mark]!, width: size, height: size);
     if (mark != _SocialMark.instagram) return icon;
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -547,6 +665,380 @@ class _PlatformIcon extends StatelessWidget {
           ),
         ),
         child: icon,
+      ),
+    );
+  }
+}
+
+class _SocialTopBar extends StatelessWidget {
+  const _SocialTopBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final l10n = AppLocalizations.of(context);
+    final narrow = MediaQuery.sizeOf(context).width < 560;
+    final titleColor = palette.isDark ? palette.text : const Color(0xFF102A56);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 12, 4),
+      child: Row(
+        children: [
+          ClipOval(
+            child: Image.asset(
+              AppAssets.logo,
+              width: 34,
+              height: 34,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    l10n.appName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: titleColor,
+                      fontWeight: FontWeight.w800,
+                      fontSize: narrow ? 14 : 15,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+                if (!narrow) ...[
+                  const SizedBox(width: 14),
+                  Container(width: 1, height: 22, color: palette.border),
+                ],
+              ],
+            ),
+          ),
+          const ThemeToggle(),
+          const SizedBox(width: 8),
+          const LanguageSelector(),
+          const SizedBox(width: 8),
+          CircleAvatar(
+            radius: 16,
+            backgroundColor:
+                palette.isDark
+                    ? palette.surfaceHighlight
+                    : const Color(0xFFD7E6F5),
+            child: Icon(Icons.person, size: 18, color: titleColor),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SocialHero extends StatelessWidget {
+  const _SocialHero({
+    required this.title,
+    required this.subtitle,
+    required this.backLabel,
+    required this.onBack,
+  });
+
+  final String title;
+  final String subtitle;
+  final String backLabel;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final titleColor = palette.isDark ? palette.text : const Color(0xFF102A56);
+    final muted = palette.isDark ? palette.textMuted : const Color(0xFF64748B);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 760;
+        final heading = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: muted,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: onBack,
+              icon: const Icon(Icons.arrow_back_ios_new, size: 14),
+              label: Text(backLabel),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: titleColor,
+                fontSize: wide ? 34 : 26,
+                height: 1.15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: muted,
+                fontSize: wide ? 16 : 14,
+                height: 1.4,
+              ),
+            ),
+          ],
+        );
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors:
+                  palette.isDark
+                      ? [palette.surface, palette.backgroundRaised]
+                      : const [Color(0xFFF7FBFF), Color(0xFFEEF8F4)],
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              wide ? 22 : 12,
+              12,
+              wide ? 18 : 8,
+              wide ? 22 : 16,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: heading),
+                const SizedBox(width: 8),
+                _SocialHeroArt(compact: !wide),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SocialHeroArt extends StatelessWidget {
+  const _SocialHeroArt({required this.compact});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = compact ? 108.0 : 210.0;
+    final icon = compact ? 28.0 : 42.0;
+    return SizedBox(
+      width: size,
+      height: compact ? 96 : 148,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            right: compact ? 0 : 8,
+            bottom: 0,
+            child: Icon(
+              Icons.campaign,
+              size: compact ? 42 : 78,
+              color: const Color(0xFF2563EB).withValues(alpha: 0.18),
+            ),
+          ),
+          Positioned(
+            left: compact ? 4 : 18,
+            top: compact ? 8 : 16,
+            child: _PlatformIcon(_SocialMark.instagram, size: icon),
+          ),
+          Positioned(
+            right: compact ? 8 : 36,
+            top: 0,
+            child: _PlatformIcon(_SocialMark.facebook, size: icon),
+          ),
+          Positioned(
+            left: compact ? 28 : 78,
+            top: compact ? 36 : 58,
+            child: _PlatformIcon(_SocialMark.whatsapp, size: icon * 0.9),
+          ),
+          Positioned(
+            left: compact ? 0 : 8,
+            bottom: compact ? 4 : 10,
+            child: _PlatformIcon(_SocialMark.x, size: icon * 0.86),
+          ),
+          Positioned(
+            right: compact ? 2 : 16,
+            bottom: compact ? 18 : 28,
+            child: _PlatformIcon(_SocialMark.youtube, size: icon * 0.9),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkipCard extends StatelessWidget {
+  const _SkipCard({
+    required this.title,
+    required this.body,
+    required this.action,
+    required this.compact,
+    required this.onSkip,
+  });
+
+  final String title;
+  final String body;
+  final String action;
+  final bool compact;
+  final VoidCallback onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final titleColor = palette.isDark ? palette.text : const Color(0xFF102A56);
+    final muted = palette.isDark ? palette.textMuted : const Color(0xFF64748B);
+    final copy = Row(
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color:
+                palette.isDark
+                    ? palette.surfaceHighlight
+                    : const Color(0xFFEAF2FE),
+            shape: BoxShape.circle,
+          ),
+          child: const Padding(
+            padding: EdgeInsets.all(8),
+            child: Icon(
+              Icons.lightbulb_outline,
+              color: Color(0xFF2563EB),
+              size: 18,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: titleColor,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                body,
+                style: TextStyle(color: muted, fontSize: 13, height: 1.35),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    final button = OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF2563EB),
+        side: BorderSide(
+          color: palette.isDark ? palette.border : const Color(0xFFD6E4F5),
+        ),
+        minimumSize: Size(compact ? 0 : 120, 42),
+        shape: const StadiumBorder(),
+      ),
+      onPressed: onSkip,
+      child: Text(action),
+    );
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.isDark ? palette.surface : const Color(0xFFF3F8FF),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: palette.isDark ? palette.border : const Color(0xFFE2EAF4),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child:
+            compact
+                ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    copy,
+                    const SizedBox(height: 10),
+                    Align(alignment: Alignment.centerRight, child: button),
+                  ],
+                )
+                : Row(
+                  children: [
+                    Expanded(child: copy),
+                    const SizedBox(width: 12),
+                    button,
+                  ],
+                ),
+      ),
+    );
+  }
+}
+
+class _GradientContinue extends StatelessWidget {
+  const _GradientContinue({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF10B981)],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x332563EB),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: onPressed,
+          child: SizedBox(
+            height: 52,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
