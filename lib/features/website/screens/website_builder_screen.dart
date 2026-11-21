@@ -14,6 +14,7 @@ import '../../onboarding/state/onboarding_controller.dart';
 import '../models/website_builder_draft.dart';
 import '../models/website_template_catalog.dart';
 import '../services/website_builder_api.dart';
+import '../services/leader_profile_binding.dart';
 import '../services/website_builder_store.dart';
 import '../utils/website_validators.dart';
 import '../widgets/builder_form_fields.dart';
@@ -156,23 +157,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
     draft.selectTemplate(template);
     session.draft.websiteTemplate = template;
 
-    // Seed empty fields from the leader profile — never invent content.
-    if (draft.fullName.isEmpty) draft.fullName = session.draft.leaderName.trim();
-    if (draft.designation.isEmpty) {
-      draft.designation = session.draft.designation.trim();
-    }
-    if (draft.constituency.isEmpty) {
-      draft.constituency = session.draft.assemblyConstituency.trim();
-    }
-    draft.applyPartyFromProfile(session.draft.party);
-    if (draft.district.isEmpty) draft.district = session.draft.district.trim();
-    if (draft.state.isEmpty) draft.state = session.draft.state.trim();
-    if (draft.phone.isEmpty) draft.phone = session.draft.contactNumber.trim();
-    if (!draft.profilePhoto.hasImage && session.draft.photoBytes != null) {
-      draft.profilePhoto = MediaRef(
-        base64: base64Encode(session.draft.photoBytes!),
-      );
-    }
+    applyLeaderProfile(draft, session.draft);
     if (draft.design.websiteName.isEmpty && session.draft.selectedDomain != null) {
       draft.design.websiteName = session.draft.selectedDomain!;
     }

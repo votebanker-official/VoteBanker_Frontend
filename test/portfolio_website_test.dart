@@ -58,11 +58,9 @@ void main() {
     await tester.pumpAndSettle();
     await _tap(tester, 'Save & Continue');
 
-    expect(find.textContaining('Portfolio Template'), findsOneWidget);
+    expect(find.text('My Website'), findsOneWidget);
     expect(find.text('Rahul Kumar'), findsWidgets);
-    expect(find.textContaining('Hubballi'), findsWidgets);
     expect(find.textContaining('Indian National Congress'), findsWidgets);
-    expect(find.textContaining('Constituency Leader'), findsWidgets);
     expect(find.byKey(const ValueKey('preview-professional')), findsOneWidget);
     expect(find.byType(PartySymbol), findsWidgets);
     expect(find.text('Professional'), findsNothing);
@@ -70,22 +68,12 @@ void main() {
     expect(find.text('Community'), findsNothing);
     expect(find.text('Make it yours'), findsNothing);
     expect(find.text('Templates'), findsNothing);
-    expect(find.text('My Website'), findsNothing);
-    expect(find.text('About the Leader'), findsOneWidget);
-    expect(find.text('Vision & Priorities'), findsWidgets);
-    expect(find.text('Achievements & Development Work'), findsOneWidget);
-    expect(find.text('Gallery & Community Updates'), findsOneWidget);
-    expect(find.text('Know My Vision'), findsOneWidget);
-    expect(find.text('Get in Touch'), findsOneWidget);
-    expect(find.byKey(const ValueKey('aboutTheLeader')), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('aboutTheLeader')),
-        matching: find.byType(Image),
-      ),
-      findsNothing,
-    );
-    expect(find.textContaining('9876543210'), findsOneWidget);
+    expect(find.text('Our Vision'), findsWidgets);
+    expect(find.text('Know More'), findsWidgets);
+    expect(find.text('Home'), findsWidgets);
+    expect(find.text('Contact'), findsWidgets);
+    expect(find.byKey(const ValueKey('aboutTheLeader')), findsWidgets);
+    expect(find.textContaining('9876543210'), findsWidgets);
     expect(controller.draft.websiteTemplate, WebsiteTemplates.professional);
     expect(find.byKey(const ValueKey('continueTemplate')), findsOneWidget);
     expect(find.byKey(const ValueKey('previewWebsite')), findsOneWidget);

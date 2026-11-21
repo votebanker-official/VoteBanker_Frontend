@@ -58,6 +58,17 @@ class AppLocalizations {
   String get language => _t('language');
   String get welcomeTitle => _t('welcomeTitle');
   String get welcomeBody => _t('welcomeBody');
+  String get loginWelcome => _t('loginWelcome');
+  String get loginJourney => _t('loginJourney');
+  String get loginHeroTitle => _t('loginHeroTitle');
+  String get loginHeroBody => _t('loginHeroBody');
+  String get loginIdentifier => _t('loginIdentifier');
+  String get loginPassword => _t('loginPassword');
+  String get loginForgot => _t('loginForgot');
+  String get loginAction => _t('loginAction');
+  String get loginSignUpPrompt => _t('loginSignUpPrompt');
+  String get loginSignUp => _t('loginSignUp');
+  String get loginEmailUsesGoogle => _t('loginEmailUsesGoogle');
   String get continueWhatsApp => _t('continueWhatsApp');
   String get continueGoogle => _t('continueGoogle');
   String get continueMobile => _t('continueMobile');

@@ -7,9 +7,22 @@ import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 
 class OnboardingFrame extends StatelessWidget {
-  const OnboardingFrame({required this.child, this.centerChild = false, super.key});
+  const OnboardingFrame({
+    required this.child,
+    this.centerChild = false,
+    this.maxContentWidth = AppBreakpoints.onboardingMaxWidth,
+    this.contentHorizontalPadding,
+    super.key,
+  });
 
   final Widget child;
+
+  /// Width of the centered column. The party website screen passes the
+  /// full window so the template is not locked to a phone-sized frame.
+  final double maxContentWidth;
+
+  /// Overrides the side inset of the scrolling page. Null keeps the default.
+  final double? contentHorizontalPadding;
 
   /// Centers [child] in the viewport. Other screens stay top-aligned.
   final bool centerChild;
@@ -29,7 +42,7 @@ class OnboardingFrame extends StatelessWidget {
                 return const SizedBox.shrink();
               }
               final wide = AppBreakpoints.isWide(constraints.maxWidth);
-              final horizontal = wide ? 28.0 : 16.0;
+              final horizontal = contentHorizontalPadding ?? (wide ? 28.0 : 16.0);
               final header = Padding(
                 padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 0),
                 child: const Row(
@@ -50,9 +63,7 @@ class OnboardingFrame extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.topCenter,
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: AppBreakpoints.onboardingMaxWidth,
-                          ),
+                          constraints: BoxConstraints(maxWidth: maxContentWidth),
                           child: TweenAnimationBuilder<double>(
                             tween: Tween(begin: 0, end: 1),
                             duration: const Duration(milliseconds: 280),
@@ -87,9 +98,7 @@ class OnboardingFrame extends StatelessWidget {
                   Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: AppBreakpoints.onboardingMaxWidth,
-                      ),
+                      constraints: BoxConstraints(maxWidth: maxContentWidth),
                       child: LayoutBuilder(
                         builder: (context, bodyConstraints) {
                           final minHeight = (bodyConstraints.maxHeight -

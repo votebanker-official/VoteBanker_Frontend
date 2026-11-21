@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
@@ -11,6 +9,7 @@ import '../../../core/widgets/secondary_button.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 import '../models/website_builder_draft.dart';
 import '../services/website_builder_api.dart';
+import '../services/leader_profile_binding.dart';
 import '../services/website_builder_store.dart';
 import '../widgets/website_builder_preview.dart';
 import '../widgets/website_stage.dart';
@@ -37,29 +36,7 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
   void _syncBuilderFromProfile() {
     final session = OnboardingScope.of(context);
     final draft = session.draft;
-    final builder = session.websiteBuilder;
-    builder.applyPartyFromProfile(draft.party);
-    if (builder.fullName.trim().isEmpty) {
-      builder.fullName = draft.leaderName.trim();
-    }
-    if (builder.designation.trim().isEmpty) {
-      builder.designation = draft.designation.trim();
-    }
-    if (builder.constituency.trim().isEmpty) {
-      builder.constituency = draft.assemblyConstituency.trim();
-    }
-    if (builder.district.trim().isEmpty) {
-      builder.district = draft.district.trim();
-    }
-    if (builder.state.trim().isEmpty) {
-      builder.state = draft.state.trim();
-    }
-    if (builder.phone.trim().isEmpty) {
-      builder.phone = draft.contactNumber.trim();
-    }
-    if (!builder.profilePhoto.hasImage && draft.photoBytes != null) {
-      builder.profilePhoto = MediaRef(base64: base64Encode(draft.photoBytes!));
-    }
+    applyLeaderProfile(session.websiteBuilder, draft);
   }
 
   Future<void> _purchase() async {

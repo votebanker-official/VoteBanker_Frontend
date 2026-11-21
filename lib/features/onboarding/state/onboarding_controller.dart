@@ -4,6 +4,7 @@ import '../data/profile_languages.dart';
 import '../../website/models/portfolio_config.dart';
 import '../../website/models/website_builder_draft.dart';
 import '../../website/models/website_draft.dart';
+import '../../website/services/leader_profile_binding.dart';
 import '../../website/services/website_services.dart';
 import '../models/onboarding_draft.dart';
 
@@ -78,14 +79,8 @@ class OnboardingController {
   /// Drop cached website content and seed only from the current profile draft.
   void resetWebsiteFromProfile() {
     ignoreStoredWebsiteDrafts = true;
-    websiteBuilder = WebsiteBuilderDraft()
-      ..fullName = draft.leaderName.trim()
-      ..designation = draft.designation.trim()
-      ..constituency = draft.assemblyConstituency.trim()
-      ..district = draft.district.trim()
-      ..state = draft.state.trim()
-      ..phone = draft.contactNumber.trim();
-    websiteBuilder.applyPartyFromProfile(draft.party);
+    websiteBuilder = WebsiteBuilderDraft();
+    applyLeaderProfile(websiteBuilder, draft);
     // Mark restored so WebsiteScreen does not reload SharedPreferences / API drafts.
     portfolioRestored = true;
     websiteBuilderRestored = true;
