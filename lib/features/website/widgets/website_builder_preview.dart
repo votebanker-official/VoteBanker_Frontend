@@ -9,12 +9,16 @@ class WebsiteBuilderPreview extends StatelessWidget {
     required this.draft,
     this.isPreviewBanner = true,
     this.compact = false,
+    this.fullBleed = false,
     super.key,
   });
 
   final WebsiteBuilderDraft draft;
   final bool isPreviewBanner;
   final bool compact;
+
+  /// Lets the site use the width it is given and grow with its content.
+  final bool fullBleed;
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +32,10 @@ class WebsiteBuilderPreview extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(17),
         child: SizedBox(
-          height: compact ? 360 : 560,
-          child: ListView(
-            padding: EdgeInsets.zero,
+          width: double.infinity,
+          height: fullBleed ? null : (compact ? 360 : 560),
+          child: Column(
+            mainAxisSize: fullBleed ? MainAxisSize.min : MainAxisSize.max,
             children: [
               if (isPreviewBanner)
                 const ColoredBox(
@@ -54,7 +59,12 @@ class WebsiteBuilderPreview extends StatelessWidget {
                     ),
                   ),
                 ),
-              LeaderPortfolioSite(draft: draft, compact: compact),
+              if (fullBleed)
+                LeaderPortfolioSite(draft: draft, compact: compact, scrollBody: false)
+              else
+                Expanded(
+                  child: LeaderPortfolioSite(draft: draft, compact: compact),
+                ),
             ],
           ),
         ),

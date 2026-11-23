@@ -46,10 +46,10 @@ void main() {
         if (entry.key != 'English') {
           await _chooseLanguage(tester, entry.key);
         }
-        expect(find.text(entry.value['welcomeTitle']!), findsOneWidget);
+        expect(find.text(enTranslations['loginWelcome']!), findsOneWidget);
         expect(find.text(entry.value['continueWhatsApp']!), findsOneWidget);
         expect(find.text(entry.value['continueFacebook']!), findsOneWidget);
-        expect(find.text(entry.value['continueInstagram']!), findsOneWidget);
+        expect(find.text(enTranslations['continueGoogle']!), findsOneWidget);
         expect(find.text('Continue with Email'), findsNothing);
         expect(find.text(entry.value['appName']!), findsWidgets);
       }
@@ -63,7 +63,7 @@ void main() {
 
     await _chooseLanguage(tester, 'संस्कृतम् (Sanskrit)');
 
-    expect(find.text('स्वागतं, नेतः!'), findsOneWidget);
+    expect(find.text(enTranslations['loginWelcome']!), findsOneWidget);
     expect(find.text('Welcome Leader!'), findsNothing);
     expect(find.textContaining('WhatsApp द्वारा अग्रेसरतु'), findsOneWidget);
   });
@@ -188,7 +188,7 @@ void main() {
       await _tapLabel(tester, 'Skip for now');
       await tester.pump();
 
-      expect(find.text('Portfolio Template'), findsOneWidget);
+      expect(find.text('My Website'), findsOneWidget);
       expect(controller.draft.fullName, isEmpty);
       expect(controller.draft.organization, isEmpty);
       expect(controller.draft.designation, isEmpty);
@@ -259,8 +259,8 @@ void main() {
 
     // Profile skip must leave an empty profile (no fetched/cached leader data).
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Portfolio Template'), findsOneWidget);
-    final websiteContext = tester.element(find.text('Portfolio Template'));
+    expect(find.text('My Website'), findsOneWidget);
+    final websiteContext = tester.element(find.text('My Website'));
     expect(OnboardingScope.of(websiteContext).draft.fullName, isEmpty);
 
     // Header Skip opens domain search for portfolio name selection.
@@ -306,7 +306,7 @@ void main() {
 
     await _tapLabel(tester, 'Continue editing');
     await tester.pumpAndSettle();
-    expect(find.text('Portfolio Template'), findsOneWidget);
+    expect(find.text('My Website'), findsOneWidget);
 
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
@@ -331,7 +331,7 @@ void main() {
 
     await _tapLabel(tester, 'Skip for now');
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Portfolio Template'), findsOneWidget);
+    expect(find.text('My Website'), findsOneWidget);
     expect(find.text(enTranslations['portfolioGetWebsite']!), findsNothing);
     expect(find.byKey(const ValueKey('customizeTemplate')), findsNothing);
 
@@ -351,13 +351,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await _chooseLanguage(tester, 'മലയാളം');
-    expect(find.text(mlTranslations['welcomeTitle']!), findsOneWidget);
+    expect(find.text(enTranslations['loginWelcome']!), findsOneWidget);
 
     await _tapLabel(tester, mlTranslations['skipForNow']!);
     expect(find.text(mlTranslations['basicProfile']!), findsOneWidget);
 
     await _tapLabel(tester, mlTranslations['skipForNow']!);
-    expect(find.text(mlTranslations['chooseWebsiteTemplate']!), findsOneWidget);
+    expect(find.text(mlTranslations['portfolioMyWebsite']!), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.text(mlTranslations['portfolioSkip']!));

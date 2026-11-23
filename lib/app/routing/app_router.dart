@@ -11,6 +11,12 @@ import '../../features/speech_generator/speech_generator_screen.dart';
 import '../../features/onboarding/screens/basic_profile_screen.dart';
 import '../../features/onboarding/screens/additional_profile_screen.dart';
 import '../../features/onboarding/screens/domain_search_screen.dart';
+import '../../features/onboarding/password_reset/forgot_password_screen.dart';
+import '../../features/onboarding/password_reset/new_password_screen.dart';
+import '../../features/onboarding/password_reset/otp_channel_screen.dart';
+import '../../features/onboarding/password_reset/password_reset_request.dart';
+import '../../features/onboarding/password_reset/reset_success_screen.dart';
+import '../../features/onboarding/password_reset/verify_otp_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/otp_login_screen.dart';
 import '../../features/onboarding/screens/ready_screen.dart';
@@ -35,6 +41,13 @@ import '../../features/website/screens/website_sections_screen.dart';
 import 'app_routes.dart';
 export 'app_routes.dart';
 
+String? _phoneArgument(Object? arguments) {
+  if (arguments is! String) return null;
+  final value = arguments.trim();
+  if (value.isEmpty || value == 'whatsapp') return null;
+  return value;
+}
+
 abstract final class AppRouter {
   static String normalizeRouteName(String? name) {
     if (name == null || name.isEmpty) return AppRoutes.login;
@@ -49,7 +62,27 @@ abstract final class AppRouter {
     final normalized = normalizeRouteName(settings.name);
     final page = switch (normalized) {
       AppRoutes.authCallback => const LoginScreen(),
-      AppRoutes.otp => OtpLoginScreen(channel: 'whatsapp'),
+      AppRoutes.forgotPassword => const ForgotPasswordScreen(),
+      AppRoutes.resetChannel => OtpChannelScreen(
+          request: settings.arguments is PasswordResetRequest
+              ? settings.arguments! as PasswordResetRequest
+              : const PasswordResetRequest(identifier: '', isEmail: false),
+        ),
+      AppRoutes.resetOtp => VerifyOtpScreen(
+          request: settings.arguments is PasswordResetRequest
+              ? settings.arguments! as PasswordResetRequest
+              : const PasswordResetRequest(identifier: '', isEmail: false),
+        ),
+      AppRoutes.resetPassword => NewPasswordScreen(
+          request: settings.arguments is PasswordResetRequest
+              ? settings.arguments! as PasswordResetRequest
+              : const PasswordResetRequest(identifier: '', isEmail: false),
+        ),
+      AppRoutes.resetSuccess => const ResetSuccessScreen(),
+      AppRoutes.otp => OtpLoginScreen(
+          channel: 'whatsapp',
+          initialPhone: _phoneArgument(settings.arguments),
+        ),
       AppRoutes.profile => const BasicProfileScreen(),
       AppRoutes.additionalProfile => const AdditionalProfileScreen(),
       AppRoutes.domain => const DomainSearchScreen(),

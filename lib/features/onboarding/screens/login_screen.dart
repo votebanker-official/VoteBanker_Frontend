@@ -2,25 +2,27 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
-import '../../../app/theme/app_colors.dart';
-import '../../../app/theme/app_text_styles.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/utils/person_name.dart';
-import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/onboarding_header.dart';
-import '../../../core/widgets/primary_button.dart';
-import '../../../core/widgets/secondary_button.dart';
+import '../../../core/widgets/language_selector.dart';
+import '../../../core/widgets/theme_toggle.dart';
 import '../../website/services/portfolio_store.dart';
 import '../../website/services/website_builder_store.dart';
 import '../../merchandise/merchandise_intent.dart';
 import '../blue_tik/blue_tik_models.dart';
 import '../state/onboarding_controller.dart';
-import '../widgets/onboarding_frame.dart';
+
+const _navy = Color(0xFF102B50);
+const _blue = Color(0xFF1677F2);
+const _page = Color(0xFFEDF6FF);
+const _field = Color(0xFFDCEEFF);
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,12 +32,24 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _identifier = TextEditingController();
+  final _password = TextEditingController();
   bool _busy = false;
+  bool _obscure = true;
+  String? _formError;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _finishSocialReturn());
+  }
+
+  @override
+  void dispose() {
+    _identifier.dispose();
+    _password.dispose();
+    super.dispose();
   }
 
   Future<void> _finishSocialReturn() async {
@@ -141,14 +155,11 @@ class _LoginScreenState extends State<LoginScreen> {
         formatPersonName(onboarding.draft.leaderName) == socialName) {
       onboarding.draft.leaderName = '';
     }
-    // Clear the token immediately so Basic Profile cannot GET /api/profile.
     AuthService.instance.openProfileAfterLogin = false;
     AuthService.instance.session = null;
     if (hadSession) {
       onboarding.clearForGuestSkip();
     } else {
-      // Keep any in-memory draft used by tests/navigation, but never reload
-      // another session's cached website/profile into this guest flow.
       onboarding.ignoreStoredWebsiteDrafts = true;
       onboarding.resetWebsiteFromProfile();
     }
@@ -164,71 +175,757 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _openOtp({String? phone}) {
+    if (_busy) return;
+    AppRouter.open(context, AppRoutes.otp, arguments: phone ?? 'whatsapp');
+  }
+
+  void _submit(AppLocalizations l10n) {
+    if (_busy) return;
+    final valid = _formKey.currentState?.validate() ?? false;
+    if (!valid) return;
+    final raw = _identifier.text.trim();
+    if (raw.contains('@')) {
+      setState(() => _formError = l10n.loginEmailUsesGoogle);
+      return;
+    }
+    final phone = AuthService.normalizePhone(raw);
+    if (phone == null) {
+      setState(() => _formError = 'Enter a valid mobile number.');
+      return;
+    }
+    setState(() => _formError = null);
+    _openOtp(phone: phone);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return OnboardingFrame(
-      child: AppCard(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: context.palette.accent.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: context.palette.accent.withValues(alpha: 0.28),
+    return Scaffold(
+      backgroundColor: _page,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 48 || constraints.maxHeight < 48) {
+              return const SizedBox.shrink();
+            }
+            final width = constraints.maxWidth;
+            final desktop = width > 1024;
+            final tablet = width >= 601 && width <= 1024;
+            return Stack(
+              children: [
+                const Positioned.fill(child: _WaveBackground()),
+                Column(
+                  children: [
+                    const Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ThemeToggle(),
+                            SizedBox(width: 8),
+                            LanguageSelector(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: desktop
+                          ? _DesktopLogin(
+                              form: _form(l10n, compact: false, showBrand: false),
+                              l10n: l10n,
+                            )
+                          : Center(
+                              child: SingleChildScrollView(
+                                keyboardDismissBehavior:
+                                    ScrollViewKeyboardDismissBehavior.onDrag,
+                                padding: EdgeInsets.fromLTRB(
+                                  tablet ? 32 : 16,
+                                  8,
+                                  tablet ? 32 : 16,
+                                  20,
+                                ),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: tablet ? 520 : 400,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      _BrandHero(l10n: l10n, large: false),
+                                      const SizedBox(height: 18),
+                                      _LoginCard(
+                                        child: _form(
+                                          l10n,
+                                          compact: !tablet,
+                                          showBrand: false,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+                if (_busy)
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    child: LinearProgressIndicator(
+                      minHeight: 3,
+                      color: _blue,
+                      backgroundColor: _field,
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _form(
+    AppLocalizations l10n, {
+    required bool compact,
+    bool showBrand = true,
+  }) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showBrand) ...[
+            const _BrandLockup(),
+            SizedBox(height: compact ? 16 : 22),
+          ],
+          Text(
+            l10n.loginWelcome,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _blue,
+              fontSize: compact ? 22 : 26,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.loginJourney,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: _navy,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: compact ? 16 : 22),
+          _LoginField(
+            controller: _identifier,
+            hint: l10n.loginIdentifier,
+            icon: Icons.mail_outline_rounded,
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Enter your email or mobile number.';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          _LoginField(
+            controller: _password,
+            hint: l10n.loginPassword,
+            icon: Icons.lock_outline_rounded,
+            obscure: _obscure,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(l10n),
+            suffix: IconButton(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              icon: Icon(
+                _obscure
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: const Color(0xFF7E93AD),
+                size: 20,
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Enter your password.';
+              }
+              return null;
+            },
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => AppRouter.open(context, AppRoutes.forgotPassword),
+              child: Text(
+                l10n.loginForgot,
+                style: const TextStyle(
+                  color: _blue,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
               ),
-              child: Text(
-                l10n.principle,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.principle(context),
+            ),
+          ),
+          if (_formError != null) ...[
+            Text(
+              _formError!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFD92D3F), fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+          ],
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF3B8BFF), Color(0xFF1677F2)],
+                ),
+              ),
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                onPressed: _busy ? null : () => _submit(l10n),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      l10n.loginAction,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward_rounded, size: 18),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 22),
-            OnboardingHeader(
-              title: l10n.welcomeTitle,
-              description: l10n.welcomeBody,
-            ),
-            const SizedBox(height: 24),
-            if (_busy) ...[
-              const LinearProgressIndicator(),
-              const SizedBox(height: 12),
+          ),
+          const SizedBox(height: 14),
+          const Row(
+            children: [
+              Expanded(child: Divider(color: Color(0xFFD5E4F4))),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  'OR',
+                  style: TextStyle(
+                    color: Color(0xFF8AA0B8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: Color(0xFFD5E4F4))),
             ],
-            PrimaryButton(
-              label: l10n.continueWhatsApp,
-              icon: Icons.chat_rounded,
-              onPressed:
-                  _busy
-                      ? null
-                      : () => AppRouter.open(
-                        context,
-                        AppRoutes.otp,
-                        arguments: 'whatsapp',
-                      ),
+          ),
+          const SizedBox(height: 12),
+          _SocialButton(
+            label: l10n.continueFacebook,
+            leading: const _FacebookMark(),
+            onPressed: _busy ? null : () => _startSocial(l10n, 'facebook'),
+          ),
+          const SizedBox(height: 10),
+          _SocialButton(
+            label: l10n.continueWhatsApp,
+            leading: const _WhatsAppMark(),
+            onPressed: _busy ? null : () => _openOtp(),
+          ),
+          const SizedBox(height: 10),
+          _SocialButton(
+            label: l10n.continueGoogle,
+            leading: const _GoogleMark(),
+            onPressed: _busy ? null : () => _startSocial(l10n, 'google'),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                l10n.loginSignUpPrompt,
+                style: const TextStyle(color: _navy, fontSize: 13.5),
+              ),
+              TextButton(
+                onPressed: _busy ? null : () => _openOtp(),
+                child: Text(
+                  l10n.loginSignUp,
+                  style: const TextStyle(
+                    color: _blue,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          TextButton(
+            onPressed: _busy ? null : _skipForNow,
+            child: Text(l10n.skipForNow),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DesktopLogin extends StatelessWidget {
+  const _DesktopLogin({required this.form, required this.l10n});
+
+  final Widget form;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 4, 36, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Align(
+              alignment: const Alignment(0, -0.72),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: _BrandHero(l10n: l10n, large: true),
+              ),
             ),
-            const SizedBox(height: 12),
-            SecondaryButton(
-              label: l10n.continueGoogle,
-              icon: Icons.g_mobiledata,
-              onPressed: _busy ? () {} : () => _startSocial(l10n, 'google'),
+          ),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: _LoginCard(child: form),
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            SecondaryButton(
-              label: l10n.continueFacebook,
-              icon: Icons.facebook,
-              onPressed: _busy ? () {} : () => _startSocial(l10n, 'facebook'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BrandHero extends StatelessWidget {
+  const _BrandHero({required this.l10n, required this.large});
+
+  final AppLocalizations l10n;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = l10n.loginHeroTitle.split('\n');
+    final first = lines.first;
+    final second = lines.length > 1 ? lines.last : '';
+    final titleSize = large ? 40.0 : 28.0;
+    return Column(
+      children: [
+        _BrandLockup(large: large),
+        SizedBox(height: large ? 28 : 16),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: '$first\n', style: const TextStyle(color: _navy)),
+              TextSpan(text: second, style: const TextStyle(color: _blue)),
+            ],
+          ),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: titleSize,
+            fontWeight: FontWeight.w800,
+            height: 1.12,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 2),
+        const _CurveUnderline(),
+        SizedBox(height: large ? 22 : 16),
+        const _CompanyPill(),
+      ],
+    );
+  }
+}
+
+class _LoginCard extends StatelessWidget {
+  const _LoginCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A1677F2),
+            blurRadius: 28,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 28, 28, 12),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _CurveUnderline extends StatelessWidget {
+  const _CurveUnderline();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 108,
+      height: 14,
+      child: CustomPaint(painter: _UnderlinePainter()),
+    );
+  }
+}
+
+class _UnderlinePainter extends CustomPainter {
+  const _UnderlinePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF2F7CFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2
+      ..strokeCap = StrokeCap.round;
+    final path = Path()
+      ..moveTo(size.width * 0.06, size.height * 0.35)
+      ..quadraticBezierTo(
+        size.width * 0.5,
+        size.height * 1.05,
+        size.width * 0.94,
+        size.height * 0.28,
+      );
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _CompanyPill extends StatelessWidget {
+  const _CompanyPill();
+
+  static const _name = 'Voter Relationship Management Private Limited';
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 520),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9ECFF),
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.groups_rounded, color: _blue, size: 22),
+              Container(
+                width: 1.2,
+                height: 18,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                color: const Color(0xFF7EB6F5),
+              ),
+              Flexible(
+                child: Text(
+                  _name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: _navy,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BrandLockup extends StatelessWidget {
+  const _BrandLockup({this.large = false});
+
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = large ? 84.0 : 64.0;
+    return Column(
+      children: [
+        Image.asset(
+          AppAssets.logo,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          AppLocalizations.of(context).appName,
+          style: TextStyle(
+            color: _navy,
+            fontSize: large ? 22 : 18,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LoginField extends StatelessWidget {
+  const _LoginField({
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.obscure = false,
+    this.suffix,
+    this.validator,
+    this.keyboardType,
+    this.textInputAction,
+    this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final bool obscure;
+  final Widget? suffix;
+  final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onSubmitted,
+      validator: validator,
+      style: const TextStyle(color: _navy, fontSize: 15),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF8AA0B8)),
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon: Icon(icon, color: const Color(0xFF8AA0B8), size: 20),
+        suffixIcon: suffix,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: _field),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: _blue, width: 1.4),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: Color(0xFFD92D3F)),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24),
+          borderSide: const BorderSide(color: Color(0xFFD92D3F)),
+        ),
+      ),
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  const _SocialButton({
+    required this.label,
+    required this.leading,
+    required this.onPressed,
+  });
+
+  final String label;
+  final Widget leading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 46,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: _navy,
+          side: const BorderSide(color: Color(0xFFD7E8F8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          backgroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+        ),
+        onPressed: onPressed,
+        child: Row(
+          children: [
+            SizedBox(width: 22, height: 22, child: leading),
+            Expanded(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
             ),
-            TextButton(
-              onPressed: _busy ? null : _skipForNow,
-              child: Text(l10n.skipForNow),
-            ),
+            const SizedBox(width: 22),
           ],
         ),
       ),
     );
   }
 }
+
+class _FacebookMark extends StatelessWidget {
+  const _FacebookMark();
+
+  static const _svg = '''
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="12" fill="#1877F2"/>
+  <path fill="#fff" d="M13.3 19v-5.9h2l.3-2.3h-2.3V9.3c0-.7.2-1.1 1.2-1.1h1.3V6.1c-.2 0-.9-.1-1.6-.1-1.6 0-2.7 1-2.7 2.8v1.9H9.2v2.3h2.2V19h1.9z"/>
+</svg>''';
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.string(_svg, width: 22, height: 22);
+  }
+}
+
+class _WhatsAppMark extends StatelessWidget {
+  const _WhatsAppMark();
+
+  static const _svg = '''
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="12" fill="#25D366"/>
+  <path fill="#fff" d="M12 5.4c-3.6 0-6.5 2.9-6.5 6.5 0 1.1.3 2.2.9 3.2L5.6 18.6l3.6-1.1c.9.5 1.9.8 2.8.8 3.6 0 6.5-2.9 6.5-6.5S15.6 5.4 12 5.4zm3.7 9c-.2.4-.9.8-1.2.8-.3.1-.6.1-1.9-.4-1.6-.6-2.7-2.1-2.8-2.2-.1-.1-.6-.8-.6-1.6s.4-1.2.6-1.4c.1-.2.3-.2.5-.2h.3c.1 0 .3 0 .4.3.2.4.5 1.3.6 1.4.1.1.1.2 0 .4-.1.1-.1.2-.2.3l-.2.3c0 .1 0 .2.1.3.1.2.4.7.9 1.2.6.5 1.2.8 1.4.9.2.1.3.1.4-.1.1-.1.4-.5.5-.7.1-.2.3-.1.4-.1.2 0 1 .5 1.2.6.2.1.3.1.3.2 0 .2 0 .4-.2.8z"/>
+</svg>''';
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.string(_svg, width: 22, height: 22);
+  }
+}
+
+class _GoogleMark extends StatelessWidget {
+  const _GoogleMark();
+
+  static const _svg = '''
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+  <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+  <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+  <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+</svg>''';
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.string(_svg, width: 20, height: 20);
+  }
+}
+
+class _WaveBackground extends StatelessWidget {
+  const _WaveBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return const CustomPaint(painter: _WavePainter());
+  }
+}
+
+class _WavePainter extends CustomPainter {
+  const _WavePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final soft = Paint()..color = const Color(0xFFD7ECFF);
+    final top = Path()
+      ..moveTo(0, size.height * 0.16)
+      ..quadraticBezierTo(
+        size.width * 0.22,
+        size.height * 0.02,
+        size.width * 0.48,
+        size.height * 0.1,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.78,
+        size.height * 0.2,
+        size.width,
+        size.height * 0.04,
+      )
+      ..lineTo(size.width, 0)
+      ..lineTo(0, 0)
+      ..close();
+    canvas.drawPath(top, soft);
+
+    final bottom = Path()
+      ..moveTo(0, size.height * 0.72)
+      ..quadraticBezierTo(
+        size.width * 0.28,
+        size.height * 0.58,
+        size.width * 0.55,
+        size.height * 0.78,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.82,
+        size.height * 0.98,
+        size.width,
+        size.height * 0.82,
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(bottom, soft..color = const Color(0xFFD4EAFF));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+

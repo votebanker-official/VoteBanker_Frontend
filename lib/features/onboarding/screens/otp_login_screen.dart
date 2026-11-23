@@ -15,17 +15,22 @@ import '../widgets/onboarding_frame.dart';
 enum _OtpStep { phone, code }
 
 class OtpLoginScreen extends StatefulWidget {
-  const OtpLoginScreen({this.channel = 'whatsapp', super.key});
+  const OtpLoginScreen({this.channel = 'whatsapp', this.initialPhone, super.key});
 
   /// WhatsApp is the only supported OTP channel.
   final String channel;
+
+  /// Mobile number typed on the login form, when the user is continuing by OTP.
+  final String? initialPhone;
 
   @override
   State<OtpLoginScreen> createState() => _OtpLoginScreenState();
 }
 
 class _OtpLoginScreenState extends State<OtpLoginScreen> {
-  final _phoneController = TextEditingController();
+  late final TextEditingController _phoneController = TextEditingController(
+    text: widget.initialPhone ?? '',
+  );
   final _codeController = TextEditingController();
 
   _OtpStep _step = _OtpStep.phone;

@@ -1,5 +1,4 @@
 ﻿import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
@@ -10,8 +9,10 @@ import '../../../core/widgets/primary_button.dart';
 import '../../website/models/website_builder_draft.dart';
 import '../../website/models/website_template_catalog.dart';
 import '../../website/screens/website_builder_screen.dart';
+import '../../website/services/leader_profile_binding.dart';
 import '../../website/services/portfolio_store.dart';
 import '../../website/services/website_builder_store.dart';
+import '../../website/widgets/leader_portfolio_site.dart';
 import '../../website/widgets/website_builder_preview.dart';
 import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_frame.dart';
@@ -49,32 +50,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
 
   void _syncPartyFromProfile() {
     final session = OnboardingScope.of(context);
-    session.websiteBuilder.applyPartyFromProfile(session.draft.party);
-    if (session.websiteBuilder.fullName.trim().isEmpty) {
-      session.websiteBuilder.fullName = session.draft.leaderName.trim();
-    }
-    if (session.websiteBuilder.designation.trim().isEmpty) {
-      session.websiteBuilder.designation = session.draft.designation.trim();
-    }
-    if (session.websiteBuilder.constituency.trim().isEmpty) {
-      session.websiteBuilder.constituency =
-          session.draft.assemblyConstituency.trim();
-    }
-    if (session.websiteBuilder.district.trim().isEmpty) {
-      session.websiteBuilder.district = session.draft.district.trim();
-    }
-    if (session.websiteBuilder.state.trim().isEmpty) {
-      session.websiteBuilder.state = session.draft.state.trim();
-    }
-    if (session.websiteBuilder.phone.trim().isEmpty) {
-      session.websiteBuilder.phone = session.draft.contactNumber.trim();
-    }
-    if (!session.websiteBuilder.profilePhoto.hasImage &&
-        session.draft.photoBytes != null) {
-      session.websiteBuilder.profilePhoto = MediaRef(
-        base64: base64Encode(session.draft.photoBytes!),
-      );
-    }
+    applyLeaderProfile(session.websiteBuilder, session.draft);
   }
 
   Future<void> _restorePortfolio() async {
@@ -113,6 +89,9 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
         session.draft.websiteTemplate ??= builder.templateId;
         session.portfolio.selectTemplate(builder.templateId);
       }
+      // Stored website drafts can carry an older party. The Leader Profile
+      // is the source of truth after every restore.
+      applyLeaderProfile(session.websiteBuilder, session.draft);
     });
   }
 
@@ -198,31 +177,30 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
       ..gallery = source.gallery
       ..announcements = source.announcements
       ..events = source.events;
-    if (session.draft.photoBytes != null) {
-      draft.profilePhoto = MediaRef(
-        base64: base64Encode(session.draft.photoBytes!),
-      );
-    }
+    applyLeaderProfile(draft, session.draft);
     if (!mounted) return;
-    await showModalBottomSheet<void>(
+    await showDialog<void>(
       context: context,
-      isScrollControlled: true,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                WebsiteTemplateCatalog.professional.name,
-                style: AppTextStyles.headline(context),
+        return Dialog.fullscreen(
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(WebsiteTemplateCatalog.professional.name),
+              leading: IconButton(
+                tooltip: 'Close',
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close),
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 420,
-                child: WebsiteBuilderPreview(draft: draft),
-              ),
-            ],
+            ),
+            body: ListView(
+              children: [
+                WebsiteBuilderPreview(
+                  draft: draft,
+                  fullBleed: true,
+                  isPreviewBanner: false,
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -236,62 +214,126 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     _syncPartyFromProfile();
     final builder = session.websiteBuilder;
 
+    Future<void> openPreview() {
+      final preview = WebsiteBuilderDraft(templateId: builder.templateId);
+      applyLeaderProfile(preview, session.draft);
+      preview
+        ..shortIntro = builder.shortIntro
+        ..biography = builder.biography
+        ..aboutLeader = builder.aboutLeader
+        ..goalsVision = builder.goalsVision
+        ..localPriorities = builder.localPriorities
+        ..email = builder.email
+        ..achievements = builder.achievements
+        ..projects = builder.projects
+        ..gallery = builder.gallery
+        ..announcements = builder.announcements
+        ..events = builder.events;
+      applyLeaderProfile(preview, session.draft);
+      final title = session.draft.party.trim().isNotEmpty
+          ? session.draft.party.trim()
+          : WebsiteTemplateCatalog.professional.name;
+      return showDialog<void>(
+        context: context,
+        builder: (context) {
+          return Dialog.fullscreen(
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(title),
+                leading: IconButton(
+                  tooltip: 'Close',
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ),
+              body: ListView(
+                children: [
+                  LeaderPortfolioSite(
+                    draft: preview,
+                    scrollBody: false,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return OnboardingFrame(
+      maxContentWidth: double.infinity,
+      contentHorizontalPadding: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              IconButton(
-                tooltip: l10n.back,
-                onPressed: () => AppRouter.back(context, AppRoutes.domain),
-                icon: const Icon(Icons.arrow_back),
-              ),
-              Expanded(
-                child: Text(
-                  l10n.line('chooseWebsiteTemplate'),
+          SizedBox(
+            height: 48,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Text(
+                  l10n.portfolioMyWebsite,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.headline(context),
+                  style: AppTextStyles.headline(context).copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
                 ),
-              ),
-              TextButton(
-                onPressed: () => AppRouter.open(context, AppRoutes.domain),
-                child: Text(l10n.portfolioSkip),
-              ),
-            ],
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    tooltip: l10n.back,
+                    onPressed: () => AppRouter.back(context, AppRoutes.domain),
+                    icon: const Icon(Icons.arrow_back),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => AppRouter.open(context, AppRoutes.domain),
+                    child: Text(l10n.portfolioSkip),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
-          Text(
-            l10n.line('chooseWebsiteTemplateBody'),
-            textAlign: TextAlign.center,
-            style: AppTextStyles.muted(context),
+          LeaderPortfolioSite(
+            draft: builder,
+            scrollBody: false,
           ),
-          const SizedBox(height: 16),
           KeyedSubtree(
             key: const ValueKey('preview-professional'),
-            child: WebsiteBuilderPreview(draft: builder),
+            child: const SizedBox.shrink(),
           ),
-          const SizedBox(height: 12),
-          if (builder.shortIntro.trim().isNotEmpty ||
-              builder.biography.trim().isNotEmpty)
-            OutlinedButton.icon(
-              key: const ValueKey('editWebsite'),
-              onPressed: () => _openBuilder(continueOnboarding: false),
-              icon: const Icon(Icons.edit_outlined),
-              label: Text(l10n.line('portfolioEditWebsite')),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (builder.shortIntro.trim().isNotEmpty ||
+                    builder.biography.trim().isNotEmpty)
+                  OutlinedButton.icon(
+                    key: const ValueKey('editWebsite'),
+                    onPressed: () => _openBuilder(continueOnboarding: false),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: Text(l10n.line('portfolioEditWebsite')),
+                  ),
+                const SizedBox(height: 8),
+                PrimaryButton(
+                  key: const ValueKey('continueTemplate'),
+                  label: 'Edit Website',
+                  icon: Icons.auto_awesome,
+                  onPressed: _openAiFlow,
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  key: const ValueKey('previewWebsite'),
+                  onPressed: openPreview,
+                  child: const Text('Book Now'),
+                ),
+              ],
             ),
-          const SizedBox(height: 18),
-          PrimaryButton(
-            key: const ValueKey('continueTemplate'),
-            label: l10n.line('generateWebsite'),
-            icon: Icons.auto_awesome,
-            onPressed: _openAiFlow,
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const ValueKey('previewWebsite'),
-            onPressed: _previewWebsite,
-            child: Text(l10n.line('portfolioPreviewTemplate')),
           ),
         ],
       ),

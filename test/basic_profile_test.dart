@@ -128,16 +128,16 @@ void main() {
 
     expect(find.text('Enter a valid contact number.'), findsOneWidget);
     expect(find.text('Leader Profile'), findsOneWidget);
-    expect(find.text('Portfolio Template'), findsNothing);
+    expect(find.text('My Website'), findsNothing);
 
     await _enter(tester, 'profileContact', '9876543210');
     await _tapLabel(tester, 'Save & Continue');
     expect(find.text('Additional Leader Profile Details'), findsOneWidget);
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Portfolio Template'), findsOneWidget);
+    expect(find.text('My Website'), findsOneWidget);
 
     final draft = OnboardingScope.of(
-      tester.element(find.text('Portfolio Template')),
+      tester.element(find.text('My Website')),
     ).draft;
     expect(draft.publicContact, '9876543210');
     expect(draft.partNo, '12/A');
@@ -193,7 +193,7 @@ void main() {
       await _tapLabel(tester, 'Save & Continue');
       expect(find.text('Additional Leader Profile Details'), findsOneWidget);
       await _tapLabel(tester, 'Save & Continue');
-      expect(find.text('Portfolio Template'), findsOneWidget);
+      expect(find.text('My Website'), findsOneWidget);
     },
   );
 
