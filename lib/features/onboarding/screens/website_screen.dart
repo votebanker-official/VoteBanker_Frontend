@@ -308,6 +308,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                   LeaderPortfolioSite(
                     draft: preview,
                     scrollBody: false,
+                    showDemoNote: false,
                   ),
                 ],
               ),
@@ -358,6 +359,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
           LeaderPortfolioSite(
             draft: builder,
             scrollBody: false,
+            showDemoNote: false,
           ),
           KeyedSubtree(
             key: const ValueKey('preview-professional'),

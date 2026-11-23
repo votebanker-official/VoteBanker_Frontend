@@ -201,9 +201,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final mobileShell = MediaQuery.sizeOf(context).width < 601;
 
     return Scaffold(
-      backgroundColor: _page,
+      backgroundColor: mobileShell ? const Color(0xFFF4F9FE) : _page,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -213,6 +214,12 @@ class _LoginScreenState extends State<LoginScreen> {
             final width = constraints.maxWidth;
             final desktop = width > 1024;
             final tablet = width >= 601 && width <= 1024;
+            if (!desktop && !tablet) {
+              return _MobileLoginBody(
+                busy: _busy,
+                child: _mobileForm(l10n),
+              );
+            }
             return Stack(
               children: [
                 const Positioned.fill(child: _WaveBackground()),
@@ -238,35 +245,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               form: _form(l10n, compact: false, showBrand: false),
                               l10n: l10n,
                             )
-                          : Center(
-                              child: SingleChildScrollView(
-                                keyboardDismissBehavior:
-                                    ScrollViewKeyboardDismissBehavior.onDrag,
-                                padding: EdgeInsets.fromLTRB(
-                                  tablet ? 32 : 16,
-                                  8,
-                                  tablet ? 32 : 16,
-                                  20,
-                                ),
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxWidth: tablet ? 520 : 400,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      _BrandHero(l10n: l10n, large: false),
-                                      const SizedBox(height: 18),
-                                      _LoginCard(
-                                        child: _form(
-                                          l10n,
-                                          compact: !tablet,
-                                          showBrand: false,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                          : _TabletLogin(
+                              form: _form(l10n, compact: false, showBrand: false),
+                              l10n: l10n,
                             ),
                     ),
                   ],
@@ -490,6 +471,231 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  Widget _mobileForm(AppLocalizations l10n) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Welcome back!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF16325C),
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              height: 1.15,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Login to continue your journey',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF1A3A66),
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          const _CurveUnderline(),
+          const SizedBox(height: 18),
+          _LoginField(
+            controller: _identifier,
+            hint: 'Username',
+            icon: Icons.person_outline_rounded,
+            iconColor: _blue,
+            divided: true,
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Enter your email or mobile number.';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 14),
+          _LoginField(
+            controller: _password,
+            hint: 'Password',
+            icon: Icons.lock_outline_rounded,
+            iconColor: _blue,
+            divided: true,
+            obscure: _obscure,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(l10n),
+            suffix: IconButton(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              icon: Icon(
+                _obscure
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: const Color(0xFF9AADC2),
+                size: 22,
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Enter your password.';
+              }
+              return null;
+            },
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => AppRouter.open(context, AppRoutes.forgotPassword),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.only(top: 6, bottom: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                l10n.loginForgot,
+                style: const TextStyle(
+                  color: _blue,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                ),
+              ),
+            ),
+          ),
+          if (_formError != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _formError!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFD92D3F), fontSize: 13),
+            ),
+          ],
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4C9BFF), Color(0xFF1677F2)],
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x401677F2),
+                    blurRadius: 16,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                ),
+                onPressed: _busy ? null : () => _submit(l10n),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Login',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 17,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward_rounded, size: 20),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Row(
+            children: [
+              Expanded(child: Divider(color: Color(0xFFE3EDF6), thickness: 1)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  'Or',
+                  style: TextStyle(
+                    color: Color(0xFF8AA0B8),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: Color(0xFFE3EDF6), thickness: 1)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _RoundSocial(
+                onPressed: _busy ? null : () => _startSocial(l10n, 'facebook'),
+                child: const _FacebookMark(size: 48),
+              ),
+              const SizedBox(width: 22),
+              _RoundSocial(
+                onPressed: _busy ? null : () => _openOtp(),
+                child: const _WhatsAppMark(size: 48),
+              ),
+              const SizedBox(width: 22),
+              _RoundSocial(
+                onPressed: _busy ? null : () => _startSocial(l10n, 'google'),
+                child: const _GoogleMark(size: 48),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                '${l10n.loginSignUpPrompt} ',
+                style: const TextStyle(
+                  color: Color(0xFF1A3A66),
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              GestureDetector(
+                onTap: _busy ? null : () => _openOtp(),
+                child: Text(
+                  l10n.loginSignUp,
+                  style: const TextStyle(
+                    color: _blue,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          TextButton(
+            onPressed: _busy ? null : _skipForNow,
+            child: Text(
+              l10n.skipForNow,
+              style: const TextStyle(
+                color: _blue,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DesktopLogin extends StatelessWidget {
@@ -510,6 +716,46 @@ class _DesktopLogin extends StatelessWidget {
               alignment: const Alignment(0, -0.72),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: _BrandHero(l10n: l10n, large: true),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: _LoginCard(child: form),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TabletLogin extends StatelessWidget {
+  const _TabletLogin({required this.form, required this.l10n});
+
+  final Widget form;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 24, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Align(
+              alignment: const Alignment(0, -0.72),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: _BrandHero(l10n: l10n, large: true),
               ),
             ),
@@ -725,6 +971,8 @@ class _LoginField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.onSubmitted,
+    this.iconColor = const Color(0xFF8AA0B8),
+    this.divided = false,
   });
 
   final TextEditingController controller;
@@ -736,6 +984,8 @@ class _LoginField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final Color iconColor;
+  final bool divided;
 
   @override
   Widget build(BuildContext context) {
@@ -752,9 +1002,26 @@ class _LoginField extends StatelessWidget {
         hintStyle: const TextStyle(color: Color(0xFF8AA0B8)),
         filled: true,
         fillColor: Colors.white,
-        prefixIcon: Icon(icon, color: const Color(0xFF8AA0B8), size: 20),
+        prefixIcon: divided
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(width: 14),
+                  Icon(icon, color: iconColor, size: 22),
+                  Container(
+                    width: 1,
+                    height: 22,
+                    margin: const EdgeInsets.only(left: 10),
+                    color: const Color(0xFFD7E6F5),
+                  ),
+                ],
+              )
+            : Icon(icon, color: iconColor, size: 20),
+        prefixIconConstraints: divided
+            ? const BoxConstraints(minWidth: 58, minHeight: 48)
+            : null,
         suffixIcon: suffix,
-        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        contentPadding: EdgeInsets.symmetric(vertical: divided ? 16 : 14),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
           borderSide: const BorderSide(color: _field),
@@ -825,7 +1092,9 @@ class _SocialButton extends StatelessWidget {
 }
 
 class _FacebookMark extends StatelessWidget {
-  const _FacebookMark();
+  const _FacebookMark({this.size = 22});
+
+  final double size;
 
   static const _svg = '''
 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -835,12 +1104,14 @@ class _FacebookMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.string(_svg, width: 22, height: 22);
+    return SvgPicture.string(_svg, width: size, height: size);
   }
 }
 
 class _WhatsAppMark extends StatelessWidget {
-  const _WhatsAppMark();
+  const _WhatsAppMark({this.size = 22});
+
+  final double size;
 
   static const _svg = '''
 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -850,12 +1121,14 @@ class _WhatsAppMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.string(_svg, width: 22, height: 22);
+    return SvgPicture.string(_svg, width: size, height: size);
   }
 }
 
 class _GoogleMark extends StatelessWidget {
-  const _GoogleMark();
+  const _GoogleMark({this.size = 20});
+
+  final double size;
 
   static const _svg = '''
 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -867,8 +1140,191 @@ class _GoogleMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.string(_svg, width: 20, height: 20);
+    return SvgPicture.string(_svg, width: size, height: size);
   }
+}
+
+class _RoundSocial extends StatelessWidget {
+  const _RoundSocial({required this.child, required this.onPressed});
+
+  final Widget child;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkResponse(
+      onTap: onPressed,
+      radius: 28,
+      child: child,
+    );
+  }
+}
+
+class _MobileLoginBody extends StatelessWidget {
+  const _MobileLoginBody({required this.child, required this.busy});
+
+  final Widget child;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Positioned.fill(child: CustomPaint(painter: _MobileWavePainter())),
+        Column(
+          children: [
+            const Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ThemeToggle(),
+                    SizedBox(width: 8),
+                    LanguageSelector(),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+                child: Column(
+                  children: [
+                    const _BrandLockup(),
+                    const SizedBox(height: 16),
+                    const _MobileCompanyBanner(),
+                    const SizedBox(height: 16),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x141677F2),
+                            blurRadius: 24,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 26, 20, 8),
+                        child: child,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (busy)
+          const Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: LinearProgressIndicator(
+              minHeight: 3,
+              color: _blue,
+              backgroundColor: _field,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _MobileCompanyBanner extends StatelessWidget {
+  const _MobileCompanyBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFE7F3FF),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Icon(Icons.groups_rounded, color: _blue, size: 26),
+            Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: SizedBox(
+                width: 1.2,
+                height: 26,
+                child: ColoredBox(color: Color(0xFF8EC0F6)),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Voter Relationship Management Private Limited',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _navy,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileWavePainter extends CustomPainter {
+  const _MobileWavePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFFF5FAFE),
+    );
+    final sky = Paint()..color = const Color(0xFFD7EEFF);
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(0, size.height * 0.20)
+      ..quadraticBezierTo(
+        size.width * 0.62,
+        size.height * 0.34,
+        size.width,
+        size.height * 0.12,
+      )
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, sky);
+
+    final bottom = Path()
+      ..moveTo(0, size.height * 0.78)
+      ..quadraticBezierTo(
+        size.width * 0.28,
+        size.height * 0.64,
+        size.width * 0.55,
+        size.height * 0.84,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.82,
+        size.height,
+        size.width,
+        size.height * 0.86,
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(bottom, Paint()..color = const Color(0xFFD4EAFF));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _WaveBackground extends StatelessWidget {
