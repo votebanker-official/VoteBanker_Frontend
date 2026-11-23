@@ -478,7 +478,7 @@ const mlTranslations = <String, String>{
   'merchContactName': 'ബന്ധപ്പെടേണ്ട പേര്',
   'merchContactPhone': 'ബന്ധപ്പെടേണ്ട ഫോൺ',
   'merchNotes': 'കുറിപ്പുകൾ',
-  'merchPlaceRequest': 'ഡിസൈൻ അഭ്യർത്ഥന സംരക്ഷിക്കുക',
+  'merchPlaceRequest': 'Order now',
   'merchSaved':
       'നിങ്ങളുടെ ഡിസൈൻ അഭ്യർത്ഥന സംരക്ഷിച്ചു. അച്ചടിയും പണമടയ്ക്കലും ഇതുവരെ ബന്ധിപ്പിച്ചിട്ടില്ല, അതിനാൽ ഒന്നും ഈടാക്കിയിട്ടില്ല.',
   'merchLoadError': 'സാധനങ്ങളുടെ പട്ടിക ലഭിച്ചില്ല.',

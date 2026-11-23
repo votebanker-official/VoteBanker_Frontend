@@ -1,40 +1,84 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
+import '../../../app/routing/app_router.dart';
 import '../../../app/routing/app_routes.dart';
 import '../../../core/services/auth_service.dart';
+import '../../merchandise/merchandise_intent.dart';
 import '../state/onboarding_controller.dart';
 import 'blue_tik_art.dart';
 import 'blue_tik_booking_screen.dart';
 import 'blue_tik_models.dart';
 
-class BlueTikScreen extends StatelessWidget {
-  const BlueTikScreen({super.key});
+typedef BlueTikSaver = Future<void> Function(BlueTikApplication application);
+
+class BlueTikScreen extends StatefulWidget {
+  const BlueTikScreen({this.saver, super.key});
+
+  /// Replaces the API save in tests.
+  final BlueTikSaver? saver;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  State<BlueTikScreen> createState() => _BlueTikScreenState();
+}
+
+class _BlueTikScreenState extends State<BlueTikScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_resumePendingOffer());
+    });
+  }
+
+  Future<void> _resumePendingOffer() async {
+    if (!mounted || !AuthService.instance.isSignedIn) return;
+    final offer = BlueTikCatalog.byId(await BlueTikIntent.peek());
+    if (offer == null || !mounted) return;
+    await BlueTikIntent.clear();
+    if (!mounted) return;
+    _openForm(offer);
+  }
+
+  void _open(BlueTikOffer offer) {
+    if (!AuthService.instance.isSignedIn) {
+      unawaited(MerchandiseIntent.clear());
+      unawaited(BlueTikIntent.remember(offer.id));
+      AppRouter.open(context, AppRoutes.login);
+      return;
+    }
+    unawaited(BlueTikIntent.clear());
+    _openForm(offer);
+  }
+
+  void _openForm(BlueTikOffer offer) {
     final draft = OnboardingScope.maybeOf(context)?.draft;
     final session = AuthService.instance.session;
     final initialName = draft?.leaderName.trim() ?? '';
     final draftMobile = draft?.contactNumber.trim() ?? '';
-    final initialMobile =
-        draftMobile.isNotEmpty ? draftMobile : (session?.phone ?? '');
-    final initialEmail = session?.email.trim() ?? '';
+    final sessionEmail = session?.email.trim() ?? '';
+    final draftEmail = draft?.email.trim() ?? '';
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder:
+            (_) => BlueTikBookingScreen(
+              offer: offer,
+              initialName: initialName,
+              initialMobile:
+                  draftMobile.isNotEmpty ? draftMobile : (session?.phone ?? ''),
+              initialEmail: sessionEmail.isNotEmpty ? sessionEmail : draftEmail,
+              saver: widget.saver,
+            ),
+      ),
+    );
+  }
 
-    void open(BlueTikOffer offer) {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder:
-              (_) => BlueTikBookingScreen(
-                offer: offer,
-                initialName: initialName,
-                initialMobile: initialMobile,
-                initialEmail: initialEmail,
-              ),
-        ),
-      );
-    }
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final open = _open;
 
     return Scaffold(
       key: const Key('blue-tik-screen'),

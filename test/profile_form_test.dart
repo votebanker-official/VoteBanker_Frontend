@@ -301,6 +301,37 @@ void main() {
     expect(payload['state_region'], 'Karnataka');
     expect(payload['constituency'], 'Dharwad');
     expect(payload.containsKey('assembly_constituency_id'), isFalse);
+    draft
+      ..leaderName = 'A Leader'
+      ..designation = 'MLA'
+      ..assemblyConstituency = '72 - Dharwad'
+      ..party = 'Indian National Congress'
+      ..email = 'leader@example.com'
+      ..contactNumber = '9876543210'
+      ..boothNumber = '12'
+      ..boothName = 'Town Hall';
+    final saved = ProfileService.profilePayload(draft);
+    expect(saved['full_name'], 'A Leader');
+    expect(saved['designation'], 'MLA');
+    expect(saved['assembly_constituency'], '72 - Dharwad');
+    expect(saved['organization'], 'Indian National Congress');
+    expect(saved['contact_email'], 'leader@example.com');
+    expect(saved['public_contact'], '9876543210');
+    expect(saved['booth_number'], '12');
+    expect(saved['booth_name'], 'Town Hall');
+    final restored = OnboardingDraft();
+    ProfileService.applyProfile(restored, {
+      'designation': 'MLA',
+      'assembly_constituency': '72 - Dharwad',
+      'contact_email': 'leader@example.com',
+    });
+    expect(restored.designation, 'MLA');
+    expect(restored.assemblyConstituency, '72 - Dharwad');
+    expect(restored.email, 'leader@example.com');
+    final legacy = OnboardingDraft();
+    ProfileService.applyProfile(legacy, {'designation': '72 - Dharwad'});
+    expect(legacy.assemblyConstituency, '72 - Dharwad');
+    expect(legacy.designation, isEmpty);
     draft.assemblyConstituencyId = 1;
     expect(ProfileService.profilePayload(draft)['assembly_constituency_id'], 1);
 

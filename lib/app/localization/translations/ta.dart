@@ -479,7 +479,7 @@ const taTranslations = <String, String>{
   'merchContactName': 'தொடர்பு பெயர்',
   'merchContactPhone': 'தொடர்பு தொலைபேசி',
   'merchNotes': 'குறிப்புகள்',
-  'merchPlaceRequest': 'வடிவமைப்பு கோரிக்கையை சேமிக்கவும்',
+  'merchPlaceRequest': 'Order now',
   'merchSaved':
       'உங்கள் வடிவமைப்பு கோரிக்கை சேமிக்கப்பட்டது. அச்சும் கட்டணமும் இன்னும் இணையவில்லை, எனவே எதுவும் வசூலிக்கப்படவில்லை.',
   'merchLoadError': 'பொருள் பட்டியலை ஏற்ற முடியவில்லை.',

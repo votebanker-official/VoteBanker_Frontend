@@ -99,7 +99,7 @@ void main() {
       expect(find.text('Add your photo'), findsOneWidget);
       expect(find.byKey(const ValueKey('merchAddPhoto')), findsOneWidget);
       await tester.enterText(find.byType(TextField).at(1), 'Meera Rao');
-      final save = find.text('Save design request');
+      final save = find.text('Order now');
       await tester.ensureVisible(save);
       await tester.pumpAndSettle();
       await tester.tap(save);
@@ -110,6 +110,13 @@ void main() {
       expect(saved?['product_slug'], 'cap');
       expect(saved?.containsKey('campaign_photo'), isFalse);
       expect(find.textContaining('nothing is charged'), findsOneWidget);
+      expect(
+        find.text('Your product is booked, and our VoteBanker team will contact you soon.'),
+        findsOneWidget,
+      );
+      expect(find.text('Cap'), findsWidgets);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     },
   );
@@ -174,7 +181,7 @@ void main() {
     expect(find.text('T-Shirt'), findsWidgets);
     expect(find.text('Scarf'), findsNothing);
     expect(find.text('Design & Order'), findsOneWidget);
-    expect(find.text('Book Now'), findsOneWidget);
+    expect(find.text('Order now'), findsOneWidget);
     expect(find.text('Skip now'), findsOneWidget);
     expect(find.text('50 pieces — ₹199/piece'), findsOneWidget);
     expect(find.text('₹199 per piece'), findsOneWidget);
@@ -186,11 +193,11 @@ void main() {
     expect(find.textContaining('GST'), findsNothing);
     expect(tester.takeException(), isNull);
 
-    await tester.ensureVisible(find.text('Book Now'));
-    await tester.tap(find.text('Book Now'));
+    await tester.ensureVisible(find.text('Order now'));
+    await tester.tap(find.text('Order now'));
     await tester.pump();
     expect(find.text('Booked'), findsNothing);
-    expect(find.text('Book Now'), findsWidgets);
+    expect(find.text('Order now'), findsWidgets);
     await tester.pump(const Duration(milliseconds: 400));
     expect(tester.takeException(), isNull);
 
@@ -214,7 +221,7 @@ void main() {
     );
     await tester.pump();
     expect(find.text('Design & Order'), findsOneWidget);
-    expect(find.text('Book Now'), findsOneWidget);
+    expect(find.text('Order now'), findsOneWidget);
     expect(find.text('Skip now'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -395,11 +402,14 @@ void main() {
     expect(find.text('₹20 per piece'), findsOneWidget);
     expect(find.text('₹2,000'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Book Now'));
+    await tester.ensureVisible(find.text('Order now'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Book Now').first);
+    await tester.tap(find.text('Order now').first);
     await tester.pumpAndSettle();
-    expect(find.text('Order summary'), findsOneWidget);
+    expect(
+      find.text('Your product is booked, and our VoteBanker team will contact you soon.'),
+      findsOneWidget,
+    );
     expect(find.text('₹1,800'), findsOneWidget);
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();

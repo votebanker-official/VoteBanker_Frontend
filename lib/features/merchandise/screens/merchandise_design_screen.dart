@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/localization/app_localizations.dart';
+import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/services/auth_service.dart';
@@ -15,9 +16,11 @@ import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../onboarding/state/onboarding_controller.dart';
+import '../merchandise_intent.dart';
 import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
+import '../widgets/merchandise_booking_confirmation.dart';
 import '../widgets/merchandise_preview.dart';
 import '../widgets/merchandise_price_details.dart';
 import '../widgets/merchandise_quantity_selector.dart';
@@ -102,12 +105,14 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       return;
     }
     final l10n = AppLocalizations.of(context);
-    final line = _line.text.trim();
-    final name = _name.text.trim();
-    if (line.isEmpty) {
-      setState(() => _error = l10n.line('merchNeedLine'));
+    if (!AuthService.instance.isSignedIn) {
+      await MerchandiseIntent.remember(widget.product.slug, _quantity);
+      if (!mounted) return;
+      AppRouter.open(context, AppRoutes.login);
       return;
     }
+    final line = _line.text.trim();
+    final name = _name.text.trim();
     if (name.isEmpty) {
       setState(() => _error = l10n.line('merchNeedName'));
       return;
@@ -120,7 +125,14 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       'size': _size,
       'color': _color,
       'contact_name': name,
-      'contact_phone': _phone.text.trim(),
+      'contact_phone': _phone.text.trim().isNotEmpty
+          ? _phone.text.trim()
+          : (OnboardingScope.maybeOf(context)?.draft.contactNumber.trim() ?? ''),
+      'contact_email': () {
+        final sessionEmail = AuthService.instance.session?.email.trim() ?? '';
+        if (sessionEmail.isNotEmpty) return sessionEmail;
+        return OnboardingScope.maybeOf(context)?.draft.email.trim() ?? '';
+      }(),
       'notes': _notes.text.trim(),
       if (_photoBytes != null) 'campaign_photo': base64Encode(_photoBytes!),
     };
@@ -143,6 +155,13 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
         _saving = false;
         _saved = true;
       });
+      final quote = quoteMerchandise(widget.product.priceSlabs, _quantity);
+      await showMerchandiseBookingConfirmation(
+        context,
+        productName: widget.product.name,
+        quantity: _quantity,
+        totalPaise: quote.configured ? quote.lineTotalPaise : null,
+      );
     } on MerchandiseException catch (error) {
       if (!mounted) {
         return;
@@ -512,7 +531,7 @@ class _FormCard extends StatelessWidget {
             const SizedBox(height: 14),
             AppTextField(
               controller: line,
-              label: l10n.line('merchCampaignLine'),
+              label: '${l10n.line('merchCampaignLine')}  ${l10n.line('merchColorOptional')}',
               hint: l10n.line('merchCampaignHint'),
               textCapitalization: TextCapitalization.sentences,
               onChanged: onLine,
@@ -529,8 +548,6 @@ class _FormCard extends StatelessWidget {
               priceSlabs: product.priceSlabs,
               onChanged: onQuantity,
             ),
-            const SizedBox(height: 8),
-            MerchandisePriceDetails(product: product, quantity: quantity),
             if (product.sizes.isNotEmpty) ...[
               const SizedBox(height: 14),
               _SizeField(
@@ -879,7 +896,11 @@ class _PreviewColumn extends StatelessWidget {
           qtyLabel: l10n.line('merchQty'),
         ),
         const SizedBox(height: 14),
-        MerchandisePriceDetails(product: product, quantity: quantity),
+        MerchandisePriceDetails(
+          product: product,
+          quantity: quantity,
+          totalOnly: true,
+        ),
         const SizedBox(height: 14),
         if (saved)
           Text(l10n.line('merchSaved'), style: AppTextStyles.body(context))

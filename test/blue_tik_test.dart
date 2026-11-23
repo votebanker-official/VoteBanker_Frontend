@@ -7,6 +7,7 @@ import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/localization/translations/en.dart';
 import 'package:votebanker/app/routing/app_router.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
+import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/merchandise/screens/campaign_templates_screen.dart';
 import 'package:votebanker/features/merchandise/services/merchandise_service.dart';
@@ -20,9 +21,11 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
     BlueTikApplicationStore.instance.clear();
+    AuthService.instance.session = null;
+    await BlueTikIntent.clear();
   });
 
   test('assistance prices use rupee grouping', () {
@@ -129,6 +132,7 @@ void main() {
   ) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    _signIn();
     final controller = OnboardingController()..draft.leaderName = 'Asha Rao';
     addTearDown(controller.dispose);
     await _pump(tester, const Size(1280, 1100), controller: controller);
@@ -192,6 +196,7 @@ void main() {
   ) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    _signIn();
     await _pump(tester, const Size(390, 900));
 
     await tester.ensureVisible(find.byKey(const Key('blue-tik-book-whatsapp')));
@@ -215,6 +220,37 @@ void main() {
     expect(find.byKey(const Key('blue-tik-url-whatsapp')), findsOneWidget);
     expect(find.text('Get Verified on Instagram'), findsNothing);
   });
+
+  testWidgets('Book Now sends a signed-out visitor to login', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pump(tester, const Size(1280, 900));
+
+    await tester.tap(find.byKey(const Key('blue-tik-book-facebook')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Continue with Facebook'), findsOneWidget);
+    expect(find.byKey(const Key('blue-tik-booking')), findsNothing);
+    expect(await BlueTikIntent.peek(), 'facebook');
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('blue-tik-book-bundle')));
+    await tester.tap(find.byKey(const Key('blue-tik-book-bundle')));
+    await tester.pumpAndSettle();
+    expect(await BlueTikIntent.peek(), 'bundle');
+    expect(find.byKey(const Key('blue-tik-booking')), findsNothing);
+  });
+}
+
+void _signIn() {
+  AuthService.instance.session = const AuthSession(
+    accessToken: 'test-token',
+    refreshToken: 'test-refresh',
+    userId: 'user-1',
+    phone: '',
+    email: 'asha@example.com',
+  );
 }
 
 void _expectOfferCopy() {
@@ -279,7 +315,9 @@ Future<void> _pump(
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
-  await tester.pumpWidget(_app(const BlueTikScreen(), controller: controller));
+  await tester.pumpWidget(
+    _app(BlueTikScreen(saver: (_) async {}), controller: controller),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -302,8 +340,14 @@ Widget _app(Widget home, {OnboardingController? controller}) {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        home: home,
+        initialRoute: AppRoutes.blueTik,
         onGenerateRoute: (settings) {
+          if (settings.name == AppRoutes.blueTik) {
+            return MaterialPageRoute<void>(
+              settings: settings,
+              builder: (_) => home,
+            );
+          }
           if (settings.name == AppRoutes.campaignTemplates) {
             return MaterialPageRoute<void>(
               settings: settings,

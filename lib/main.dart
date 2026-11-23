@@ -4,6 +4,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'app/app.dart';
 import 'app/theme/app_theme.dart';
 import 'core/services/auth_service.dart';
+import 'features/admin/admin_access.dart';
 import 'core/services/theme_controller.dart';
 
 Future<void> main() async {
@@ -24,6 +25,11 @@ Future<void> main() async {
     await AuthService.instance.completePendingSocialSignIn();
   } catch (_) {
     // A failed social return still opens the welcome screen.
+  }
+  try {
+    await AdminAccess.instance.reload();
+  } catch (_) {
+    // The sidebar stays hidden when the role check cannot reach the API.
   }
   final themeController = ThemeController();
   await themeController.load();

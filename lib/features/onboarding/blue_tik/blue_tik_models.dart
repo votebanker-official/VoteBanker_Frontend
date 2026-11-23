@@ -1,5 +1,9 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../app/localization/app_localizations.dart';
+import '../../../app/routing/app_routes.dart';
 import '../../../core/services/auth_service.dart';
+import '../../merchandise/merchandise_intent.dart';
 
 /// A verification-assistance offer. Prices are VOTE BANKER charges only.
 class BlueTikOffer {
@@ -39,6 +43,53 @@ abstract final class BlueTikCatalog {
   );
 
   static const individuals = <BlueTikOffer>[instagram, facebook, whatsapp];
+
+  static BlueTikOffer? byId(String? id) {
+    return switch (id) {
+      'instagram' => instagram,
+      'facebook' => facebook,
+      'whatsapp' => whatsapp,
+      'bundle' => bundle,
+      _ => null,
+    };
+  }
+}
+
+/// The plan chosen before sign-in, kept so login can return to that form.
+class BlueTikIntent {
+  BlueTikIntent._();
+
+  static const _key = 'blue_tik.offer';
+  static String? _memory;
+
+  static Future<void> remember(String offerId) async {
+    if (BlueTikCatalog.byId(offerId) == null) return;
+    _memory = offerId;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, offerId);
+  }
+
+  static Future<String?> peek() async {
+    final memory = _memory;
+    if (BlueTikCatalog.byId(memory) != null) return memory;
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_key);
+    _memory = BlueTikCatalog.byId(stored) == null ? null : stored;
+    return _memory;
+  }
+
+  static Future<void> clear() async {
+    _memory = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+  }
+}
+
+/// Where to go after a successful sign-in. A pending Blue Tik plan wins.
+Future<String> routeAfterBlueTikSignIn(String fallback) async {
+  if (await MerchandiseIntent.peek() != null) return AppRoutes.campaignTemplates;
+  if (await BlueTikIntent.peek() != null) return AppRoutes.blueTik;
+  return fallback;
 }
 
 String formatInr(int amount) {

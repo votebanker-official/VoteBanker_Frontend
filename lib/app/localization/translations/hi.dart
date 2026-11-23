@@ -472,7 +472,7 @@ const hiTranslations = <String, String>{
   'merchContactName': 'संपर्क नाम',
   'merchContactPhone': 'संपर्क फोन',
   'merchNotes': 'नोट',
-  'merchPlaceRequest': 'डिज़ाइन अनुरोध सहेजें',
+  'merchPlaceRequest': 'Order now',
   'merchSaved':
       'आपका डिज़ाइन अनुरोध सहेज लिया गया है। छपाई और भुगतान अभी जुड़े नहीं हैं, इसलिए कोई शुल्क नहीं लिया गया।',
   'merchLoadError': 'सामग्री की सूची नहीं खुल सकी।',

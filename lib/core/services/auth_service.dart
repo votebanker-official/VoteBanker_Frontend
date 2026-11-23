@@ -56,6 +56,7 @@ class AuthService {
   static const _prefsExpires = 'auth.expires_at';
 
   AuthSession? session;
+  final List<void Function()> _sessionCleared = [];
   String? _pendingSocialTicket;
   String? _pendingSocialError;
 
@@ -66,6 +67,17 @@ class AuthService {
   bool openProfileAfterLogin = false;
 
   bool get isSignedIn => session != null;
+
+  /// Runs after the saved session is cleared. Used so admin visibility cannot outlive logout.
+  void onSessionCleared(void Function() listener) {
+    _sessionCleared.add(listener);
+  }
+
+  void _notifySessionCleared() {
+    for (final listener in List<void Function()>.from(_sessionCleared)) {
+      listener();
+    }
+  }
 
   /// Reads the Google return query once, before routing can drop it.
   void captureSocialReturn() {
@@ -299,9 +311,53 @@ class AuthService {
     return result;
   }
 
+  /// Asks the API for a new access token when the saved one is near expiry.
+  Future<void> refreshIfExpired() async {
+    final current = session;
+    final expiresAt = current?.expiresAt;
+    if (current == null || expiresAt == null) return;
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    if (expiresAt > now + 60) return;
+    await refreshSession();
+  }
+
+  /// Replaces an expired access token. Returns false when the refresh token is rejected.
+  Future<bool> refreshSession() async {
+    final current = session;
+    if (current == null || current.refreshToken.trim().isEmpty) return false;
+    try {
+      final body = await _post('/api/auth/session/refresh', {
+        'refresh_token': current.refreshToken,
+      });
+      final user = body['user'] as Map<String, dynamic>? ?? const {};
+      final result = AuthSession(
+        accessToken: body['access_token'] as String,
+        refreshToken: (body['refresh_token'] as String?) ?? current.refreshToken,
+        userId: (user['id'] ?? current.userId) as String,
+        phone: (user['phone'] ?? current.phone) as String,
+        fullName: ((user['full_name'] as String?) ?? '').trim().isEmpty
+            ? current.fullName
+            : user['full_name'] as String,
+        email: ((user['email'] as String?) ?? '').trim().isEmpty
+            ? current.email
+            : user['email'] as String,
+        avatarUrl: ((user['avatar_url'] as String?) ?? '').trim().isEmpty
+            ? current.avatarUrl
+            : user['avatar_url'] as String,
+        expiresAt: body['expires_at'] as int? ?? current.expiresAt,
+      );
+      session = result;
+      await _persist(result);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
     final token = session?.accessToken;
     session = null;
+    _notifySessionCleared();
     if (token != null && token.isNotEmpty) {
       try {
         await http

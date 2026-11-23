@@ -6,6 +6,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/app_text_field.dart';
 import 'blue_tik_art.dart';
 import 'blue_tik_models.dart';
+import 'blue_tik_service.dart';
 
 class BlueTikBookingScreen extends StatefulWidget {
   const BlueTikBookingScreen({
@@ -13,6 +14,7 @@ class BlueTikBookingScreen extends StatefulWidget {
     this.initialName = '',
     this.initialMobile = '',
     this.initialEmail = '',
+    this.saver,
     super.key,
   });
 
@@ -20,6 +22,7 @@ class BlueTikBookingScreen extends StatefulWidget {
   final String initialName;
   final String initialMobile;
   final String initialEmail;
+  final Future<void> Function(BlueTikApplication application)? saver;
 
   @override
   State<BlueTikBookingScreen> createState() => _BlueTikBookingScreenState();
@@ -31,6 +34,8 @@ class _BlueTikBookingScreenState extends State<BlueTikBookingScreen> {
   late final TextEditingController _email;
   late final Map<String, TextEditingController> _urls;
   var _errors = const BlueTikValidation();
+  var _saving = false;
+  var _saveFailed = false;
   BlueTikApplication? _submitted;
 
   @override
@@ -55,7 +60,8 @@ class _BlueTikBookingScreenState extends State<BlueTikBookingScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_saving) return;
     final urls = {for (final id in widget.offer.platforms) id: _urls[id]!.text};
     final errors = validateBlueTikRequest(
       name: _name.text,
@@ -64,7 +70,10 @@ class _BlueTikBookingScreenState extends State<BlueTikBookingScreen> {
       profileUrls: urls,
     );
     if (!errors.isValid) {
-      setState(() => _errors = errors);
+      setState(() {
+        _errors = errors;
+        _saveFailed = false;
+      });
       return;
     }
     final l10n = AppLocalizations.of(context);
@@ -80,11 +89,23 @@ class _BlueTikBookingScreenState extends State<BlueTikBookingScreen> {
       },
       submittedAt: DateTime.now(),
     );
-    BlueTikApplicationStore.instance.add(application);
     setState(() {
+      _saving = true;
+      _saveFailed = false;
       _errors = const BlueTikValidation();
-      _submitted = application;
     });
+    try {
+      final save = widget.saver ?? BlueTikService.instance.submit;
+      await save(application);
+      if (!mounted) return;
+      BlueTikApplicationStore.instance.add(application);
+      setState(() => _submitted = application);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saveFailed = true);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   String? _message(AppLocalizations l10n, String? code) {
@@ -130,6 +151,8 @@ class _BlueTikBookingScreenState extends State<BlueTikBookingScreen> {
                               email: _email,
                               urls: _urls,
                               errors: _errors,
+                              saving: _saving,
+                              saveFailed: _saveFailed,
                               message: _message,
                               onBack: () => Navigator.of(context).pop(),
                               onSubmit: _submit,
@@ -158,6 +181,8 @@ class _Form extends StatelessWidget {
     required this.email,
     required this.urls,
     required this.errors,
+    required this.saving,
+    required this.saveFailed,
     required this.message,
     required this.onBack,
     required this.onSubmit,
@@ -170,6 +195,8 @@ class _Form extends StatelessWidget {
   final TextEditingController email;
   final Map<String, TextEditingController> urls;
   final BlueTikValidation errors;
+  final bool saving;
+  final bool saveFailed;
   final String? Function(AppLocalizations l10n, String? code) message;
   final VoidCallback onBack;
   final VoidCallback onSubmit;
@@ -272,9 +299,17 @@ class _Form extends StatelessWidget {
             const SizedBox(height: 20),
             BlueTikPillButton(
               key: const Key('blue-tik-submit'),
-              label: l10n.line('blueTikSubmit'),
-              onPressed: onSubmit,
+              label: saving ? l10n.line('blueTikSaving') : l10n.line('blueTikSubmit'),
+              onPressed: saving ? () {} : onSubmit,
             ),
+            if (saveFailed) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.line('blueTikSaveFailed'),
+                key: const Key('blue-tik-save-error'),
+                style: TextStyle(color: tone.navy, fontSize: 13),
+              ),
+            ],
           ],
         ),
       ),

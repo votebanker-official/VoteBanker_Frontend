@@ -78,8 +78,10 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
   @override
   void initState() {
     super.initState();
-    AdminAccess.instance.ensureLoaded();
     AdminAccess.instance.addListener(_onAccess);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) AdminAccess.instance.reload();
+    });
   }
 
   @override
@@ -94,10 +96,10 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
 
   List<DashboardNavEntry> _items(AppLocalizations l10n) {
     final items = widget.items;
-    if (!AdminAccess.instance.isAdmin) return items;
+    if (!AdminAccess.instance.showInSidebar) return items;
     if (items.any((item) => item.route == AppRoutes.admin)) return items;
     final admin = DashboardNavEntry(
-      icon: Icons.admin_panel_settings_outlined,
+      icon: Icons.shield_outlined,
       label: l10n.line('adminPanel'),
       route: AppRoutes.admin,
     );

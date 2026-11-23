@@ -64,6 +64,7 @@ class OnboardingController {
       ..stateRegion = ''
       ..constituency = ''
       ..publicContact = ''
+      ..email = ''
       ..partNo = ''
       ..partName = ''
       ..domainQuery = ''

@@ -17,6 +17,8 @@ import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
 import '../../website/services/portfolio_store.dart';
 import '../../website/services/website_builder_store.dart';
+import '../../merchandise/merchandise_intent.dart';
+import '../blue_tik/blue_tik_models.dart';
 import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_frame.dart';
 
@@ -76,8 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
         await ProfileService.instance.saveDraft(draft);
       }
       if (!mounted) return;
-      replaceBrowserPath(AppRoutes.profile);
-      Navigator.of(context).pushReplacementNamed(AppRoutes.profile);
+      final next = await routeAfterBlueTikSignIn(AppRoutes.profile);
+      if (!mounted) return;
+      replaceBrowserPath(next);
+      Navigator.of(context).pushReplacementNamed(next);
     } on AuthException catch (e) {
       if (mounted) _showMessage(e.message);
     } finally {
@@ -148,6 +152,8 @@ class _LoginScreenState extends State<LoginScreen> {
       onboarding.ignoreStoredWebsiteDrafts = true;
       onboarding.resetWebsiteFromProfile();
     }
+    unawaited(BlueTikIntent.clear());
+    unawaited(MerchandiseIntent.clear());
     unawaited(AuthService.instance.signOut());
     unawaited(WebsiteBuilderStore.instance.clearLocal());
     unawaited(PortfolioStore.instance.clear());

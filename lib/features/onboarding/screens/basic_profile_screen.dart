@@ -123,6 +123,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
             ? draft.preferredLanguage
             : 'en';
     draft.preferredLanguage = _preferredLanguage;
+    if (draft.email.trim().isEmpty) {
+      draft.email = _email.text.trim();
+    }
     _ready = true;
     unawaited(_prepareProfile(draft));
     final readyCatalog = LocationCatalog.instance;
@@ -328,6 +331,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       if (_party.text.trim().isEmpty && draft.party.isNotEmpty) {
         _party.text = draft.party;
       }
+      if (_designation.text.trim().isEmpty && draft.designation.isNotEmpty) {
+        _designation.text = draft.designation;
+      }
+      if (_email.text.trim().isEmpty && draft.email.trim().isNotEmpty) {
+        _email.text = draft.email.trim();
+      }
       if (_contactNumber.text.trim().isEmpty &&
           draft.contactNumber.isNotEmpty) {
         _contactNumber.text = extractIndianNationalNumber(draft.contactNumber);
@@ -448,6 +457,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       ..boothName = _boothName.text.trim()
       ..party = _party.text.trim()
       ..designation = _designation.text.trim()
+      ..email = _email.text.trim()
       ..contactNumber = _contactNumber.text.trim();
     if (draft.preferredLanguage.trim().isEmpty) {
       draft.preferredLanguage = _preferredLanguage;
@@ -524,7 +534,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     return null;
   }
 
-  void _saveAndContinue() {
+  Future<void> _saveAndContinue() async {
     if (_saving) return;
     final l10n = AppLocalizations.of(context);
     final draft = OnboardingScope.of(context).draft;
@@ -600,6 +610,21 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     }
     setState(() => _saving = true);
     _commit();
+    if (AuthService.instance.isSignedIn) {
+      final saved = await ProfileService.instance.saveDraft(draft);
+      if (!mounted) return;
+      if (!saved) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile could not be saved. Please try again.'),
+          ),
+        );
+        return;
+      }
+    }
+    if (!mounted) return;
+    setState(() => _saving = false);
     AppRouter.open(context, AppRoutes.additionalProfile);
   }
 

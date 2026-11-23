@@ -8,6 +8,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/onboarding_header.dart';
 import '../../../core/widgets/primary_button.dart';
+import '../blue_tik/blue_tik_models.dart';
 import '../state/onboarding_controller.dart';
 import '../widgets/onboarding_frame.dart';
 
@@ -93,11 +94,13 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
       }
       final profile = state['profile'];
       final lastRoute = state['last_route'];
-      final nextRoute = profile is Map<String, dynamic>
+      final fallback = profile is Map<String, dynamic>
           ? (lastRoute is String && lastRoute.startsWith("/")
               ? lastRoute
               : AppRoutes.dashboard)
           : AppRoutes.profile;
+      final nextRoute = await routeAfterBlueTikSignIn(fallback);
+      if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(nextRoute);
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);

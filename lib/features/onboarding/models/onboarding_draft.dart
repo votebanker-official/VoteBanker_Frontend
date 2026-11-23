@@ -53,6 +53,9 @@ class OnboardingDraft {
 
   String get contactNumber => publicContact;
   set contactNumber(String value) => publicContact = value;
+
+  /// Account email shown on the leader profile and stored as contact_email.
+  String email = '';
   String domainQuery = '';
   String? selectedDomain;
   String? websiteTemplate;

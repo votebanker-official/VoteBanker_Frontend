@@ -50,23 +50,43 @@ class AdminService {
   }
 
   Future<http.Response> _send(String method, String path, [Map<String, dynamic>? body]) async {
-    final session = AuthService.instance.session;
+    var session = AuthService.instance.session;
     if (session == null) throw const AdminApiException(401, 'unauthorized');
-    final uri = Uri.parse('${AppConfig.apiBaseUrl}$path');
+    final response = await _request(method, path, session.accessToken, body);
+    if (response.statusCode != 401) return response;
+    final refreshed = await AuthService.instance.refreshSession();
+    if (!refreshed) return response;
+    session = AuthService.instance.session;
+    if (session == null) return response;
+    return _request(method, path, session.accessToken, body);
+  }
+
+  Future<http.Response> _request(
+    String method,
+    String path,
+    String accessToken,
+    Map<String, dynamic>? body,
+  ) async {
     final headers = {
-      'Authorization': 'Bearer ${session.accessToken}',
+      'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
     };
-    try {
-      final response = await switch (method) {
-        'PATCH' => http.patch(uri, headers: headers, body: jsonEncode(body ?? {})),
-        _ => http.get(uri, headers: headers),
-      }.timeout(const Duration(seconds: 25));
-      return response;
-    } catch (err) {
-      if (err is AdminApiException) rethrow;
-      throw const AdminApiException(0, 'network');
+    AdminApiException? last;
+    for (final base in AppConfig.debugApiBases()) {
+      try {
+        final uri = Uri.parse('$base$path');
+        final response = await switch (method) {
+          'PATCH' => http.patch(uri, headers: headers, body: jsonEncode(body ?? {})),
+          _ => http.get(uri, headers: headers),
+        }.timeout(const Duration(seconds: 25));
+        if (response.statusCode == 404) continue;
+        return response;
+      } catch (err) {
+        if (err is AdminApiException) rethrow;
+        last = const AdminApiException(0, 'network');
+      }
     }
+    throw last ?? const AdminApiException(0, 'network');
   }
 
   Map<String, dynamic> _decode(http.Response response) {

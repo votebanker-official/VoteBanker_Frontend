@@ -255,8 +255,6 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _DomainBreadcrumb(l10n: l10n),
-                            const SizedBox(height: 14),
                             Text(
                               l10n.domainTitle,
                               style: TextStyle(
@@ -510,41 +508,6 @@ class _DomainTopBar extends StatelessWidget {
                 ),
         ),
       ),
-    );
-  }
-}
-
-class _DomainBreadcrumb extends StatelessWidget {
-  const _DomainBreadcrumb({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    const style = TextStyle(
-      color: DomainPickerColors.muted,
-      fontSize: 13,
-      fontWeight: FontWeight.w500,
-    );
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
-      runSpacing: 4,
-      children: [
-        const Icon(Icons.home_outlined, size: 16, color: DomainPickerColors.muted),
-        Text(l10n.domainCrumbHome, style: style),
-        const Icon(Icons.chevron_right, size: 16, color: DomainPickerColors.muted),
-        Text(l10n.domainCrumbSetup, style: style),
-        const Icon(Icons.chevron_right, size: 16, color: DomainPickerColors.muted),
-        Text(
-          l10n.domainCrumbChoose,
-          style: const TextStyle(
-            color: DomainPickerColors.blue,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
     );
   }
 }

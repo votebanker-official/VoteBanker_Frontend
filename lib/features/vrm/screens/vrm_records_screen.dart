@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
-import '../../../core/widgets/app_background.dart';
-import '../../../core/widgets/app_card.dart';
 import '../../../core/utils/person_name.dart';
 import '../models/vrm_voter_record.dart';
 import '../services/vrm_service.dart';
 import '../../social_media/social_contact_links.dart';
+
+enum _VoterFilter { all, complete, incomplete, review }
+
+const _pageBg = Color(0xFFF4F7FB);
+const _ink = Color(0xFF0F172A);
+const _muted = Color(0xFF64748B);
+const _line = Color(0xFFE2E8F0);
+const _complete = Color(0xFF16A34A);
+const _completeDeep = Color(0xFF15803D);
+const _incomplete = Color(0xFFE11D48);
+const _review = Color(0xFFD97706);
 
 class VrmRecordsScreen extends StatefulWidget {
   const VrmRecordsScreen({super.key, this.service});
@@ -29,10 +38,14 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
   String? _error;
   String _activeQuery = '';
   final Set<String> _dirtyIds = {};
+  _VoterFilter _filter = _VoterFilter.all;
 
   @override
   void initState() {
     super.initState();
+    _search.addListener(() {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
@@ -128,137 +141,177 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
     }
   }
 
+  List<VrmVoterRecord> get _visible {
+    return switch (_filter) {
+      _VoterFilter.all => _records,
+      _VoterFilter.complete => _records.where(_savedComplete).toList(),
+      _VoterFilter.incomplete => _records.where((row) => !_savedComplete(row)).toList(),
+      _VoterFilter.review => _records.where((row) => row.needsReview).toList(),
+    };
+  }
+
+  void _searchNow() => _load(query: _search.text.trim());
+
+  void _clearSearch() {
+    _search.clear();
+    _load(query: '');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final palette = context.palette;
+    final wide = MediaQuery.sizeOf(context).width >= 768;
 
     return Scaffold(
-      backgroundColor: palette.background,
-      body: AppBackground(
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => _leave(),
-                      icon: const Icon(Icons.arrow_back),
-                      tooltip: l10n.back,
-                    ),
-                    Expanded(
-                      child: Text(l10n.cardVrm, style: AppTextStyles.headline(context)),
-                    ),
-                    IconButton(
-                      onPressed: _loading ? null : () => _load(),
-                      icon: const Icon(Icons.refresh),
-                      tooltip: l10n.line('vrmRefresh'),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(l10n.line('vrmRecordsBody'), style: AppTextStyles.muted(context)),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: _search,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (value) => _load(query: value.trim()),
-                  decoration: InputDecoration(
-                    hintText: l10n.line('vrmSearchHint'),
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      onPressed: () => _load(query: _search.text.trim()),
-                      icon: const Icon(Icons.arrow_forward),
-                    ),
+      backgroundColor: _pageBg,
+      body: SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(wide ? 24 : 12, 12, wide ? 24 : 12, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _RecordsHeader(
+                        title: l10n.cardVrm,
+                        countLabel: l10n
+                            .line('vrmRecordCount')
+                            .replaceAll('{count}', '${_records.length}'),
+                        subtitle: l10n.line('vrmRecordsBody'),
+                        backTooltip: l10n.back,
+                        refreshTooltip: l10n.line('vrmRefresh'),
+                        onBack: _leave,
+                        onRefresh: _loading ? null : () => _load(),
+                      ),
+                      const SizedBox(height: 14),
+                      _SearchBar(
+                        controller: _search,
+                        hint: l10n.line('vrmSearchHint'),
+                        showClear: _search.text.isNotEmpty,
+                        onSubmit: _searchNow,
+                        onClear: _clearSearch,
+                      ),
+                      if (!_loading && _error == null && _records.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _FilterPills(
+                          records: _records,
+                          selected: _filter,
+                          allLabel: l10n.line('vrmFilterAll'),
+                          completeLabel: 'Complete',
+                          incompleteLabel: 'Incomplete',
+                          reviewLabel: l10n.line('vrmNeedsReview'),
+                          onSelected: (value) => setState(() => _filter = value),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _error != null
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    _message(l10n, _error!),
-                                    textAlign: TextAlign.center,
-                                    style: AppTextStyles.body(context)
-                                        .copyWith(color: palette.danger),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextButton(
-                                    onPressed: () => _load(),
-                                    child: Text(l10n.line('vrmRetry')),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : _records.isEmpty
-                            ? ListView(
-                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(24),
-                                    child: Text(
-                                      l10n.line('vrmEmpty'),
-                                      textAlign: TextAlign.center,
-                                      style: AppTextStyles.muted(context),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _PayToGetMoreButton(
-                                    onPressed: () =>
-                                        AppRouter.open(context, AppRoutes.vrmGetMore),
-                                  ),
-                                ],
-                              )
-                            : ListView.separated(
-                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                                itemCount: _records.length + 1,
-                                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                                itemBuilder: (context, index) {
-                                  if (index == _records.length) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(top: 8, bottom: 8),
-                                      child: _PayToGetMoreButton(
-                                        onPressed: () => AppRouter.open(
-                                          context,
-                                          AppRoutes.vrmGetMore,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  final item = _records[index];
-                                  return _VoterRecordCard(
-                                    key: ValueKey(item.id),
-                                    record: item,
-                                    service: _service,
-                                    onSaved: _replaceRecord,
-                                    onDirtyChanged: (dirty) => _setDirty(item.id, dirty),
-                                  );
-                                },
-                              ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Expanded(child: _body(context, l10n, wide)),
+              ],
+            ),
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _body(BuildContext context, AppLocalizations l10n, bool wide) {
+    final pad = EdgeInsets.fromLTRB(wide ? 24 : 12, 0, wide ? 24 : 12, 28);
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _message(l10n, _error!),
+                textAlign: TextAlign.center,
+                style: AppTextStyles.body(context).copyWith(color: _incomplete),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => _load(),
+                child: Text(l10n.line('vrmRetry')),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    final rows = _visible;
+    if (_records.isEmpty) {
+      return ListView(
+        padding: pad,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              l10n.line('vrmEmpty'),
+              textAlign: TextAlign.center,
+              style: AppTextStyles.muted(context),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _PayToGetMoreButton(
+            onPressed: () => AppRouter.open(context, AppRoutes.vrmGetMore),
+          ),
+        ],
+      );
+    }
+    return ListView.separated(
+      cacheExtent: 900,
+      padding: pad,
+      itemCount: rows.length + 1,
+      separatorBuilder: (_, __) => SizedBox(height: wide ? 16 : 12),
+      itemBuilder: (context, index) {
+        if (index == rows.length) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 8),
+            child: _PayToGetMoreButton(
+              onPressed: () => AppRouter.open(context, AppRoutes.vrmGetMore),
+            ),
+          );
+        }
+        final item = rows[index];
+        return _VoterRecordCard(
+          key: ValueKey(item.id),
+          record: item,
+          wide: wide,
+          service: _service,
+          onSaved: _replaceRecord,
+          onDirtyChanged: (dirty) => _setDirty(item.id, dirty),
+        );
+      },
+    );
+  }
+}
+
+bool _savedComplete(VrmVoterRecord item) {
+  final hasCore = item.name.trim().isNotEmpty &&
+      item.age != null &&
+      (item.gender?.trim().isNotEmpty ?? false) &&
+      (item.epicNumber?.trim().isNotEmpty ?? false);
+  if (!hasCore) return false;
+  final whatsapp = item.whatsappContact?.trim() ?? '';
+  final instagram = item.instagramContact?.trim() ?? '';
+  final facebook = item.facebookContact?.trim() ?? '';
+  if (whatsapp.isEmpty || instagram.isEmpty || facebook.isEmpty) return false;
+  return SocialContactLinks.validWhatsapp(whatsapp) &&
+      SocialContactLinks.validProfile(instagram, SocialContactLinks.instagramHosts) &&
+      SocialContactLinks.validProfile(facebook, SocialContactLinks.facebookHosts);
 }
 
 class _PayToGetMoreButton extends StatelessWidget {
@@ -271,9 +324,19 @@ class _PayToGetMoreButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return SizedBox(
       width: double.infinity,
-      child: FilledButton(
+      height: 48,
+      child: OutlinedButton(
         onPressed: onPressed,
-        child: Text(l10n.line('vrmPayToGetMore')),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFF1D4ED8),
+          backgroundColor: Colors.white,
+          side: const BorderSide(color: Color(0xFFBFDBFE)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        child: Text(
+          l10n.line('vrmPayToGetMore'),
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }
@@ -285,6 +348,7 @@ class _VoterRecordCard extends StatefulWidget {
     required this.service,
     required this.onSaved,
     required this.onDirtyChanged,
+    required this.wide,
     super.key,
   });
 
@@ -292,6 +356,7 @@ class _VoterRecordCard extends StatefulWidget {
   final VrmService service;
   final ValueChanged<VrmVoterRecord> onSaved;
   final ValueChanged<bool> onDirtyChanged;
+  final bool wide;
 
   @override
   State<_VoterRecordCard> createState() => _VoterRecordCardState();
@@ -438,141 +503,613 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
     }
   }
 
-  InputDecoration _fieldDecoration(String label, String hint) {
+  InputDecoration _fieldDecoration(String hint) {
     return InputDecoration(
-      labelText: label,
       hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
       isDense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _line),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _line),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF93C5FD), width: 1.4),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final palette = context.palette;
     final item = widget.record;
-    final statusColor = _detailsComplete ? palette.success : palette.danger;
-    final statusLabel = _detailsComplete ? 'Complete details' : 'Incomplete details';
+    final wide = widget.wide;
+    final complete = _detailsComplete;
+    final statusColor = complete ? _complete : _incomplete;
+    final statusLabel = complete ? 'Complete details' : 'Incomplete details';
+    final feedback = _status;
+    final feedbackColor = feedback == null
+        ? _completeDeep
+        : feedback == l10n.line('vrmContactSaved')
+            ? _completeDeep
+            : feedback == l10n.line('vrmContactSaving')
+                ? _muted
+                : _incomplete;
+    final note = feedback ?? (complete ? l10n.line('vrmContactVerified') : null);
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: statusColor, width: 2),
-        borderRadius: BorderRadius.circular(26),
+    final contacts = [
+      _ContactField(
+        label: l10n.line('vrmWhatsapp'),
+        icon: Icons.chat_rounded,
+        iconColor: const Color(0xFF16A34A),
+        child: TextField(
+          controller: _whatsapp,
+          keyboardType: TextInputType.phone,
+          textInputAction: TextInputAction.next,
+          decoration: _fieldDecoration(l10n.line('vrmWhatsappHint')),
+        ),
       ),
-      child: AppCard(
+      _ContactField(
+        label: l10n.line('vrmInstagram'),
+        icon: Icons.photo_camera_outlined,
+        iconColor: const Color(0xFFDB2777),
+        child: TextField(
+          controller: _instagram,
+          textInputAction: TextInputAction.next,
+          decoration: _fieldDecoration(l10n.line('vrmInstagramHint')),
+        ),
+      ),
+      _ContactField(
+        label: l10n.line('vrmFacebook'),
+        icon: Icons.facebook,
+        iconColor: const Color(0xFF2563EB),
+        child: TextField(
+          controller: _facebook,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _saving ? null : _save(),
+          decoration: _fieldDecoration(l10n.line('vrmFacebookHint')),
+        ),
+      ),
+    ];
+
+    final saveButton = SizedBox(
+      height: 44,
+      width: wide ? null : double.infinity,
+      child: OutlinedButton(
+        onPressed: _saving ? null : _save,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFF2563EB),
+          backgroundColor: const Color(0xFFEFF6FF),
+          side: const BorderSide(color: Color(0xFFBFDBFE)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+        ),
+        child: Text(
+          l10n.line('vrmContactSave'),
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: statusColor, width: 1.4),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0F0F172A), blurRadius: 16, offset: Offset(0, 6)),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(wide ? 22 : 14, wide ? 20 : 14, wide ? 22 : 14, wide ? 18 : 14),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    formatPersonName(item.name),
-                    style: AppTextStyles.label(context),
-                  ),
-                ),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    child: Text(
-                      statusLabel,
-                      style: AppTextStyles.muted(context).copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-          Text(
-            '${l10n.line('vrmEpic')}: ${item.epicNumber ?? '—'}',
-            style: AppTextStyles.body(context),
-          ),
-          Text(
-            '${l10n.line('vrmAge')}: ${item.age?.toString() ?? '—'}'
-            '   ${l10n.line('vrmGender')}: ${item.gender ?? '—'}',
-            style: AppTextStyles.muted(context),
-          ),
-            if (item.needsReview)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  l10n.line('vrmNeedsReview'),
-                  style: AppTextStyles.muted(context).copyWith(color: palette.campaign),
-                ),
-              ),
-            const SizedBox(height: 12),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _whatsapp,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    decoration: _fieldDecoration(
-                      l10n.line('vrmWhatsapp'),
-                      l10n.line('vrmWhatsappHint'),
+                  child: Text(
+                    formatPersonName(item.name),
+                    style: TextStyle(
+                      color: _ink,
+                      fontSize: wide ? 20 : 18,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _instagram,
-                    textInputAction: TextInputAction.next,
-                    decoration: _fieldDecoration(
-                      l10n.line('vrmInstagram'),
-                      l10n.line('vrmInstagramHint'),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _facebook,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _saving ? null : _save(),
-                    decoration: _fieldDecoration(
-                      l10n.line('vrmFacebook'),
-                      l10n.line('vrmFacebookHint'),
-                    ),
-                  ),
-                ),
+                _StatusPill(label: statusLabel, color: statusColor),
               ],
             ),
             const SizedBox(height: 10),
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
-                TextButton(
-                  onPressed: _saving ? null : _save,
-                  child: Text(l10n.line('vrmContactSave')),
-                ),
-                if (_status != null) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _status!,
-                      style: AppTextStyles.muted(context).copyWith(
-                        color: _status == l10n.line('vrmContactSaved')
-                            ? palette.success
-                            : (_status == l10n.line('vrmContactSaving')
-                                ? palette.textMuted
-                                : palette.danger),
+                _MetaChip(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${l10n.line('vrmEpic')}: ${item.epicNumber ?? '—'}',
+                        style: const TextStyle(color: _ink, fontWeight: FontWeight.w600, fontSize: 13),
                       ),
-                    ),
+                      if ((item.epicNumber ?? '').trim().isNotEmpty)
+                        IconButton(
+                          tooltip: l10n.line('vrmEpic'),
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: item.epicNumber!.trim()));
+                          },
+                          icon: const Icon(Icons.copy_rounded, size: 14, color: _muted),
+                        ),
+                    ],
                   ),
-                ],
+                ),
+                Text(
+                  '${l10n.line('vrmAge')}: ${item.age?.toString() ?? '—'}',
+                  style: const TextStyle(color: _muted, fontSize: 13),
+                ),
+                const Text('·', style: TextStyle(color: Color(0xFFCBD5E1))),
+                Text(
+                  '${l10n.line('vrmGender')}: ${item.gender ?? '—'}',
+                  style: const TextStyle(color: _muted, fontSize: 13),
+                ),
               ],
             ),
+            if (item.needsReview)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  l10n.line('vrmNeedsReview'),
+                  style: const TextStyle(color: _review, fontWeight: FontWeight.w700, fontSize: 13),
+                ),
+              ),
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: _line),
+            const SizedBox(height: 14),
+            if (wide)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < contacts.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 14),
+                    Expanded(child: contacts[i]),
+                  ],
+                ],
+              )
+            else
+              Column(
+                children: [
+                  for (var i = 0; i < contacts.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 12),
+                    contacts[i],
+                  ],
+                ],
+              ),
+            const SizedBox(height: 14),
+            if (wide)
+              Row(
+                children: [
+                  if (note != null)
+                    Expanded(
+                      child: Text(
+                        note,
+                        style: TextStyle(color: feedbackColor, fontWeight: FontWeight.w600),
+                      ),
+                    )
+                  else
+                    const Spacer(),
+                  saveButton,
+                ],
+              )
+            else ...[
+              if (note != null) ...[
+                Text(
+                  note,
+                  style: TextStyle(color: feedbackColor, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 10),
+              ],
+              saveButton,
+            ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactField extends StatelessWidget {
+  const _ContactField({
+    required this.label,
+    required this.icon,
+    required this.iconColor,
+    required this.child,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color iconColor;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16, color: iconColor),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: _muted, fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        child,
+      ],
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _line),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, right: 4),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _RecordsHeader extends StatelessWidget {
+  const _RecordsHeader({
+    required this.title,
+    required this.countLabel,
+    required this.subtitle,
+    required this.backTooltip,
+    required this.refreshTooltip,
+    required this.onBack,
+    required this.onRefresh,
+  });
+
+  final String title;
+  final String countLabel;
+  final String subtitle;
+  final String backTooltip;
+  final String refreshTooltip;
+  final VoidCallback onBack;
+  final VoidCallback? onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _RoundIconButton(
+              tooltip: backTooltip,
+              icon: Icons.arrow_back,
+              onPressed: onBack,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: _ink, fontSize: 26, fontWeight: FontWeight.w800),
+              ),
+            ),
+            const SizedBox(width: 8),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                child: Text(
+                  countLabel,
+                  style: const TextStyle(
+                    color: Color(0xFF2563EB),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+            const Spacer(),
+            _RoundIconButton(
+              tooltip: refreshTooltip,
+              icon: Icons.refresh,
+              onPressed: onRefresh,
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.only(left: 48),
+          child: Text(subtitle, style: const TextStyle(color: _muted, fontSize: 14)),
+        ),
+      ],
+    );
+  }
+}
+
+class _RoundIconButton extends StatelessWidget {
+  const _RoundIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(icon, color: _ink),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: _line),
+        fixedSize: const Size(40, 40),
+      ),
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({
+    required this.controller,
+    required this.hint,
+    required this.showClear,
+    required this.onSubmit,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final bool showClear;
+  final VoidCallback onSubmit;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      textInputAction: TextInputAction.search,
+      onSubmitted: (_) => onSubmit(),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon: const Icon(Icons.search, color: _muted),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showClear)
+              IconButton(
+                tooltip: hint,
+                onPressed: onClear,
+                icon: const Icon(Icons.close_rounded, color: _muted),
+              ),
+            IconButton(
+              tooltip: hint,
+              onPressed: onSubmit,
+              icon: const Icon(Icons.arrow_forward, color: _ink),
+            ),
+          ],
+        ),
+        suffixIconConstraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: _line),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: _line),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: Color(0xFF93C5FD), width: 1.4),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterPills extends StatelessWidget {
+  const _FilterPills({
+    required this.records,
+    required this.selected,
+    required this.allLabel,
+    required this.completeLabel,
+    required this.incompleteLabel,
+    required this.reviewLabel,
+    required this.onSelected,
+  });
+
+  final List<VrmVoterRecord> records;
+  final _VoterFilter selected;
+  final String allLabel;
+  final String completeLabel;
+  final String incompleteLabel;
+  final String reviewLabel;
+  final ValueChanged<_VoterFilter> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final complete = records.where(_savedComplete).length;
+    final incomplete = records.length - complete;
+    final review = records.where((row) => row.needsReview).length;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _FilterPill(
+            label: allLabel,
+            count: records.length,
+            selected: selected == _VoterFilter.all,
+            onTap: () => onSelected(_VoterFilter.all),
+          ),
+          const SizedBox(width: 8),
+          _FilterPill(
+            label: completeLabel,
+            count: complete,
+            dot: _complete,
+            selected: selected == _VoterFilter.complete,
+            onTap: () => onSelected(_VoterFilter.complete),
+          ),
+          const SizedBox(width: 8),
+          _FilterPill(
+            label: incompleteLabel,
+            count: incomplete,
+            dot: _incomplete,
+            selected: selected == _VoterFilter.incomplete,
+            onTap: () => onSelected(_VoterFilter.incomplete),
+          ),
+          const SizedBox(width: 8),
+          _FilterPill(
+            label: reviewLabel,
+            count: review,
+            dot: _review,
+            selected: selected == _VoterFilter.review,
+            onTap: () => onSelected(_VoterFilter.review),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+    this.dot,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color? dot;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected ? _ink : Colors.white;
+    final fg = selected ? Colors.white : _ink;
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Container(
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: selected ? _ink : _line),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (dot != null) ...[
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 13)),
+              const SizedBox(width: 6),
+              Text(
+                '$count',
+                style: TextStyle(
+                  color: selected ? Colors.white : _muted,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

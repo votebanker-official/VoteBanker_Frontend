@@ -474,7 +474,7 @@ const knTranslations = <String, String>{
   'merchContactName': 'ಸಂಪರ್ಕದ ಹೆಸರು',
   'merchContactPhone': 'ಸಂಪರ್ಕದ ಫೋನ್',
   'merchNotes': 'ಟಿಪ್ಪಣಿಗಳು',
-  'merchPlaceRequest': 'ವಿನ್ಯಾಸ ವಿನಂತಿಯನ್ನು ಉಳಿಸಿ',
+  'merchPlaceRequest': 'Order now',
   'merchSaved':
       'ನಿಮ್ಮ ವಿನ್ಯಾಸ ವಿನಂತಿ ಉಳಿಸಲಾಗಿದೆ. ಮುದ್ರಣ ಮತ್ತು ಪಾವತಿ ಇನ್ನೂ ಸಂಪರ್ಕವಾಗಿಲ್ಲ, ಆದ್ದರಿಂದ ಯಾವುದನ್ನೂ ವಿಧಿಸಲಾಗಿಲ್ಲ.',
   'merchLoadError': 'ಸರಕು ಪಟ್ಟಿಯನ್ನು ತರಲಾಗಲಿಲ್ಲ.',

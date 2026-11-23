@@ -473,7 +473,7 @@ const teTranslations = <String, String>{
   'merchContactName': 'సంప్రదింపు పేరు',
   'merchContactPhone': 'సంప్రదింపు ఫోన్',
   'merchNotes': 'గమనికలు',
-  'merchPlaceRequest': 'డిజైన్ అభ్యర్థనను సేవ్ చేయండి',
+  'merchPlaceRequest': 'Order now',
   'merchSaved':
       'మీ డిజైన్ అభ్యర్థన సేవ్ అయింది. ముద్రణ మరియు చెల్లింపు ఇంకా కలవలేదు, కాబట్టి ఏమీ వసూలు చేయలేదు.',
   'merchLoadError': 'సరుకుల జాబితా తెరవలేకపోయింది.',

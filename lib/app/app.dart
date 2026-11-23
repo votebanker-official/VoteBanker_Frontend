@@ -6,6 +6,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../core/services/auth_browser.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/theme_controller.dart';
+import '../features/merchandise/merchandise_intent.dart';
+import '../features/onboarding/blue_tik/blue_tik_models.dart';
 import '../features/onboarding/state/onboarding_controller.dart';
 import 'localization/app_localizations.dart';
 import 'routing/app_router.dart';
@@ -48,19 +50,34 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
     // Restore UI language from a pre-seeded or previously saved draft.
     _controller.syncLocaleFromDraft();
     if (AuthService.instance.openProfileAfterLogin ||
-        _initialRoute == AppRoutes.profile) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        replaceBrowserPath(AppRoutes.profile);
+        _initialRoute == AppRoutes.profile ||
+        AuthService.instance.isSignedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!AuthService.instance.isSignedIn) return;
+        final pendingMerch = await MerchandiseIntent.peek();
+        final pendingBlue = await BlueTikIntent.peek();
+        final returning =
+            pendingMerch != null ||
+            pendingBlue != null ||
+            AuthService.instance.openProfileAfterLogin ||
+            _initialRoute == AppRoutes.profile;
+        if (!returning || !mounted) return;
+        final destination = pendingMerch != null
+            ? AppRoutes.campaignTemplates
+            : pendingBlue != null
+                ? AppRoutes.blueTik
+                : AppRoutes.profile;
+        replaceBrowserPath(destination);
         final navigator = _navigatorKey.currentState;
         if (navigator == null) return;
-        var alreadyProfile = false;
+        var alreadyThere = false;
         navigator.popUntil((route) {
-          alreadyProfile = route.settings.name == AppRoutes.profile;
+          alreadyThere = route.settings.name == destination;
           return true;
         });
-        if (alreadyProfile) return;
+        if (alreadyThere) return;
         navigator.pushNamedAndRemoveUntil(
-          AppRoutes.profile,
+          destination,
           (route) => false,
         );
       });

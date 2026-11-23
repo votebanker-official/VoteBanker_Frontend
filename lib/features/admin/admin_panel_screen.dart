@@ -13,6 +13,8 @@ import 'admin_widgets.dart';
 enum AdminSection {
   overview,
   clients,
+  profiles,
+  blueTik,
   activity,
   purchases,
   payments,
@@ -102,6 +104,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return switch (_section) {
       AdminSection.overview => '/api/admin/overview$query',
       AdminSection.clients => '/api/admin/clients$query',
+      AdminSection.profiles => '/api/admin/profiles$query',
+      AdminSection.blueTik => '/api/admin/blue-tik$query',
       AdminSection.activity => '/api/admin/activity$query',
       AdminSection.purchases => '/api/admin/purchases$query',
       AdminSection.payments => '/api/admin/payments$query',
@@ -127,6 +131,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final kind = switch (_section) {
       AdminSection.purchases || AdminSection.payments => 'purchases',
       AdminSection.clients => 'clients',
+      AdminSection.profiles => 'profiles',
       AdminSection.campaigns => 'campaigns',
       AdminSection.activity => 'engagement',
       _ => 'overview',
@@ -240,6 +245,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     const labels = {
       AdminSection.overview: 'Overview',
       AdminSection.clients: 'Clients',
+      AdminSection.profiles: 'Profiles',
+      AdminSection.blueTik: 'Blue Tik',
       AdminSection.activity: 'Activity',
       AdminSection.purchases: 'Purchases',
       AdminSection.payments: 'Payments',
@@ -331,7 +338,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               _load();
             },
           ),
-        TextButton.icon(onPressed: _export, icon: const Icon(Icons.download_outlined, size: 18), label: const Text('Export CSV')),
+        if (_section != AdminSection.blueTik)
+          TextButton.icon(onPressed: _export, icon: const Icon(Icons.download_outlined, size: 18), label: const Text('Export CSV')),
       ],
     );
   }
@@ -340,6 +348,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return switch (_section) {
       AdminSection.overview => _overview(colors),
       AdminSection.clients => _clients(),
+      AdminSection.profiles => _profiles(),
+      AdminSection.blueTik => _blueTik(),
       AdminSection.activity => _activity(),
       AdminSection.purchases || AdminSection.payments => _purchases(),
       AdminSection.campaigns => _campaigns(),
@@ -446,6 +456,102 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     );
   }
 
+  Widget _blueTik() {
+    final rows = _list('requests');
+    return Column(
+      children: [
+        AdminDataTable(
+          columns: const [
+            'Leader',
+            'Mobile',
+            'Email',
+            'Option',
+            'Price',
+            'Profile URLs',
+            'Submitted',
+            'Status',
+          ],
+          rows: [
+            for (final row in rows)
+              [
+                Text(row['leaderName']?.toString() ?? ''),
+                Text(row['mobile']?.toString() ?? ''),
+                Text(row['email']?.toString() ?? ''),
+                Text(row['serviceName']?.toString() ?? ''),
+                Text(adminMoney(row['priceInr'])),
+                SizedBox(width: 240, child: Text(_profileUrls(row['profileUrls']))),
+                Text(adminWhen(row['createdAt'])),
+                AdminStatusBadge(label: row['status']?.toString() ?? 'pending'),
+              ],
+          ],
+        ),
+        AdminPager(
+          page: _page,
+          pageSize: 20,
+          total: (_data['total'] as num?)?.toInt() ?? rows.length,
+          onPage: (page) {
+            setState(() => _page = page);
+            _load();
+          },
+        ),
+      ],
+    );
+  }
+
+  String _profileUrls(Object? value) {
+    if (value is! Map) return '';
+    return value.entries
+        .map((entry) => '${entry.key}: ${entry.value}')
+        .join('\n');
+  }
+
+  Widget _profiles() {
+    final rows = _list('profiles');
+    return Column(
+      children: [
+        AdminDataTable(
+          columns: const [
+            'Name',
+            'Party',
+            'Designation',
+            'State',
+            'District',
+            'Assembly',
+            'Booth',
+            'Contact',
+            'Updated',
+          ],
+          onRow: (index) => AppRouter.open(context, AppRoutes.adminClient, arguments: rows[index]['id']?.toString() ?? ''),
+          rows: [
+            for (final row in rows)
+              [
+                Text(row['fullName']?.toString() ?? ''),
+                Text(row['organization']?.toString() ?? ''),
+                Text(row['designation']?.toString() ?? ''),
+                Text(row['state']?.toString() ?? ''),
+                Text(row['constituency']?.toString() ?? ''),
+                Text(row['assemblyConstituency']?.toString() ?? ''),
+                Text('${row['boothNumber'] ?? ''} ${row['boothName'] ?? ''}'.trim()),
+                Text((row['publicContact']?.toString().trim().isNotEmpty ?? false)
+                    ? row['publicContact'].toString()
+                    : (row['phone']?.toString() ?? '')),
+                Text(adminWhen(row['updatedAt'])),
+              ],
+          ],
+        ),
+        AdminPager(
+          page: _page,
+          pageSize: 20,
+          total: (_data['total'] as num?)?.toInt() ?? rows.length,
+          onPage: (page) {
+            setState(() => _page = page);
+            _load();
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _activity() => _activityTable(_list('rows'), paged: true);
 
   Widget _activityTable(List<Map<String, dynamic>> rows, {required bool paged}) {
@@ -503,7 +609,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     return Column(
       children: [
         AdminDataTable(
-          columns: const ['Order', 'Client', 'Product', 'Qty', 'Amount', 'Payment', 'Status', 'Date'],
+          columns: const ['Order', 'Name', 'Email', 'Contact', 'Product', 'Qty', 'Total', 'Status', 'Date'],
           onRow: (index) {
             final id = rows[index]['clientId']?.toString() ?? '';
             if (id.isNotEmpty) AppRouter.open(context, AppRoutes.adminClient, arguments: id);
@@ -512,12 +618,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             for (final row in rows)
               [
                 Text((row['reference'] ?? row['id'] ?? '').toString()),
-                Text('${row['clientName'] ?? ''}\n${row['clientEmail'] ?? ''}'),
+                Text(row['clientName']?.toString() ?? ''),
+                Text(row['clientEmail']?.toString() ?? ''),
+                Text(row['clientPhone']?.toString() ?? ''),
                 Text(row['product']?.toString() ?? ''),
                 Text('${row['quantity'] ?? ''}'),
                 Text(adminMoney(row['finalAmount'])),
-                AdminStatusBadge(label: row['paymentStatus']?.toString() ?? 'pending'),
-                AdminStatusBadge(label: row['orderStatus']?.toString() ?? ''),
+                AdminStatusBadge(label: row['orderStatus']?.toString() ?? 'pending'),
                 Text(adminWhen(row['purchasedAt'])),
               ],
           ],

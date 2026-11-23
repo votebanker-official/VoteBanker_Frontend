@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/profile_service.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../state/onboarding_controller.dart';
@@ -226,7 +228,7 @@ class _AdditionalProfileScreenState extends State<AdditionalProfileScreen> {
         ],
       );
 
-  void _save() {
+  Future<void> _save() async {
     final draft = OnboardingScope.of(context).draft;
     draft.additionalProfile = {
       for (final entry in _fields.entries)
@@ -239,6 +241,19 @@ class _AdditionalProfileScreenState extends State<AdditionalProfileScreen> {
       if (_albums.isNotEmpty) 'albums': _albums,
       if (_updates.isNotEmpty) 'updates': _updates,
     };
+    if (AuthService.instance.isSignedIn) {
+      final saved = await ProfileService.instance.saveDraft(draft);
+      if (!mounted) return;
+      if (!saved) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile could not be saved. Please try again.'),
+          ),
+        );
+        return;
+      }
+    }
+    if (!mounted) return;
     AppRouter.open(context, AppRoutes.website);
   }
 

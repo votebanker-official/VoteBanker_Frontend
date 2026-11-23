@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../../../app/routing/app_router.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/profile_service.dart';
+import '../../onboarding/blue_tik/blue_tik_models.dart';
+import '../merchandise_intent.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../onboarding/data/political_party.dart';
@@ -13,7 +16,7 @@ import '../../onboarding/widgets/party_symbol.dart';
 import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
-import '../widgets/merchandise_price_details.dart';
+import '../widgets/merchandise_booking_confirmation.dart';
 import '../widgets/merchandise_quantity_selector.dart';
 import 'merchandise_design_screen.dart';
 
@@ -34,6 +37,7 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
   final _pages = PageController();
   final _booked = <String>{};
   final _quantities = <String, int>{};
+  var _booking = false;
   List<MerchandiseProduct> _products = campaignTemplateProducts;
   var _index = 0;
   var _burst = 0;
@@ -46,6 +50,19 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
       _products = supplied;
     }
     _refresh();
+  }
+
+  Future<void> _resumePendingOrder() async {
+    if (!mounted || !AuthService.instance.isSignedIn || _booking) return;
+    final pending = await MerchandiseIntent.peek();
+    if (pending == null || !mounted) return;
+    MerchandiseProduct? product;
+    for (final item in _products) {
+      if (item.slug == pending.slug) product = item;
+    }
+    if (product == null) return;
+    _quantities[product.slug] = pending.quantity;
+    await _book(product);
   }
 
   @override
@@ -65,6 +82,7 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
     } catch (_) {
       // The built-in list stays on screen when the API cannot be reached.
     }
+    await _resumePendingOrder();
   }
 
   int _quantityFor(MerchandiseProduct product) {
@@ -92,8 +110,33 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
     );
   }
 
+  Future<({String name, String phone, String email, String party})> _buyerContact() async {
+    final draft = OnboardingScope.maybeOf(context)?.draft;
+    try {
+      final profile = await ProfileService.instance.fetchProfile();
+      if (profile != null && draft != null) {
+        ProfileService.applyProfile(draft, profile);
+      }
+    } catch (_) {
+      // The session and draft still supply the contact details.
+    }
+    final session = AuthService.instance.session;
+    String first(String? primary, String? secondary) {
+      final lead = primary?.trim() ?? '';
+      if (lead.isNotEmpty) return lead;
+      return secondary?.trim() ?? '';
+    }
+
+    return (
+      name: first(draft?.leaderName, session?.fullName),
+      phone: first(draft?.contactNumber, session?.phone),
+      email: first(session?.email, draft?.email),
+      party: draft?.party.trim() ?? '',
+    );
+  }
+
   Future<void> _book(MerchandiseProduct product) async {
-    if (_booked.contains(product.slug)) return;
+    if (_booking || _booked.contains(product.slug)) return;
     final quantity = _quantityFor(product);
     final local = quoteMerchandise(product.priceSlabs, quantity);
     if (!local.configured) {
@@ -109,44 +152,71 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
       return;
     }
 
+    setState(() => _booking = true);
     MerchandiseQuote confirmed;
     try {
       confirmed = await _service.quote(product.slug, quantity);
     } on MerchandiseException {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The price could not be confirmed. Booking stays closed.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('The price could not be confirmed. Booking stays closed.')),
+        );
+        setState(() => _booking = false);
+      }
       return;
     }
     if (!mounted || !confirmed.configured) {
+      if (mounted) setState(() => _booking = false);
       return;
     }
 
-    await showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Order summary'),
-          content: MerchandisePriceDetails(
-            product: product,
-            quantity: confirmed.quantity,
-            quote: confirmed,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
+    if (!AuthService.instance.isSignedIn) {
+      await BlueTikIntent.clear();
+      await MerchandiseIntent.remember(product.slug, confirmed.quantity);
+      if (mounted) setState(() => _booking = false);
+      if (!mounted) return;
+      AppRouter.open(context, AppRoutes.login);
+      return;
+    }
+
+    try {
+      final buyer = await _buyerContact();
+      if (!mounted) return;
+      if (buyer.name.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Add your name on your profile before ordering.')),
         );
-      },
-    );
-    if (!mounted) return;
-    setState(() {
-      _booked.add(product.slug);
-      _burst++;
-    });
+        return;
+      }
+      await _service.placeOrder({
+        'product_slug': product.slug,
+        'quantity': confirmed.quantity,
+        'contact_name': buyer.name,
+        'contact_phone': buyer.phone,
+        'contact_email': buyer.email,
+        'campaign_line': buyer.party,
+      });
+      await MerchandiseIntent.clear();
+      if (!mounted) return;
+      await showMerchandiseBookingConfirmation(
+        context,
+        productName: product.name,
+        quantity: confirmed.quantity,
+        totalPaise: confirmed.lineTotalPaise,
+      );
+      if (!mounted) return;
+      setState(() {
+        _booked.add(product.slug);
+        _burst++;
+      });
+    } on MerchandiseException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('The order could not be saved. Please try again.')),
+      );
+    } finally {
+      if (mounted) setState(() => _booking = false);
+    }
   }
 
   void _go(int index) {
@@ -201,6 +271,7 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
                     index: index,
                     total: _products.length,
                     booked: _booked.contains(product.slug),
+                    booking: _booking,
                     quantity: _quantityFor(product),
                     onQuantity: (value) => _setQuantity(product, value),
                     onDesign: () => _open(product),
@@ -233,6 +304,7 @@ class _ProductShowcase extends StatelessWidget {
     required this.index,
     required this.total,
     required this.booked,
+    required this.booking,
     required this.quantity,
     required this.onQuantity,
     required this.onDesign,
@@ -250,6 +322,7 @@ class _ProductShowcase extends StatelessWidget {
   final int index;
   final int total;
   final bool booked;
+  final bool booking;
   final int quantity;
   final ValueChanged<int> onQuantity;
   final VoidCallback onDesign;
@@ -336,14 +409,14 @@ class _ProductShowcase extends StatelessWidget {
                           children: [
                             Expanded(child: _DesignButton(onPressed: onDesign)),
                             const SizedBox(width: 12),
-                            Expanded(child: _BookButton(booked: booked, onPressed: onBook)),
+                            Expanded(child: _BookButton(booked: booked, busy: booking, onPressed: onBook)),
                           ],
                         )
                       : Column(
                           children: [
                             SizedBox(width: double.infinity, child: _DesignButton(compact: true, onPressed: onDesign)),
                             const SizedBox(height: 8),
-                            SizedBox(width: double.infinity, child: _BookButton(compact: true, booked: booked, onPressed: onBook)),
+                            SizedBox(width: double.infinity, child: _BookButton(compact: true, booked: booked, busy: booking, onPressed: onBook)),
                           ],
                         ),
                   TextButton(
@@ -544,9 +617,10 @@ class _DesignButton extends StatelessWidget {
 }
 
 class _BookButton extends StatelessWidget {
-  const _BookButton({required this.booked, required this.onPressed, this.compact = false});
+  const _BookButton({required this.booked, required this.onPressed, this.busy = false, this.compact = false});
 
   final bool booked;
+  final bool busy;
   final VoidCallback onPressed;
   final bool compact;
 
@@ -562,9 +636,9 @@ class _BookButton extends StatelessWidget {
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         shape: const StadiumBorder(),
       ),
-      onPressed: booked ? null : onPressed,
+      onPressed: booked || busy ? null : onPressed,
       icon: Icon(booked ? Icons.check_circle : Icons.event_available_outlined, size: 18),
-      label: Text(booked ? 'Booked' : 'Book Now'),
+      label: Text(booked ? 'Booked' : busy ? 'Saving…' : 'Order now'),
     );
   }
 }

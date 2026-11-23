@@ -8,6 +8,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../../core/utils/person_name.dart';
+import '../../admin/admin_access.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 import '../widgets/dashboard_colors.dart';
 import '../widgets/dashboard_sidebar.dart';
@@ -26,9 +27,23 @@ class _DashboardPlaceholderScreenState
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
+  void initState() {
+    super.initState();
+    AdminAccess.instance.addListener(_onAdmin);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) AdminAccess.instance.reload();
+    });
+  }
+
+  @override
   void dispose() {
+    AdminAccess.instance.removeListener(_onAdmin);
     _search.dispose();
     super.dispose();
+  }
+
+  void _onAdmin() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -55,12 +70,20 @@ class _DashboardPlaceholderScreenState
       return DashboardSidebar(
         colors: colors,
         items: [
-          for (final module in modules)
+          for (final module in modules) ...[
+            if (module.icon == Icons.settings_outlined &&
+                AdminAccess.instance.showInSidebar)
+              DashboardNavEntry(
+                icon: Icons.shield_outlined,
+                label: l10n.line('adminPanel'),
+                route: AppRoutes.admin,
+              ),
             DashboardNavEntry(
               icon: module.icon,
               label: module.title,
               route: module.route,
             ),
+          ],
         ],
         selectedRoute: AppRoutes.dashboard,
         onNavigate: onNavigate,

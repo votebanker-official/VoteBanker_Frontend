@@ -205,6 +205,81 @@ void main() {
     expect(find.text('Incomplete details'), findsNothing);
   });
 
+  testWidgets('voter cards stack contacts on mobile and sit in a row on desktop', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    Future<void> pump(Size size) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = size;
+      await tester.pumpWidget(
+        ThemeScope(
+          controller: ThemeController(),
+          child: MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: VrmRecordsScreen(
+              service: VrmService(
+                client: MockClient((request) async {
+                  return http.Response(
+                    jsonEncode({
+                      'success': true,
+                      'records': [
+                        {
+                          'id': '1',
+                          'name': 'Fatima',
+                          'age': 38,
+                          'gender': 'Female',
+                          'epicNumber': 'NNA3849201',
+                          'whatsappContact': '+919876543210',
+                          'instagramContact': 'Fatima.leader',
+                          'facebookContact': 'bibi',
+                        },
+                        {
+                          'id': '2',
+                          'name': 'Parimal Patil',
+                          'age': 69,
+                          'gender': 'Female',
+                          'epicNumber': 'NNA4590444',
+                          'needsReview': false,
+                        },
+                      ],
+                    }),
+                    200,
+                    headers: {'content-type': 'application/json'},
+                  );
+                }),
+                baseUrls: const ['http://vrm.test'],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    await pump(const Size(1100, 900));
+    final desktopWhatsapp = tester.getTopLeft(find.text('WhatsApp').first);
+    final desktopInstagram = tester.getTopLeft(find.text('Instagram').first);
+    expect(desktopInstagram.dx, greaterThan(desktopWhatsapp.dx + 40));
+    expect((desktopInstagram.dy - desktopWhatsapp.dy).abs(), lessThan(8));
+    expect(tester.takeException(), isNull);
+
+    await pump(const Size(375, 800));
+    final viewport = MediaQuery.sizeOf(tester.element(find.byType(VrmRecordsScreen))).width;
+    expect(viewport, 375);
+    final mobileWhatsapp = tester.getTopLeft(find.text('WhatsApp').first);
+    final mobileInstagram = tester.getTopLeft(find.text('Instagram').first);
+    expect(mobileInstagram.dy, greaterThan(mobileWhatsapp.dy + 20));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('View more voters lists the three priced options', (tester) async {
     await tester.pumpWidget(
       ThemeScope(
@@ -232,5 +307,43 @@ void main() {
     final third = tester.getTopLeft(find.text('Pay ₹9999 to get 10000 voters'));
     expect(first.dy, lessThan(second.dy));
     expect(second.dy, lessThan(third.dy));
+  });
+
+  testWidgets('View more voters fits desktop tablet and mobile widths', (tester) async {
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    for (final width in [1440.0, 1024.0, 768.0, 430.0, 375.0]) {
+      await tester.binding.setSurfaceSize(Size(width, 900));
+      await tester.pumpWidget(
+        ThemeScope(
+          controller: ThemeController(),
+          child: MaterialApp(
+            localizationsDelegates: [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: VrmGetMoreScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('View More Voters'), findsOneWidget);
+      expect(find.text('Choose how many more voter records you want.'), findsOneWidget);
+      expect(find.text('Pay ₹100 to get 100 voters'), findsOneWidget);
+      expect(find.text('Pay ₹999 to get 1000 voters'), findsOneWidget);
+      expect(find.text('Pay ₹9999 to get 10000 voters'), findsOneWidget);
+      expect(find.text('VOTE BANKER'), findsOneWidget);
+      expect(find.text('Home'), width >= VrmGetMoreScreen.wideBreakpoint ? findsOneWidget : findsNothing);
+      expect(find.text('Voter Records'), width >= VrmGetMoreScreen.wideBreakpoint ? findsOneWidget : findsNothing);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text('Pay ₹100 to get 100 voters'));
+      await tester.tap(find.text('Pay ₹999 to get 1000 voters'));
+      await tester.tap(find.text('Pay ₹9999 to get 10000 voters'));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    }
   });
 }

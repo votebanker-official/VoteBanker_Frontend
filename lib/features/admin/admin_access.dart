@@ -5,13 +5,18 @@ import 'admin_service.dart';
 
 /// Server-confirmed admin flag for the signed-in account.
 class AdminAccess extends ChangeNotifier {
-  AdminAccess._();
+  AdminAccess._() {
+    AuthService.instance.onSessionCleared(reset);
+  }
 
   static final AdminAccess instance = AdminAccess._();
 
   bool isAdmin = false;
   String? _userId;
   Future<void>? _pending;
+
+  /// True only after the API reports this signed-in account's database role is admin.
+  bool get showInSidebar => isAdmin;
 
   Future<void> ensureLoaded() {
     final id = AuthService.instance.session?.userId;
@@ -29,11 +34,31 @@ class AdminAccess extends ChangeNotifier {
     return _pending!;
   }
 
+  void reset() {
+    _userId = null;
+    _pending = null;
+    isAdmin = false;
+    notifyListeners();
+  }
+
   Future<void> _load() async {
-    final allowed = AuthService.instance.session == null
-        ? false
-        : await AdminService.instance.isAdmin();
+    final session = AuthService.instance.session;
+    if (session == null) {
+      isAdmin = false;
+      notifyListeners();
+      return;
+    }
+    await AuthService.instance.refreshIfExpired();
     if (AuthService.instance.session?.userId != _userId) return;
+    var allowed = false;
+    try {
+      final body = await AdminService.instance.getJson('/api/auth/me');
+      allowed = body['role'] == 'admin';
+    } catch (_) {
+      allowed = false;
+    }
+    final currentId = AuthService.instance.session?.userId;
+    if (currentId == null || currentId != _userId) return;
     isAdmin = allowed;
     notifyListeners();
   }

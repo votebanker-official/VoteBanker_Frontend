@@ -9,6 +9,7 @@ class MerchandisePriceDetails extends StatelessWidget {
     required this.quantity,
     this.quote,
     this.compact = false,
+    this.totalOnly = false,
     super.key,
   });
 
@@ -16,6 +17,9 @@ class MerchandisePriceDetails extends StatelessWidget {
   final int quantity;
   final MerchandiseQuote? quote;
   final bool compact;
+
+  /// Preview summary: total only. Order dialogs keep the full breakdown.
+  final bool totalOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +32,49 @@ class MerchandisePriceDetails extends StatelessWidget {
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 14, vertical: compact ? 8 : 12),
-        child: resolved.configured
-            ? _Configured(quote: resolved, compact: compact)
-            : _Missing(quantity: quantity, compact: compact),
+        child: totalOnly
+            ? _TotalOnly(quote: resolved.configured ? resolved : null, compact: compact)
+            : resolved.configured
+                ? _Configured(quote: resolved, compact: compact)
+                : _Missing(quantity: quantity, compact: compact),
       ),
+    );
+  }
+}
+
+class _TotalOnly extends StatelessWidget {
+  const _TotalOnly({required this.quote, required this.compact});
+
+  final MerchandiseQuote? quote;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final configured = quote != null && quote!.lineTotalPaise != null;
+    return Row(
+      children: [
+        Text(
+          'Total Price',
+          style: TextStyle(
+            color: const Color(0xFF64748B),
+            fontSize: compact ? 13 : 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            configured ? formatMerchandisePrice(quote!.lineTotalPaise!) : 'Price is not configured',
+            key: configured ? const ValueKey('merchPriceTotal') : null,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              color: configured ? const Color(0xFF1E3A8A) : const Color(0xFF9A3412),
+              fontSize: configured ? (compact ? 22 : 28) : (compact ? 13 : 15),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

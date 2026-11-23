@@ -118,17 +118,19 @@ class ProfileService {
   }
 
   /// Fields that are actually filled in. Empty values are left out so a blank
-  /// form cannot overwrite a saved profile. Assembly constituency is the typed
-  /// label. A constituency id is never sent.
+  /// form cannot overwrite a saved profile. The assembly label is stored on
+  /// its own; [OnboardingDraft.designation] is the leader's role.
   static Map<String, dynamic> profilePayload(OnboardingDraft draft) {
     final text = <String, String?>{
       'full_name': draft.leaderName,
-      'designation': draft.assemblyConstituency,
+      'designation': draft.designation,
+      'assembly_constituency': draft.assemblyConstituency,
       'organization': draft.party,
       'country': draft.country,
       'state_region': draft.stateRegion,
       'constituency': draft.constituency,
       'public_contact': draft.publicContact,
+      'contact_email': draft.email,
       'language': draft.preferredLanguage.isNotEmpty
           ? draft.preferredLanguage
           : draft.selectedLanguage,
@@ -204,12 +206,25 @@ class ProfileService {
     }
 
     fill('full_name', draft.leaderName, (value) => draft.leaderName = value);
-    fill(
-      'designation',
-      draft.assemblyConstituency,
-      (value) => draft.assemblyConstituency = value,
-    );
     fill('organization', draft.party, (value) => draft.party = value);
+    final assembly = profile['assembly_constituency'];
+    final storedRole = profile['designation'];
+    if (assembly is String && assembly.trim().isNotEmpty) {
+      if (draft.assemblyConstituency.trim().isEmpty) {
+        draft.assemblyConstituency = assembly.trim();
+      }
+      if (draft.designation.trim().isEmpty &&
+          storedRole is String &&
+          storedRole.trim().isNotEmpty) {
+        draft.designation = storedRole.trim();
+      }
+    } else if (storedRole is String &&
+        storedRole.trim().isNotEmpty &&
+        draft.assemblyConstituency.trim().isEmpty) {
+      // Profiles saved before the assembly column stored the label here.
+      draft.assemblyConstituency = storedRole.trim();
+    }
+    fill('contact_email', draft.email, (value) => draft.email = value);
     fill('country', draft.country, (value) => draft.country = value);
     fill(
       'state_region',
