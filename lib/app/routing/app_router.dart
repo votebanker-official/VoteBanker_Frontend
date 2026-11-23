@@ -38,6 +38,7 @@ import '../../features/website/screens/website_publish_screen.dart';
 import '../../features/website/screens/website_purchase_screen.dart';
 import '../../features/website/screens/website_questions_screen.dart';
 import '../../features/website/screens/website_sections_screen.dart';
+import '../../core/widgets/global_footer.dart';
 import 'app_routes.dart';
 export 'app_routes.dart';
 
@@ -121,11 +122,15 @@ abstract final class AppRouter {
       _ => const LoginScreen(),
     };
 
+    final showFooter = AppRoutes.showsGlobalFooter(normalized);
     return PageRouteBuilder<void>(
       settings: settings,
       transitionDuration: const Duration(milliseconds: 220),
       reverseTransitionDuration: const Duration(milliseconds: 180),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
+      pageBuilder: (context, animation, secondaryAnimation) {
+        if (!showFooter) return page;
+        return AppFooterShell(child: page);
+      },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);
       },

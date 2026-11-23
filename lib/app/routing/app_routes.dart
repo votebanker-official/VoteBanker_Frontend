@@ -46,6 +46,23 @@ abstract final class AppRoutes {
   static const merchandise = '/merchandise';
   static const speech = '/speech';
   static const letter = '/letter';
+
+  /// Named routes that show the shared footer. Authentication and onboarding
+  /// screens are omitted on purpose.
+  static const globalFooterRoutes = <String>{
+    dashboard,
+    website,
+    vrmRecords,
+    merchandise,
+    team,
+    volunteers,
+    speech,
+    letter,
+    socialIntegration,
+  };
+
+  static bool showsGlobalFooter(String route) =>
+      globalFooterRoutes.contains(route);
 }
 
 abstract final class AppNav {
