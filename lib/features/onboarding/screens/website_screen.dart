@@ -225,54 +225,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     _syncPartyFromProfile();
     final builder = session.websiteBuilder;
 
-    Future<void> openPreview() {
-      final preview = WebsiteBuilderDraft(templateId: builder.templateId);
-      applyLeaderProfile(preview, session.draft);
-      preview
-        ..shortIntro = builder.shortIntro
-        ..biography = builder.biography
-        ..aboutLeader = builder.aboutLeader
-        ..goalsVision = builder.goalsVision
-        ..localPriorities = builder.localPriorities
-        ..email = builder.email
-        ..achievements = builder.achievements
-        ..projects = builder.projects
-        ..gallery = builder.gallery
-        ..announcements = builder.announcements
-        ..events = builder.events;
-      applyLeaderProfile(preview, session.draft);
-      final title =
-          session.draft.party.trim().isNotEmpty
-              ? session.draft.party.trim()
-              : WebsiteTemplateCatalog.professional.name;
-      return showDialog<void>(
-        context: context,
-        builder: (context) {
-          return Dialog.fullscreen(
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text(title),
-                leading: IconButton(
-                  tooltip: 'Close',
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ),
-              body: ListView(
-                children: [
-                  LeaderPortfolioSite(
-                    draft: preview,
-                    scrollBody: false,
-                    showDemoNote: false,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
-
     return OnboardingFrame(
       maxContentWidth: double.infinity,
       contentHorizontalPadding: 0,
@@ -302,7 +254,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => AppRouter.open(context, AppRoutes.domain),
+                    onPressed: () => AppRouter.open(context, AppRoutes.social),
                     child: Text(l10n.portfolioSkip),
                   ),
                 ),
@@ -342,7 +294,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 const SizedBox(height: 8),
                 OutlinedButton(
                   key: const ValueKey('previewWebsite'),
-                  onPressed: openPreview,
+                  onPressed: () => AppRouter.open(context, AppRoutes.domain),
                   child: const Text('Book Now'),
                 ),
               ],

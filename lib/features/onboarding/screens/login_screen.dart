@@ -453,7 +453,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: const TextStyle(color: _navy, fontSize: 13.5),
               ),
               TextButton(
-                onPressed: _busy ? null : () => _openOtp(),
+                onPressed: _busy ? null : () => AppRouter.open(context, AppRoutes.signUp),
                 child: Text(
                   l10n.loginSignUp,
                   style: const TextStyle(
@@ -481,14 +481,18 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'Welcome back!',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Color(0xFF16325C),
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              height: 1.15,
+          const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'Welcome to Vote Banker!',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: TextStyle(
+                color: Color(0xFF16325C),
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                height: 1.15,
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -672,7 +676,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               GestureDetector(
-                onTap: _busy ? null : () => _openOtp(),
+                onTap: _busy ? null : () => AppRouter.open(context, AppRoutes.signUp),
                 child: Text(
                   l10n.loginSignUp,
                   style: const TextStyle(

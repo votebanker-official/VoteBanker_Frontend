@@ -27,6 +27,7 @@ import '../../features/onboarding/password_reset/otp_channel_screen.dart';
 import '../../features/onboarding/password_reset/password_reset_request.dart';
 import '../../features/onboarding/password_reset/reset_success_screen.dart';
 import '../../features/onboarding/password_reset/verify_otp_screen.dart';
+import '../../features/onboarding/screens/create_account_screen.dart';
 import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/otp_login_screen.dart';
 import '../../features/onboarding/screens/ready_screen.dart';
@@ -54,6 +55,7 @@ import 'app_routes.dart';
 export 'app_routes.dart';
 
 String? _phoneArgument(Object? arguments) {
+  if (arguments is OtpLoginArgs) return arguments.phone;
   if (arguments is! String) return null;
   final value = arguments.trim();
   if (value.isEmpty || value == 'whatsapp') return null;
@@ -74,6 +76,7 @@ abstract final class AppRouter {
     final normalized = normalizeRouteName(settings.name);
     final page = switch (normalized) {
       AppRoutes.authCallback => const LoginScreen(),
+      AppRoutes.signUp => const CreateAccountScreen(),
       AppRoutes.forgotPassword => const ForgotPasswordScreen(),
       AppRoutes.resetChannel => OtpChannelScreen(
           request: settings.arguments is PasswordResetRequest
@@ -94,6 +97,8 @@ abstract final class AppRouter {
       AppRoutes.otp => OtpLoginScreen(
           channel: 'whatsapp',
           initialPhone: _phoneArgument(settings.arguments),
+          initialArgs:
+              settings.arguments is OtpLoginArgs ? settings.arguments as OtpLoginArgs : null,
         ),
       AppRoutes.profile => const BasicProfileScreen(),
       AppRoutes.additionalProfile => const AdditionalProfileScreen(),

@@ -360,7 +360,7 @@ void main() {
     expect(find.text(mlTranslations['portfolioMyWebsite']!), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text(mlTranslations['portfolioSkip']!));
+    await _tapLabel(tester, 'Book Now');
     await tester.pumpAndSettle();
     expect(find.text(mlTranslations['domainTitle']!), findsOneWidget);
 
