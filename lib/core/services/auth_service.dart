@@ -68,6 +68,40 @@ class AuthService {
 
   bool get isSignedIn => session != null;
 
+  String get signedInEmail {
+    final current = session;
+    if (current == null) return '';
+    final tokenEmail = _usableEmail(emailFromAccessToken(current.accessToken));
+    if (tokenEmail.isNotEmpty) return tokenEmail;
+    final sessionEmail = _usableEmail(current.email);
+    return sessionEmail.isNotEmpty ? sessionEmail : current.email.trim();
+  }
+
+  static String _usableEmail(String email) {
+    final normalized = email.trim();
+    final lower = normalized.toLowerCase();
+    if (lower.endsWith('@social.votebanker.app') ||
+        lower.endsWith('@phone.votebanker.app')) {
+      return '';
+    }
+    return normalized;
+  }
+
+  static String emailFromAccessToken(String accessToken) {
+    final parts = accessToken.split('.');
+    if (parts.length != 3) return '';
+    try {
+      final payload = utf8.decode(
+        base64Url.decode(base64Url.normalize(parts[1])),
+      );
+      final claims = jsonDecode(payload);
+      if (claims is! Map || claims['email'] is! String) return '';
+      return (claims['email'] as String).trim();
+    } on FormatException {
+      return '';
+    }
+  }
+
   /// Runs after the saved session is cleared. Used so admin visibility cannot outlive logout.
   void onSessionCleared(void Function() listener) {
     _sessionCleared.add(listener);
@@ -84,7 +118,8 @@ class AuthService {
     final params = Uri.base.queryParameters;
     final ticket = params['auth_ticket'];
     final error = params['auth_error'];
-    if ((ticket == null || ticket.isEmpty) && (error == null || error.isEmpty)) {
+    if ((ticket == null || ticket.isEmpty) &&
+        (error == null || error.isEmpty)) {
       return;
     }
     _pendingSocialTicket = ticket;
@@ -99,7 +134,10 @@ class AuthService {
     _pendingSocialError = null;
     final params = Uri.base.queryParameters;
     return (
-      ticket: (ticket != null && ticket.isNotEmpty) ? ticket : params['auth_ticket'],
+      ticket:
+          (ticket != null && ticket.isNotEmpty)
+              ? ticket
+              : params['auth_ticket'],
       error: (error != null && error.isNotEmpty) ? error : params['auth_error'],
     );
   }
@@ -155,11 +193,12 @@ class AuthService {
       );
     }
     final origin = browserOrigin();
-    final returnTo = provider == 'google' ? '$origin/profile' : '$origin/auth/callback';
+    final returnTo =
+        provider == 'google' ? '$origin/profile' : '$origin/auth/callback';
     final apiBase = await _reachableApiBase();
-    final uri =
-        Uri.parse('$apiBase/api/auth/oauth/$provider/start')
-            .replace(queryParameters: {'return_to': returnTo});
+    final uri = Uri.parse(
+      '$apiBase/api/auth/oauth/$provider/start',
+    ).replace(queryParameters: {'return_to': returnTo});
     // #region agent log
     _debugSessionLog('B', 'social start', {
       'provider': provider,
@@ -332,18 +371,22 @@ class AuthService {
       final user = body['user'] as Map<String, dynamic>? ?? const {};
       final result = AuthSession(
         accessToken: body['access_token'] as String,
-        refreshToken: (body['refresh_token'] as String?) ?? current.refreshToken,
+        refreshToken:
+            (body['refresh_token'] as String?) ?? current.refreshToken,
         userId: (user['id'] ?? current.userId) as String,
         phone: (user['phone'] ?? current.phone) as String,
-        fullName: ((user['full_name'] as String?) ?? '').trim().isEmpty
-            ? current.fullName
-            : user['full_name'] as String,
-        email: ((user['email'] as String?) ?? '').trim().isEmpty
-            ? current.email
-            : user['email'] as String,
-        avatarUrl: ((user['avatar_url'] as String?) ?? '').trim().isEmpty
-            ? current.avatarUrl
-            : user['avatar_url'] as String,
+        fullName:
+            ((user['full_name'] as String?) ?? '').trim().isEmpty
+                ? current.fullName
+                : user['full_name'] as String,
+        email:
+            ((user['email'] as String?) ?? '').trim().isEmpty
+                ? current.email
+                : user['email'] as String,
+        avatarUrl:
+            ((user['avatar_url'] as String?) ?? '').trim().isEmpty
+                ? current.avatarUrl
+                : user['avatar_url'] as String,
         expiresAt: body['expires_at'] as int? ?? current.expiresAt,
       );
       session = result;
@@ -478,7 +521,11 @@ class AuthService {
         .catchError((_) => http.Response('', 599));
   }
 
-  void _agentLog(String hypothesisId, String message, Map<String, Object?> data) {
+  void _agentLog(
+    String hypothesisId,
+    String message,
+    Map<String, Object?> data,
+  ) {
     http
         .post(
           Uri.parse(

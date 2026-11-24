@@ -60,7 +60,7 @@ class VrmSetupScreen extends StatelessWidget {
               const SizedBox(height: 8),
               OnboardingActions(
                 backLabel: l10n.back,
-                onBack: () => AppRouter.back(context, AppRoutes.social),
+                onBack: () => AppRouter.back(context, AppRoutes.campaignTemplates),
                 primaryLabel: l10n.vrmSetup,
                 onPrimary: () => _continue(context),
                 skipLabel: l10n.skipForNow,

@@ -103,9 +103,7 @@ class _BlueTikScreenState extends State<BlueTikScreen> {
                       disclaimer: l10n.line('blueTikDisclaimer'),
                       skipLabel: l10n.line('blueTikSkip'),
                       onBack: () => AppNav.back(context, AppRoutes.social),
-                      onSkip:
-                          () =>
-                              AppNav.open(context, AppRoutes.campaignTemplates),
+                      onSkip: () => AppNav.open(context, AppRoutes.voterLists),
                       onBook: open,
                     ),
                   ),

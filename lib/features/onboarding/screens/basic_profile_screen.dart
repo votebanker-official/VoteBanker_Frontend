@@ -628,20 +628,16 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     AppRouter.open(context, AppRoutes.additionalProfile);
   }
 
-  /// Leave the leader profile empty and continue. Drops auto-fetched or typed
-  /// values for this step, and blocks cached website drafts from filling them
-  /// back in on the next screens.
+  /// Leave optional profile fields empty without ending the signed-in session.
   void _skipForNow() {
     _profileLoadToken++;
     final onboarding = OnboardingScope.of(context);
     onboarding.clearForGuestSkip();
-    // A signed-in skip must not save the cleared draft back to that account.
     AuthService.instance.openProfileAfterLogin = false;
-    AuthService.instance.session = null;
-    unawaited(AuthService.instance.signOut());
     unawaited(WebsiteBuilderStore.instance.clearLocal());
     unawaited(PortfolioStore.instance.clear());
-    AppRouter.open(context, AppRoutes.website);
+    unawaited(ProfileService.instance.saveLastRoute(AppRoutes.website));
+    Navigator.of(context).pushNamed(AppRoutes.website);
   }
 
   void _reveal(GlobalKey key) {

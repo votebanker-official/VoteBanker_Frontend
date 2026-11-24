@@ -247,7 +247,7 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
                 children: [
                   IconButton(
                     tooltip: 'Back',
-                    onPressed: () => AppRouter.back(context, AppRoutes.social),
+                    onPressed: () => AppRouter.back(context, AppRoutes.blueTik),
                     icon: const Icon(Icons.arrow_back),
                   ),
                   const Spacer(),
@@ -278,7 +278,9 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
                     onBook: () => _book(product),
                     onSkip: () => AppRouter.open(context, AppRoutes.vrm),
                     onPrevious: index == 0 ? null : () => _go(index - 1),
-                    onNext: index == _products.length - 1 ? null : () => _go(index + 1),
+                    onNext: index == _products.length - 1
+                        ? () => AppRouter.open(context, AppRoutes.vrm)
+                        : () => _go(index + 1),
                   );
                 },
               ),

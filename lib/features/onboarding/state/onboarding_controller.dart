@@ -38,9 +38,10 @@ class OnboardingController {
 
   /// Apply [draft.preferredLanguage] (e.g. after profile restore) to the live UI.
   void syncLocaleFromDraft() {
-    final raw = draft.preferredLanguage.trim().isNotEmpty
-        ? draft.preferredLanguage.trim()
-        : draft.selectedLanguage.trim();
+    final raw =
+        draft.preferredLanguage.trim().isNotEmpty
+            ? draft.preferredLanguage.trim()
+            : draft.selectedLanguage.trim();
     if (raw.isEmpty) return;
     setLanguageCode(raw);
   }
@@ -49,7 +50,7 @@ class OnboardingController {
     draft.selectedDomain = domain;
   }
 
-  /// Clears profile and website session state for a guest "Skip for now" start.
+  /// Clears profile and website state when "Skip for now" is selected.
   void clearForGuestSkip() {
     draft
       ..fullName = ''

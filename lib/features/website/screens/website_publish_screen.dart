@@ -55,7 +55,7 @@ class WebsitePublishScreen extends StatelessWidget {
             const SizedBox(height: 10),
             SecondaryButton(
               label: l10n.line('publishLater'),
-              onPressed: () => AppRouter.open(context, AppRoutes.social),
+              onPressed: () => AppRouter.open(context, AppRoutes.speechPreview),
             ),
           ],
         ),

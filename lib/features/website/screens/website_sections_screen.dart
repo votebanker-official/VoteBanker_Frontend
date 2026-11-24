@@ -77,7 +77,7 @@ class _WebsiteSectionsScreenState extends State<WebsiteSectionsScreen> {
               primaryLabel: l10n.line('continueAction'),
               onPrimary: () => AppRouter.open(context, AppRoutes.websiteGenerating),
               skipLabel: l10n.skipForNow,
-              onSkip: () => AppRouter.open(context, AppRoutes.social),
+              onSkip: () => AppRouter.open(context, AppRoutes.speechPreview),
             ),
           ],
         ),

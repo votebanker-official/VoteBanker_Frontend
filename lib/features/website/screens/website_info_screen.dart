@@ -162,7 +162,7 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
               primaryLabel: l10n.line('continueAction'),
               onPrimary: _continue,
               skipLabel: l10n.skipForNow,
-              onSkip: () => AppRouter.open(context, AppRoutes.social),
+              onSkip: () => AppRouter.open(context, AppRoutes.speechPreview),
             ),
           ],
         ),

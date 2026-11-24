@@ -524,7 +524,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
                 onPressed: () {
                   _syncDraft();
                   unawaited(WebsiteBuilderStore.instance.saveNow(_draft));
-                  AppRouter.open(context, AppRoutes.social);
+                  AppRouter.open(context, AppRoutes.speechPreview);
                 },
                 child: Text(l10n.skipForNow),
               ),

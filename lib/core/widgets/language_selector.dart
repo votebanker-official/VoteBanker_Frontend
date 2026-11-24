@@ -7,7 +7,9 @@ import '../../features/onboarding/data/profile_languages.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 
 class LanguageSelector extends StatelessWidget {
-  const LanguageSelector({super.key});
+  const LanguageSelector({this.maxWidth = 168, super.key});
+
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +44,7 @@ class LanguageSelector extends StatelessWidget {
         ];
       },
       child: Container(
-        constraints: const BoxConstraints(minHeight: 48, maxWidth: 168),
+        constraints: BoxConstraints(minHeight: 48, maxWidth: maxWidth),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: palette.surfaceSecondary,

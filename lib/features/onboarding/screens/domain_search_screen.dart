@@ -158,7 +158,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
 
   void _skipDomain() {
     _commit();
-    AppRouter.open(context, AppRoutes.social);
+    AppRouter.open(context, AppRoutes.speechPreview);
   }
 
   String _errorMessage(AppLocalizations l10n, String code) {

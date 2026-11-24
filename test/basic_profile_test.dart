@@ -1,9 +1,12 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/app.dart';
 import 'package:votebanker/app/localization/translations/hi.dart';
 import 'package:votebanker/app/localization/translations/kn.dart';
+import 'package:votebanker/app/routing/app_routes.dart';
+import 'package:votebanker/core/services/auth_service.dart';
+import 'package:votebanker/features/admin/admin_access.dart';
 import 'package:votebanker/features/onboarding/data/assembly_constituency.dart';
 import 'package:votebanker/features/onboarding/data/location_catalog.dart';
 import 'package:votebanker/features/onboarding/data/political_party.dart';
@@ -56,6 +59,46 @@ void main() {
     expect(contact.keyboardType, TextInputType.phone);
     expect(contact.decoration?.hintText, 'Enter 10-digit mobile number');
     expect(find.text('+91'), findsWidgets);
+  });
+
+  testWidgets('skipping the profile keeps the signed-in admin session', (
+    tester,
+  ) async {
+    final previousSession = AuthService.instance.session;
+    final previousOpenProfile = AuthService.instance.openProfileAfterLogin;
+    final previousRouteName =
+        tester.binding.platformDispatcher.defaultRouteName;
+    addTearDown(() {
+      AuthService.instance.session = previousSession;
+      AuthService.instance.openProfileAfterLogin = previousOpenProfile;
+      tester.binding.platformDispatcher.defaultRouteNameTestValue =
+          previousRouteName;
+      AdminAccess.instance.reset();
+    });
+    tester.binding.platformDispatcher.defaultRouteNameTestValue =
+        AppRoutes.profile;
+    AuthService.instance
+      ..session = const AuthSession(
+        accessToken: 'access',
+        refreshToken: 'refresh',
+        userId: 'admin-user',
+        phone: '',
+        email: 'votebanker.com@gmail.com',
+      )
+      ..openProfileAfterLogin = true;
+
+    final controller = OnboardingController();
+    addTearDown(controller.dispose);
+    await _setSurface(tester, const Size(1280, 900));
+    await tester.pumpWidget(VoteBankerApp(controller: controller));
+    await tester.pumpAndSettle();
+    expect(find.text('Leader Profile'), findsOneWidget);
+
+    await _tapLabel(tester, 'Skip for now');
+
+    expect(find.text('My Website'), findsOneWidget);
+    expect(AuthService.instance.session?.userId, 'admin-user');
+    expect(AdminAccess.instance.showInSidebar, isTrue);
   });
 
   testWidgets('country, state, and district dropdowns stay dependent', (
@@ -136,9 +179,8 @@ void main() {
     await _tapLabel(tester, 'Save & Continue');
     expect(find.text('My Website'), findsOneWidget);
 
-    final draft = OnboardingScope.of(
-      tester.element(find.text('My Website')),
-    ).draft;
+    final draft =
+        OnboardingScope.of(tester.element(find.text('My Website'))).draft;
     expect(draft.publicContact, '9876543210');
     expect(draft.partNo, '12/A');
     expect(draft.partName, 'Booth 4');
@@ -163,15 +205,24 @@ void main() {
 
       // Formatting: typing or entering > 10 digits is capped to 10
       await _enter(tester, 'profileContact', '9876543210999');
-      expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
+      expect(
+        _textField(tester, 'profileContact').controller!.text,
+        '9876543210',
+      );
 
       // Formatting: entering with +91 strips prefix to 10 digits
       await _enter(tester, 'profileContact', '+919876543210');
-      expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
+      expect(
+        _textField(tester, 'profileContact').controller!.text,
+        '9876543210',
+      );
 
       // Formatting: entering with trunk 0 strips prefix to 10 digits
       await _enter(tester, 'profileContact', '09876543210');
-      expect(_textField(tester, 'profileContact').controller!.text, '9876543210');
+      expect(
+        _textField(tester, 'profileContact').controller!.text,
+        '9876543210',
+      );
 
       // Validation: empty contact number rejected on submit
       await _enter(tester, 'profileContact', '');

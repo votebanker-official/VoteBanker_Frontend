@@ -105,7 +105,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('back returns to social setup and Skip Now opens campaign', (
+  testWidgets('back returns to social setup and Skip Now opens voter lists', (
     tester,
   ) async {
     addTearDown(tester.view.resetPhysicalSize);
@@ -123,7 +123,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('blue-tik-skip')));
     await tester.pumpAndSettle();
-    expect(find.byType(CampaignTemplatesScreen), findsOneWidget);
+    expect(find.text('Get Your Voter Lists'), findsWidgets);
     expect(find.byKey(const Key('blue-tik-screen')), findsNothing);
   });
 
@@ -341,6 +341,14 @@ Widget _app(Widget home, {OnboardingController? controller}) {
           GlobalCupertinoLocalizations.delegate,
         ],
         initialRoute: AppRoutes.blueTik,
+        onGenerateInitialRoutes: (initialRoute) {
+          return [
+            MaterialPageRoute<void>(
+              settings: RouteSettings(name: initialRoute),
+              builder: (_) => home,
+            ),
+          ];
+        },
         onGenerateRoute: (settings) {
           if (settings.name == AppRoutes.blueTik) {
             return MaterialPageRoute<void>(

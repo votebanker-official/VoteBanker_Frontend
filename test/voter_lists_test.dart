@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:votebanker/app/localization/app_localizations.dart';
+import 'package:votebanker/app/routing/app_router.dart';
+import 'package:votebanker/app/theme/app_theme.dart';
+import 'package:votebanker/core/config/app_config.dart';
+import 'package:votebanker/core/services/theme_controller.dart';
+import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
+import 'package:votebanker/features/onboarding/voter_lists/voter_lists_screen.dart';
+
+void main() {
+  test('local development points voter records at the dev page', () {
+    expect(AppConfig.vrmRecordsUrl, 'http://localhost:61714/vrm/records');
+    expect(AppConfig.readyUrl, isEmpty);
+  });
+
+  testWidgets(
+    'Get your Voter Lists opens voter roll records and back returns to Blue Tik',
+    (tester) async {
+      openedUrl = null;
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Get Your Voter Lists'), findsWidgets);
+      expect(find.text('Constituency-wise Records'), findsOneWidget);
+      expect(find.text('Booth-wise Records'), findsOneWidget);
+      expect(find.text('Voter Roll Details'), findsOneWidget);
+      expect(
+        find.text('Continue to the Voter Records section.'),
+        findsOneWidget,
+      );
+      final button = tester.getRect(find.byKey(const Key('voter-lists-open')));
+      expect(button.bottom, lessThanOrEqualTo(844));
+      expect(button.width, greaterThan(300));
+
+      final skip = find.byKey(const Key('voter-lists-skip'));
+      final language = find.byIcon(Icons.language);
+      expect(
+        tester.getTopLeft(skip).dx,
+        lessThan(tester.getTopLeft(language).dx),
+      );
+      expect(tester.getSize(skip).height, greaterThanOrEqualTo(48));
+
+      await tester.tap(find.byKey(const Key('voter-lists-open')));
+      await tester.pump();
+      expect(openedUrl, 'http://localhost:61714/vrm/records');
+
+      await tester.tap(language);
+      await tester.pumpAndSettle();
+      final hindi = find.textContaining('Hindi');
+      await tester.scrollUntilVisible(
+        hindi,
+        80,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.pumpAndSettle();
+      expect(hindi, findsOneWidget);
+      await tester.tap(hindi.last);
+      await tester.pumpAndSettle();
+      expect(find.text('हिन्दी'), findsWidgets);
+
+      await tester.tap(find.byIcon(Icons.dark_mode_outlined));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+
+      openedUrl = null;
+      await tester.tap(find.byKey(const Key('voter-lists-skip')));
+      await tester.pumpAndSettle();
+      expect(openedUrl, isNull);
+      expect(find.text("You're all set"), findsOneWidget);
+    },
+  );
+
+  testWidgets('back returns to Blue Tik', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('voter-lists-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('blue-tik-destination'), findsOneWidget);
+  });
+}
+
+String? openedUrl;
+
+Widget _app() {
+  final themeController = ThemeController();
+  final onboarding = OnboardingController();
+  return ThemeScope(
+    controller: themeController,
+    child: OnboardingScope(
+      controller: onboarding,
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: themeController,
+        builder: (context, themeMode, _) {
+          return ValueListenableBuilder<Locale>(
+            valueListenable: onboarding.locale,
+            builder: (context, locale, _) {
+              return _materialApp(themeMode, locale);
+            },
+          );
+        },
+      ),
+    ),
+  );
+}
+
+Widget _materialApp(ThemeMode themeMode, Locale locale) {
+  return MaterialApp(
+    theme: AppTheme.light(),
+    darkTheme: AppTheme.dark(),
+    themeMode: themeMode,
+    locale: locale,
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    initialRoute: AppRoutes.voterLists,
+    onGenerateRoute: (settings) {
+      if (settings.name == AppRoutes.ready) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const Scaffold(body: Text("You're all set")),
+        );
+      }
+      if (settings.name == AppRoutes.vrmRecords) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const Scaffold(body: Text('records-destination')),
+        );
+      }
+      if (settings.name == AppRoutes.blueTik) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const Scaffold(body: Text('blue-tik-destination')),
+        );
+      }
+      return MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => VoterListsScreen(redirect: (url) => openedUrl = url),
+      );
+    },
+    onGenerateInitialRoutes: (initialRoute) {
+      return [
+        MaterialPageRoute<void>(
+          settings: RouteSettings(name: initialRoute),
+          builder: (_) => VoterListsScreen(redirect: (url) => openedUrl = url),
+        ),
+      ];
+    },
+  );
+}

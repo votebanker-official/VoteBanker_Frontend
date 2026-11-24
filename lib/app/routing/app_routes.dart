@@ -30,7 +30,9 @@ abstract final class AppRoutes {
   static const websitePublish = '/website/publish';
   static const social = '/social';
   static const blueTik = '/blue-tik';
+  static const voterLists = '/voter-lists';
   static const campaignTemplates = '/campaign-templates';
+  static const speechPreview = '/campaign-templates/speech-preview';
   static const vrm = '/vrm';
   static const vrmRecords = '/vrm/records';
   static const vrmGetMore = '/vrm/get-more';

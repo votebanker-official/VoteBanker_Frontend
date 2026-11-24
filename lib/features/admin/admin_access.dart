@@ -3,20 +3,26 @@ import 'package:flutter/foundation.dart';
 import '../../core/services/auth_service.dart';
 import 'admin_service.dart';
 
-/// Server-confirmed admin flag for the signed-in account.
+/// Admin navigation visibility for the signed-in account.
 class AdminAccess extends ChangeNotifier {
   AdminAccess._() {
     AuthService.instance.onSessionCleared(reset);
   }
 
   static final AdminAccess instance = AdminAccess._();
+  static const designatedAdminEmail = 'votebanker.com@gmail.com';
 
   bool isAdmin = false;
   String? _userId;
   Future<void>? _pending;
 
-  /// True only after the API reports this signed-in account's database role is admin.
-  bool get showInSidebar => isAdmin;
+  /// Shows the link for the designated account immediately; admin APIs still
+  /// authorize every request on the server.
+  bool get showInSidebar {
+    if (isAdmin) return true;
+    final email = AuthService.instance.signedInEmail.trim().toLowerCase();
+    return email == designatedAdminEmail;
+  }
 
   Future<void> ensureLoaded() {
     final id = AuthService.instance.session?.userId;

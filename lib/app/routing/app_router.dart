@@ -8,6 +8,7 @@ import '../../features/merchandise/screens/campaign_templates_screen.dart';
 import '../../features/merchandise/screens/merchandise_screen.dart';
 import '../../features/letter_generator/letter_generator_screen.dart';
 import '../../features/speech_generator/speech_generator_screen.dart';
+import '../../features/speech_generator/speech_preview_screen.dart';
 import '../../features/onboarding/screens/basic_profile_screen.dart';
 import '../../features/onboarding/screens/additional_profile_screen.dart';
 import '../../features/onboarding/screens/domain_search_screen.dart';
@@ -21,6 +22,7 @@ import '../../features/onboarding/screens/login_screen.dart';
 import '../../features/onboarding/screens/otp_login_screen.dart';
 import '../../features/onboarding/screens/ready_screen.dart';
 import '../../features/onboarding/blue_tik/blue_tik_screen.dart';
+import '../../features/onboarding/voter_lists/voter_lists_screen.dart';
 import '../../features/onboarding/screens/social_setup_screen.dart';
 import '../../features/onboarding/screens/vrm_setup_screen.dart';
 import '../../features/vrm/screens/vrm_get_more_screen.dart';
@@ -97,7 +99,9 @@ abstract final class AppRouter {
       AppRoutes.websitePublish => const WebsitePublishScreen(),
       AppRoutes.social => const SocialSetupScreen(),
       AppRoutes.blueTik => const BlueTikScreen(),
+      AppRoutes.voterLists => const VoterListsScreen(),
       AppRoutes.campaignTemplates => const CampaignTemplatesScreen(),
+      AppRoutes.speechPreview => const SpeechPreviewScreen(),
       AppRoutes.vrm => const VrmSetupScreen(),
       AppRoutes.vrmRecords => const VrmRecordsScreen(),
       AppRoutes.vrmGetMore => const VrmGetMoreScreen(),
