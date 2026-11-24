@@ -39,6 +39,14 @@ abstract final class AppTextStyles {
     );
   }
 
+  static TextStyle sectionTitle(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge!.copyWith(
+      fontWeight: FontWeight.w800,
+      height: 1.25,
+      color: context.palette.text,
+    );
+  }
+
   static TextStyle body(BuildContext context) {
     return Theme.of(context).textTheme.bodyMedium!.copyWith(
       fontSize: 15,

@@ -46,12 +46,21 @@ abstract final class AppRoutes {
   static const merchandise = '/merchandise';
   static const speech = '/speech';
   static const letter = '/letter';
+  static const about = '/about';
+  static const privacyPolicy = '/privacy-policy';
+  static const settings = '/settings';
+  static const helpCenter = '/help-center';
+  static const faqs = '/faqs';
+  static const terms = '/terms-and-conditions';
+  static const dataDeletion = '/data-deletion';
+  static const electionDisclaimer = '/election-disclaimer';
+  static const refundPolicy = '/refund-and-shipping-policy';
+  static const contactSupport = '/contact-support';
 
   /// Named routes that show the shared footer. Authentication and onboarding
   /// screens are omitted on purpose.
   static const globalFooterRoutes = <String>{
     dashboard,
-    website,
     vrmRecords,
     merchandise,
     team,
@@ -59,6 +68,16 @@ abstract final class AppRoutes {
     speech,
     letter,
     socialIntegration,
+    about,
+    privacyPolicy,
+    settings,
+    helpCenter,
+    faqs,
+    terms,
+    dataDeletion,
+    electionDisclaimer,
+    refundPolicy,
+    contactSupport,
   };
 
   static bool showsGlobalFooter(String route) =>

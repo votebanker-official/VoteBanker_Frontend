@@ -1,9 +1,4 @@
-<<<<<<< Updated upstream
-﻿import 'dart:async';
-=======
 import 'dart:async';
-import 'dart:convert';
->>>>>>> Stashed changes
 
 import 'package:flutter/material.dart';
 
@@ -161,7 +156,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
   Future<void> _previewWebsite() async {
     final session = OnboardingScope.of(context);
     final source = session.websiteBuilder;
-<<<<<<< Updated upstream
     final draft = WebsiteBuilderDraft(templateId: WebsiteTemplates.professional)
       ..fullName = source.fullName.trim().isNotEmpty
           ? source.fullName.trim()
@@ -190,45 +184,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
       ..announcements = source.announcements
       ..events = source.events;
     applyLeaderProfile(draft, session.draft);
-=======
-    final draft =
-        WebsiteBuilderDraft(templateId: WebsiteTemplates.professional)
-          ..fullName =
-              source.fullName.trim().isNotEmpty
-                  ? source.fullName.trim()
-                  : session.draft.leaderName.trim()
-          ..designation =
-              source.designation.trim().isNotEmpty
-                  ? source.designation.trim()
-                  : session.draft.designation.trim()
-          ..constituency =
-              source.constituency.trim().isNotEmpty
-                  ? source.constituency.trim()
-                  : session.draft.assemblyConstituency.trim()
-          ..district = source.district
-          ..state = source.state
-          ..applyPartyFromProfile(session.draft.party)
-          ..shortIntro = source.shortIntro
-          ..biography = source.biography
-          ..aboutLeader = source.aboutLeader
-          ..goalsVision = source.goalsVision
-          ..localPriorities = source.localPriorities
-          ..phone =
-              session.draft.contactNumber.trim().isNotEmpty
-                  ? session.draft.contactNumber.trim()
-                  : source.phone
-          ..email = source.email
-          ..achievements = source.achievements
-          ..projects = source.projects
-          ..gallery = source.gallery
-          ..announcements = source.announcements
-          ..events = source.events;
-    if (session.draft.photoBytes != null) {
-      draft.profilePhoto = MediaRef(
-        base64: base64Encode(session.draft.photoBytes!),
-      );
-    }
->>>>>>> Stashed changes
     if (!mounted) return;
     await showDialog<void>(
       context: context,
@@ -242,7 +197,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close),
               ),
-<<<<<<< Updated upstream
             ),
             body: ListView(
               children: [
@@ -253,11 +207,6 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 ),
               ],
             ),
-=======
-              const SizedBox(height: 12),
-              SizedBox(height: 420, child: WebsiteBuilderPreview(draft: draft)),
-            ],
->>>>>>> Stashed changes
           ),
         );
       },

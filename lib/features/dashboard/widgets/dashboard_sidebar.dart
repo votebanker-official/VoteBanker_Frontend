@@ -50,7 +50,11 @@ List<DashboardNavEntry> dashboardSidebarItems(AppLocalizations l10n) {
       label: l10n.line('cardAdministrations'),
       route: AppRoutes.administrations,
     ),
-    DashboardNavEntry(icon: Icons.settings_outlined, label: l10n.cardSettings),
+    DashboardNavEntry(
+      icon: Icons.settings_outlined,
+      label: l10n.cardSettings,
+      route: AppRoutes.settings,
+    ),
   ];
 }
 

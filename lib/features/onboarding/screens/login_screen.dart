@@ -17,6 +17,7 @@ import '../../website/services/portfolio_store.dart';
 import '../../website/services/website_builder_store.dart';
 import '../../merchandise/merchandise_intent.dart';
 import '../blue_tik/blue_tik_models.dart';
+import '../../privacy/legal_consent_line.dart';
 import '../state/onboarding_controller.dart';
 
 const _navy = Color(0xFF102B50);
@@ -482,6 +483,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
+          const LegalConsentLine(),
+          const SizedBox(height: 4),
           TextButton(
             onPressed: _busy ? null : _skipForNow,
             child: Text(l10n.skipForNow),

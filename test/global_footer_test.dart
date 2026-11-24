@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,11 +24,10 @@ void main() {
       await tester.pumpWidget(_app(route));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
-      expect(
-        find.byKey(const Key('global-footer')).hitTestable(),
-        findsOneWidget,
-        reason: route,
-      );
+      final footer = find.byKey(const Key('global-footer'));
+      await tester.ensureVisible(footer);
+      await tester.pump();
+      expect(footer.hitTestable(), findsOneWidget, reason: route);
       expect(tester.takeException(), isNull, reason: route);
     }
 
@@ -46,6 +46,55 @@ void main() {
     }
   });
 
+  testWidgets('footer link hover has no fill and turns the words teal', (
+    tester,
+  ) async {
+    await _setSurface(tester, const Size(1280, 500));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Align(alignment: Alignment.topCenter, child: GlobalFooter()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final link = find.byKey(const Key('footer-link-website-builder'));
+    await tester.ensureVisible(link);
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer();
+    await gesture.moveTo(tester.getCenter(link));
+    await tester.pump(const Duration(milliseconds: 250));
+
+    final box = tester.widget<AnimatedContainer>(
+      find.ancestor(of: link, matching: find.byType(AnimatedContainer)).first,
+    );
+    final decoration = box.decoration! as BoxDecoration;
+    expect(decoration.color, Colors.transparent);
+
+    final words = tester.widget<AnimatedDefaultTextStyle>(
+      find
+          .ancestor(
+            of: find.text('Website Builder'),
+            matching: find.byType(AnimatedDefaultTextStyle),
+          )
+          .first,
+    );
+    expect(words.style.color, GlobalFooter.teal);
+
+    final pill = find.byKey(const Key('footer-link-privacy'));
+    await gesture.moveTo(tester.getCenter(pill));
+    await tester.pump(const Duration(milliseconds: 250));
+    final pillBox = tester.widget<AnimatedContainer>(
+      find.ancestor(of: pill, matching: find.byType(AnimatedContainer)).first,
+    );
+    expect(
+      (pillBox.decoration! as BoxDecoration).color,
+      GlobalFooter.pill,
+    );
+    await gesture.removePointer();
+  });
+
   testWidgets('footer links open existing routes and skip the current one', (
     tester,
   ) async {
@@ -61,24 +110,24 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Portfolio Template'), findsOneWidget);
-    expect(
-      find.byKey(const Key('global-footer')).hitTestable(),
-      findsOneWidget,
-    );
+    expect(find.text('My Website'), findsWidgets);
+    expect(find.byType(GlobalFooter), findsNothing);
 
+    await tester.pumpWidget(_app(AppRoutes.about));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.ensureVisible(find.byKey(const Key('footer-link-features')));
     await tester.tap(find.byKey(const Key('footer-link-features')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Portfolio Template'), findsOneWidget);
+    expect(find.text('About VoteBanker'), findsOneWidget);
 
-    await tester.ensureVisible(
-      find.byKey(const Key('footer-link-website-builder')),
-    );
-    await tester.tap(find.byKey(const Key('footer-link-website-builder')));
+    await tester.ensureVisible(find.byKey(const Key('footer-link-about')));
+    await tester.tap(find.byKey(const Key('footer-link-about')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.ensureVisible(find.byKey(const Key('global-footer')));
+    await tester.pump();
     expect(find.byType(GlobalFooter).hitTestable(), findsOneWidget);
   });
 
@@ -96,7 +145,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
-    final brand = tester.getTopLeft(find.text('VoteBanker'));
+    final brand = tester.getTopLeft(find.text('Voter Relationship Management Private Limited'));
     final quick = tester.getTopLeft(find.text('Quick Links'));
     final support = tester.getTopLeft(find.text('Support'));
     final company = tester.getTopLeft(find.text('Company'));
@@ -109,7 +158,7 @@ void main() {
 
     expect(
       tester
-          .getTopLeft(find.text('© 2026 VoteBanker. All rights reserved.'))
+          .getTopLeft(find.text('© 2026 Voter Relationship Management Private Limited. All rights reserved.'))
           .dx,
       lessThan(tester.getTopLeft(find.text('Privacy Policy')).dx),
     );
@@ -125,7 +174,9 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(
       tester.getTopLeft(find.text('Quick Links')).dy,
-      greaterThan(tester.getTopLeft(find.text('VoteBanker')).dy + 20),
+      greaterThan(
+        tester.getTopLeft(find.text('Voter Relationship Management Private Limited')).dy + 20,
+      ),
     );
     expect(
       tester.getTopLeft(find.text('Follow Us')).dy,
@@ -144,8 +195,101 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(
       tester.getTopLeft(find.text('Support')).dy,
-      greaterThan(tester.getTopLeft(find.text('VoteBanker')).dy),
+      greaterThan(
+        tester.getTopLeft(find.text('Voter Relationship Management Private Limited')).dy,
+      ),
     );
+  });
+
+  testWidgets('footer stays below the page and spans the parent width', (
+    tester,
+  ) async {
+    await _setSurface(tester, const Size(1280, 800));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AppFooterShell(
+          child: ColoredBox(key: Key('page-body'), color: Colors.white),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    final page = tester.getRect(find.byKey(const Key('page-body')));
+    final footer = tester.getRect(find.byKey(const Key('global-footer')));
+    expect(page.width, 1280);
+    expect(footer.left, 0);
+    expect(footer.width, 1280);
+    expect(footer.top, greaterThanOrEqualTo(page.bottom - 1));
+    expect(find.byType(VerticalDivider), findsNothing);
+    expect(find.byType(Divider), findsNothing);
+    expect(find.text('Voter Relationship Management Private Limited'), findsWidgets);
+    expect(find.text('Quick Links'), findsOneWidget);
+    expect(find.text('Privacy Policy'), findsOneWidget);
+    expect(find.text('Refund & Shipping Policy'), findsOneWidget);
+
+    await _setSurface(tester, const Size(390, 900));
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: AppFooterShell(
+          child: ColoredBox(key: Key('page-body'), color: Colors.white),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final narrowPage = tester.getRect(find.byKey(const Key('page-body')));
+    final narrowFooter = tester.getRect(find.byKey(const Key('global-footer')));
+    expect(narrowFooter.left, 0);
+    expect(narrowFooter.width, 390);
+    expect(narrowFooter.top, greaterThanOrEqualTo(narrowPage.bottom - 1));
+    expect(
+      tester.getTopLeft(find.text('Quick Links')).dy,
+      greaterThan(
+        tester.getTopLeft(find.text('Voter Relationship Management Private Limited')).dy,
+      ),
+    );
+    expect(
+      tester.getTopLeft(find.text('Follow Us')).dy,
+      greaterThan(tester.getTopLeft(find.text('Company')).dy),
+    );
+  });
+
+  testWidgets('long pages scroll to the full footer below the content', (
+    tester,
+  ) async {
+    await _setSurface(tester, const Size(800, 600));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppFooterShell(
+          child: ListView(
+            children: [
+              for (var i = 0; i < 30; i++)
+                SizedBox(height: 80, child: Text('row $i')),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    final footer = find.byKey(const Key('global-footer'));
+    final before = tester.getRect(footer);
+    expect(before.width, 800);
+    expect(before.top, greaterThan(1500));
+    expect(before.height, greaterThan(120));
+
+    await tester.ensureVisible(footer);
+    await tester.pumpAndSettle();
+    final after = tester.getRect(footer);
+    expect(after.top, lessThan(before.top));
+    expect(after.height, before.height);
+    expect(after.width, 800);
+    expect(find.text('Voter Relationship Management Private Limited'), findsWidgets);
+    expect(find.text('Quick Links'), findsOneWidget);
+    expect(find.text('Follow Us'), findsOneWidget);
+    expect(find.text('© 2026 Voter Relationship Management Private Limited. All rights reserved.'), findsOneWidget);
   });
 }
 

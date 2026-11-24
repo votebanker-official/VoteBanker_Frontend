@@ -10,6 +10,7 @@ import '../../../core/widgets/onboarding_header.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../blue_tik/blue_tik_models.dart';
 import '../state/onboarding_controller.dart';
+import '../../privacy/legal_consent_line.dart';
 import '../widgets/onboarding_frame.dart';
 
 enum _OtpStep { phone, code }
@@ -180,6 +181,8 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
               icon: onCodeStep ? Icons.verified_outlined : Icons.sms_outlined,
               onPressed: _busy ? () {} : (onCodeStep ? _verifyCode : _sendCode),
             ),
+            const SizedBox(height: 12),
+            const LegalConsentLine(),
             const SizedBox(height: 8),
             if (onCodeStep) ...[
               TextButton(

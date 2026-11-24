@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../features/about/about_screen.dart';
+import '../../features/legal/contact_support_screen.dart';
+import '../../features/legal/data_deletion_screen.dart';
+import '../../features/legal/election_disclaimer_screen.dart';
+import '../../features/legal/help_center_screen.dart';
+import '../../features/legal/refund_shipping_screen.dart';
+import '../../features/legal/terms_screen.dart';
+import '../../features/privacy/privacy_policy_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../../features/admin/admin_client_screen.dart';
 import '../../features/admin/admin_panel_screen.dart';
 import '../../features/dashboard/screens/administrations_screen.dart';
@@ -119,6 +128,15 @@ abstract final class AppRouter {
       AppRoutes.merchandise => const MerchandiseScreen(),
       AppRoutes.speech => const SpeechGeneratorScreen(),
       AppRoutes.letter => const LetterGeneratorScreen(),
+      AppRoutes.about => const AboutScreen(),
+      AppRoutes.privacyPolicy => const PrivacyPolicyScreen(),
+      AppRoutes.settings => const SettingsScreen(),
+      AppRoutes.helpCenter || AppRoutes.faqs => const HelpCenterScreen(),
+      AppRoutes.terms => const TermsScreen(),
+      AppRoutes.dataDeletion => const DataDeletionScreen(),
+      AppRoutes.electionDisclaimer => const ElectionDisclaimerScreen(),
+      AppRoutes.refundPolicy => const RefundShippingScreen(),
+      AppRoutes.contactSupport => const ContactSupportScreen(),
       _ => const LoginScreen(),
     };
 
