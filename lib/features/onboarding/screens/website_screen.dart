@@ -156,33 +156,38 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
   Future<void> _previewWebsite() async {
     final session = OnboardingScope.of(context);
     final source = session.websiteBuilder;
-    final draft = WebsiteBuilderDraft(templateId: WebsiteTemplates.professional)
-      ..fullName = source.fullName.trim().isNotEmpty
-          ? source.fullName.trim()
-          : session.draft.leaderName.trim()
-      ..designation = source.designation.trim().isNotEmpty
-          ? source.designation.trim()
-          : session.draft.designation.trim()
-      ..constituency = source.constituency.trim().isNotEmpty
-          ? source.constituency.trim()
-          : session.draft.assemblyConstituency.trim()
-      ..district = source.district
-      ..state = source.state
-      ..applyPartyFromProfile(session.draft.party)
-      ..shortIntro = source.shortIntro
-      ..biography = source.biography
-      ..aboutLeader = source.aboutLeader
-      ..goalsVision = source.goalsVision
-      ..localPriorities = source.localPriorities
-      ..phone = session.draft.contactNumber.trim().isNotEmpty
-          ? session.draft.contactNumber.trim()
-          : source.phone
-      ..email = source.email
-      ..achievements = source.achievements
-      ..projects = source.projects
-      ..gallery = source.gallery
-      ..announcements = source.announcements
-      ..events = source.events;
+    final draft =
+        WebsiteBuilderDraft(templateId: WebsiteTemplates.professional)
+          ..fullName =
+              source.fullName.trim().isNotEmpty
+                  ? source.fullName.trim()
+                  : session.draft.leaderName.trim()
+          ..designation =
+              source.designation.trim().isNotEmpty
+                  ? source.designation.trim()
+                  : session.draft.designation.trim()
+          ..constituency =
+              source.constituency.trim().isNotEmpty
+                  ? source.constituency.trim()
+                  : session.draft.assemblyConstituency.trim()
+          ..district = source.district
+          ..state = source.state
+          ..applyPartyFromProfile(session.draft.party)
+          ..shortIntro = source.shortIntro
+          ..biography = source.biography
+          ..aboutLeader = source.aboutLeader
+          ..goalsVision = source.goalsVision
+          ..localPriorities = source.localPriorities
+          ..phone =
+              session.draft.contactNumber.trim().isNotEmpty
+                  ? session.draft.contactNumber.trim()
+                  : source.phone
+          ..email = source.email
+          ..achievements = source.achievements
+          ..projects = source.projects
+          ..gallery = source.gallery
+          ..announcements = source.announcements
+          ..events = source.events;
     applyLeaderProfile(draft, session.draft);
     if (!mounted) return;
     await showDialog<void>(
@@ -236,9 +241,10 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
         ..announcements = builder.announcements
         ..events = builder.events;
       applyLeaderProfile(preview, session.draft);
-      final title = session.draft.party.trim().isNotEmpty
-          ? session.draft.party.trim()
-          : WebsiteTemplateCatalog.professional.name;
+      final title =
+          session.draft.party.trim().isNotEmpty
+              ? session.draft.party.trim()
+              : WebsiteTemplateCatalog.professional.name;
       return showDialog<void>(
         context: context,
         builder: (context) {
@@ -257,6 +263,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                   LeaderPortfolioSite(
                     draft: preview,
                     scrollBody: false,
+                    showDemoNote: false,
                   ),
                 ],
               ),
@@ -280,10 +287,9 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 Text(
                   l10n.portfolioMyWebsite,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.headline(context).copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                  ),
+                  style: AppTextStyles.headline(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.2),
                 ),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -307,6 +313,7 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
           LeaderPortfolioSite(
             draft: builder,
             scrollBody: false,
+            showDemoNote: false,
           ),
           KeyedSubtree(
             key: const ValueKey('preview-professional'),
