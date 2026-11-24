@@ -27,6 +27,7 @@ import '../data/location_catalog.dart';
 import '../data/state_search.dart';
 import '../data/profile_languages.dart';
 import '../data/profile_options.dart';
+import '../../privacy/legal_consent_line.dart';
 import '../data/location_selection.dart';
 import '../models/onboarding_draft.dart';
 import '../state/onboarding_controller.dart';
@@ -1234,6 +1235,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                                 ),
                               ),
                               const SizedBox(height: 22),
+                              const LegalConsentLine(),
+                              const SizedBox(height: 12),
                               Center(
                                 child: ConstrainedBox(
                                   constraints: BoxConstraints(

@@ -298,11 +298,13 @@ class LeaderPortfolioSite extends StatelessWidget {
     this.compact = false,
     this.scrollBody = true,
     this.themeParty,
+    this.showDemoNote = true,
     super.key,
   });
 
   final WebsiteBuilderDraft draft;
   final bool compact;
+  final bool showDemoNote;
 
   /// Shows this party's design. The leader name and photo still come from [draft].
   final String? themeParty;
@@ -355,7 +357,7 @@ class LeaderPortfolioSite extends StatelessWidget {
           final wide = !mobile;
           final columns = desktop ? 4 : (mobile ? 1 : 2);
           final pages = <Widget>[
-              const _DemoNote(),
+              if (showDemoNote) const _DemoNote(),
               _Hero(
                   key: homeKey,
                   draft: draft,

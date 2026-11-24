@@ -276,6 +276,7 @@ class _DashboardPlaceholderScreenState
         l10n.cardSettings,
         subtitle: l10n.line('dashSettingsBody'),
         color: const Color(0xFF64748B),
+        route: AppRoutes.settings,
       ),
     ];
   }

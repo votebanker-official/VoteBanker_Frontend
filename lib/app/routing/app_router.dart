@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../features/about/about_screen.dart';
+import '../../features/legal/contact_support_screen.dart';
+import '../../features/legal/data_deletion_screen.dart';
+import '../../features/legal/election_disclaimer_screen.dart';
+import '../../features/legal/help_center_screen.dart';
+import '../../features/legal/refund_shipping_screen.dart';
+import '../../features/legal/terms_screen.dart';
+import '../../features/privacy/privacy_policy_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../../features/admin/admin_client_screen.dart';
 import '../../features/admin/admin_panel_screen.dart';
 import '../../features/dashboard/screens/administrations_screen.dart';
@@ -40,6 +49,7 @@ import '../../features/website/screens/website_publish_screen.dart';
 import '../../features/website/screens/website_purchase_screen.dart';
 import '../../features/website/screens/website_questions_screen.dart';
 import '../../features/website/screens/website_sections_screen.dart';
+import '../../core/widgets/global_footer.dart';
 import 'app_routes.dart';
 export 'app_routes.dart';
 
@@ -122,14 +132,27 @@ abstract final class AppRouter {
       AppRoutes.merchandise => const MerchandiseScreen(),
       AppRoutes.speech => const SpeechGeneratorScreen(),
       AppRoutes.letter => const LetterGeneratorScreen(),
+      AppRoutes.about => const AboutScreen(),
+      AppRoutes.privacyPolicy => const PrivacyPolicyScreen(),
+      AppRoutes.settings => const SettingsScreen(),
+      AppRoutes.helpCenter || AppRoutes.faqs => const HelpCenterScreen(),
+      AppRoutes.terms => const TermsScreen(),
+      AppRoutes.dataDeletion => const DataDeletionScreen(),
+      AppRoutes.electionDisclaimer => const ElectionDisclaimerScreen(),
+      AppRoutes.refundPolicy => const RefundShippingScreen(),
+      AppRoutes.contactSupport => const ContactSupportScreen(),
       _ => const LoginScreen(),
     };
 
+    final showFooter = AppRoutes.showsGlobalFooter(normalized);
     return PageRouteBuilder<void>(
       settings: settings,
       transitionDuration: const Duration(milliseconds: 220),
       reverseTransitionDuration: const Duration(milliseconds: 180),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
+      pageBuilder: (context, animation, secondaryAnimation) {
+        if (!showFooter) return page;
+        return AppFooterShell(child: page);
+      },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);
       },

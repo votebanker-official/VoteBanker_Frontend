@@ -1,0 +1,3 @@
+void applyAboutMeta() {}
+
+void restoreAboutMeta() {}

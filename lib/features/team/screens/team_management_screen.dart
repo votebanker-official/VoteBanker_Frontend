@@ -351,7 +351,7 @@ List<_NavItem> _navItems(AppLocalizations l10n) {
     _NavItem(Icons.person_outline, l10n.cardTeam, AppRoutes.team),
     _NavItem(Icons.storefront_outlined, l10n.cardMarketplace, AppRoutes.merchandise),
     _NavItem(Icons.account_balance_outlined, l10n.line('cardAdministrations'), AppRoutes.administrations),
-    _NavItem(Icons.settings_outlined, l10n.cardSettings, null),
+    _NavItem(Icons.settings_outlined, l10n.cardSettings, AppRoutes.settings),
   ];
 }
 

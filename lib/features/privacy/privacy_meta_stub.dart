@@ -1,0 +1,3 @@
+void applyPrivacyMeta() {}
+
+void restorePrivacyMeta() {}
