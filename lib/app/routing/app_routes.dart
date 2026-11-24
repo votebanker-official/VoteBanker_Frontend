@@ -9,6 +9,7 @@ import '../../features/onboarding/state/onboarding_controller.dart';
 /// imported by a screen, or the web compiler drops that screen.
 abstract final class AppRoutes {
   static const login = '/';
+  static const signUp = '/signup';
   static const forgotPassword = '/forgot-password';
   static const resetChannel = '/forgot-password/channel';
   static const resetOtp = '/forgot-password/otp';

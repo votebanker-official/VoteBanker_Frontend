@@ -15,8 +15,27 @@ import '../widgets/onboarding_frame.dart';
 
 enum _OtpStep { phone, code }
 
+class OtpLoginArgs {
+  const OtpLoginArgs({
+    this.phone,
+    this.codeSent = false,
+    this.signupEmail,
+    this.signupFullName,
+  });
+
+  final String? phone;
+  final bool codeSent;
+  final String? signupEmail;
+  final String? signupFullName;
+}
+
 class OtpLoginScreen extends StatefulWidget {
-  const OtpLoginScreen({this.channel = 'whatsapp', this.initialPhone, super.key});
+  const OtpLoginScreen({
+    this.channel = 'whatsapp',
+    this.initialPhone,
+    this.initialArgs,
+    super.key,
+  });
 
   /// WhatsApp is the only supported OTP channel.
   final String channel;
@@ -24,23 +43,40 @@ class OtpLoginScreen extends StatefulWidget {
   /// Mobile number typed on the login form, when the user is continuing by OTP.
   final String? initialPhone;
 
+  /// Optional context from flows like sign-up where the code was already sent.
+  final OtpLoginArgs? initialArgs;
+
   @override
   State<OtpLoginScreen> createState() => _OtpLoginScreenState();
 }
 
 class _OtpLoginScreenState extends State<OtpLoginScreen> {
   late final TextEditingController _phoneController = TextEditingController(
-    text: widget.initialPhone ?? '',
+    text: widget.initialArgs?.phone ?? widget.initialPhone ?? '',
   );
   final _codeController = TextEditingController();
 
-  _OtpStep _step = _OtpStep.phone;
+  late _OtpStep _step = _OtpStep.phone;
   String? _phone;
   String? _error;
   bool _busy = false;
   late final String _channel = widget.channel;
 
   String get _channelName => _channel == 'whatsapp' ? 'WhatsApp' : 'SMS';
+
+  @override
+  void initState() {
+    super.initState();
+    final args = widget.initialArgs;
+    final phone = AuthService.normalizePhone(
+      args?.phone ?? widget.initialPhone ?? '',
+    );
+    if (args?.codeSent == true && phone != null) {
+      _phone = phone;
+      _step = _OtpStep.code;
+      _phoneController.text = phone;
+    }
+  }
 
   @override
   void dispose() {
@@ -89,7 +125,22 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
     try {
       await AuthService.instance.verifyOtp(_phone!, code);
       if (!mounted) return;
-      OnboardingScope.of(context).draft.contactNumber = _phone!;
+      final draft = OnboardingScope.of(context).draft;
+      draft.contactNumber = _phone!;
+      final signupEmail = widget.initialArgs?.signupEmail?.trim();
+      if (signupEmail != null && signupEmail.isNotEmpty) {
+        draft.email = signupEmail;
+      }
+      final signupName = widget.initialArgs?.signupFullName?.trim();
+      if (signupName != null &&
+          signupName.isNotEmpty &&
+          draft.fullName.trim().isEmpty) {
+        draft.fullName = signupName;
+      }
+      if (signupEmail != null && signupEmail.isNotEmpty ||
+          (signupName != null && signupName.isNotEmpty)) {
+        await ProfileService.instance.saveDraft(draft);
+      }
       final state = await ProfileService.instance.fetchProfileState();
       if (!mounted) return;
       if (state == null) {
@@ -100,11 +151,12 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
       }
       final profile = state['profile'];
       final lastRoute = state['last_route'];
-      final fallback = profile is Map<String, dynamic>
-          ? (lastRoute is String && lastRoute.startsWith("/")
-              ? lastRoute
-              : AppRoutes.dashboard)
-          : AppRoutes.profile;
+      final fallback =
+          profile is Map<String, dynamic>
+              ? (lastRoute is String && lastRoute.startsWith("/")
+                  ? lastRoute
+                  : AppRoutes.dashboard)
+              : AppRoutes.profile;
       final nextRoute = await routeAfterBlueTikSignIn(fallback);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(nextRoute);
@@ -134,9 +186,10 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
           children: [
             OnboardingHeader(
               title: l10n.continueMobile,
-              description: onCodeStep
-                  ? 'We sent a 6-digit code to $_phone on $_channelName.'
-                  : 'Enter your mobile number. We will send you a code on $_channelName.',
+              description:
+                  onCodeStep
+                      ? 'We sent a 6-digit code to $_phone on $_channelName.'
+                      : 'Enter your mobile number. We will send you a code on $_channelName.',
             ),
             const SizedBox(height: 24),
             if (!onCodeStep)
@@ -173,11 +226,12 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
             ],
             const SizedBox(height: 20),
             PrimaryButton(
-              label: _busy
-                  ? 'Please wait...'
-                  : (onCodeStep
-                      ? 'Verify and continue'
-                      : 'Send code in WhatsApp'),
+              label:
+                  _busy
+                      ? 'Please wait...'
+                      : (onCodeStep
+                          ? 'Verify and continue'
+                          : 'Send code in WhatsApp'),
               icon: onCodeStep ? Icons.verified_outlined : Icons.sms_outlined,
               onPressed: _busy ? () {} : (onCodeStep ? _verifyCode : _sendCode),
             ),

@@ -87,7 +87,6 @@ void main() {
 
     await _tap(tester, 'Skip for now');
     await _tap(tester, 'Skip');
-    await _tap(tester, 'Skip for now');
     expect(find.text('Social Media Setup'), findsOneWidget);
   });
 }
