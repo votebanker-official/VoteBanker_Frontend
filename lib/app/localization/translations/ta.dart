@@ -62,11 +62,14 @@ const taTranslations = <String, String>{
       'ஆங்கில எழுத்துகளைப் பயன்படுத்துங்கள், எடுத்துக்காட்டாக Arjun Verma.',
   'domainSearch': 'தேடு',
   'domainSearching': 'தேடுகிறது…',
-  'domainSearchHint': 'பெயரை உள்ளிட்டு கிடைப்பைச் சரிபார்க்க தேடு என்பதைத் தட்டவும்.',
+  'domainSearchHint':
+      'பெயரை உள்ளிட்டு கிடைப்பைச் சரிபார்க்க தேடு என்பதைத் தட்டவும்.',
   'domainNoResults': 'டொமைன் முடிவுகள் இல்லை. வேறு பெயரை முயலுங்கள்.',
   'domainSearchError': 'டொமைன் தேடல் தோல்வியடைந்தது. மீண்டும் முயலுங்கள்.',
-  'domainSearchUnreachable': 'டொமைன் தேடல் சேவையை அணுக முடியவில்லை. மீண்டும் முயலுங்கள்.',
-  'domainSearchUnavailable': 'டொமைன் தேடல் இன்னும் அமைக்கப்படவில்லை. பின்னர் முயலுங்கள்.',
+  'domainSearchUnreachable':
+      'டொமைன் தேடல் சேவையை அணுக முடியவில்லை. மீண்டும் முயலுங்கள்.',
+  'domainSearchUnavailable':
+      'டொமைன் தேடல் இன்னும் அமைக்கப்படவில்லை. பின்னர் முயலுங்கள்.',
   'domainSearchAccessDenied':
       'டொமைன் வழங்குநர் இந்த சர்வர் IP-ஐ தடுத்துள்ளார். Openprovider-இல் API தொடர்பைத் திறந்து IP whitelist/blacklist-ஐ அழித்து மீண்டும் முயலுங்கள்.',
   'domainSearchAccessDeniedIp':
@@ -81,7 +84,8 @@ const taTranslations = <String, String>{
   'domainCrumbHome': 'முகப்பு',
   'domainCrumbSetup': 'டொமைன் அமைப்பு',
   'domainCrumbChoose': 'உங்கள் வலைத்தளத்திற்குப் பெயரிடுங்கள்',
-  'domainTip': 'குறிப்பு: குறுகியதாகவும், நினைவில் நிற்பதாகவும், உங்கள் பிராண்டுக்கு ஏற்றதாகவும் வையுங்கள்.',
+  'domainTip':
+      'குறிப்பு: குறுகியதாகவும், நினைவில் நிற்பதாகவும், உங்கள் பிராண்டுக்கு ஏற்றதாகவும் வையுங்கள்.',
   'domainRegistration': 'பதிவு',
   'domainRenewal': 'புதுப்பித்தல்',
   'domainPerYear': '/ ஆண்டு',
@@ -115,17 +119,28 @@ const taTranslations = <String, String>{
   'socialCountFacebook': '{count} Facebook',
   'socialSignIn': 'சேமித்த தொடர்புகளைப் பார்க்க உள்நுழையுங்கள்.',
   'socialNoMatches': 'இந்த தேடலுக்கு சேமித்த தொடர்புகள் இல்லை.',
-  'socialLoadError': 'சமூக தொடர்புகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
-  'vrmContactInvalid': 'தொடர்பு விவரங்களைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
+  'socialLoadError':
+      'சமூக தொடர்புகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+  'vrmContactInvalid':
+      'தொடர்பு விவரங்களைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
   'vrmUnsavedTitle': 'சேமிக்காத தொடர்புகள்',
   'vrmUnsavedBody': 'சில தொடர்பு மாற்றங்கள் இன்னும் சேமிக்கப்படவில்லை.',
   'vrmStay': 'இரு',
   'vrmLeave': 'வெளியேறு',
   'cardContent': 'AI உள்ளடக்க அரங்கம்',
   'cardVrm': 'என் வாக்காளர்கள்',
-  'vrmOffer100': '₹100 செலுத்தி 100 வாக்காளர்களைப் பெறுங்கள்',
-  'vrmOffer1000': '₹999 செலுத்தி 1000 வாக்காளர்களைப் பெறுங்கள்',
-  'vrmOffer10000': '₹9999 செலுத்தி 10000 வாக்காளர்களைப் பெறுங்கள்',
+  'vrmOffer100': '₹100க்கு 100 வாக்காளர்களைக் கோருங்கள்',
+  'vrmOffer1000': '₹999க்கு 1000 வாக்காளர்களைக் கோருங்கள்',
+  'vrmOffer10000': '₹9999க்கு 10000 வாக்காளர்களைக் கோருங்கள்',
+  'vrmRequestDisclaimer':
+      'இது கோரிக்கையை மட்டும் பதிவு செய்கிறது. கட்டணம் செலுத்தப்படாது; வாக்காளர் பதிவுகள் வழங்கப்படாது.',
+  'vrmRequestSuccess':
+      'கோரிக்கை பதிவு செய்யப்பட்டது. கட்டணம் செலுத்தப்படவில்லை; வாக்காளர் பதிவுகள் வழங்கப்படவில்லை.',
+  'vrmRequestSignIn': 'வாக்காளர் தொகுப்பைக் கோர உள்நுழையவும்.',
+  'vrmRequestProfileRequired':
+      'கோருவதற்கு முன் உங்கள் சுயவிவரத்தில் பெயர் மற்றும் தொலைபேசி எண்ணைச் சேர்க்கவும்.',
+  'vrmRequestError':
+      'கோரிக்கையைச் சமர்ப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
   'cardVolunteers': 'என் தன்னார்வலர்கள்',
   'volTitle': 'என் தன்னார்வலர்கள்',
   'volPageSubtitle': 'Manage and organize your volunteer network.',
@@ -319,15 +334,6 @@ const taTranslations = <String, String>{
   'socialMeta': 'Meta Business',
   'viewPlans': 'திட்டங்களைப் பாருங்கள்',
   'socialLater': 'சமூக திட்டங்கள் பின்னர் சேர்க்கப்படும். இப்போது தொடர்கிறோம்.',
-  'vrmTitle': 'வாக்காளர் உறவு மேலாண்மை',
-  'vrmBody':
-      'நீங்கள் தேர்ந்தெடுக்கும் வரை வாக்காளர் உறவு மேலாண்மை அணைந்தே இருக்கும். இன்னும் தொடர்புகள் சேமிக்கப்படவில்லை.',
-  'vrmPointContacts': 'தொடர்புகள் மற்றும் பின்தொடர்தல்',
-  'vrmPointTeam': 'குழு மற்றும் தன்னார்வலர் ஒதுக்கீடு',
-  'vrmPointIssues': 'பொது பிரச்சினைகள் மற்றும் நிகழ்வுகள்',
-  'vrmSetup': 'VRM அமைக்கவும்',
-  'vrmLater':
-      'தரவுத்தளமும் APIயும் வந்ததும் VRM இணைக்கப்படும். இப்போது தொடர்கிறோம்.',
   'readyTitle': 'நீங்கள் தயாராக இருக்கிறீர்கள்',
   'readyBody':
       'ஒவ்வொரு வசதியும் விருப்பமானது. டாஷ்போர்டைத் திறந்து தேவையானதை மட்டும் பயன்படுத்துங்கள்.',
@@ -399,8 +405,10 @@ const taTranslations = <String, String>{
       'சேவையகத்தில் Website AI அமைக்கப்படவில்லை. WEBSITE_AI_API_KEY (அல்லது SPEECH_AI_API_KEY) அமைத்து Retry செய்யவும்.',
   'websiteGenerateUnreachable':
       'வலைத்தள உருவாக்கியை அடைய முடியவில்லை. உள்ளூர் பின்நிலையைத் தொடங்கவும் அல்லது API URL-ஐச் சரிபார்க்கவும்.',
-  'websiteGenerateFailed': 'வலைத்தள உருவாக்கம் தோல்வியடைந்தது. சேவையகப் பதிவுகளைச் சரிபார்த்து மீண்டும் முயலவும்.',
-  'websiteAiSourceStock': 'படங்கள் இந்த வலைத்தள வகைக்குப் பொருந்தும் ஸ்டாக் புகைப்படங்கள்.',
+  'websiteGenerateFailed':
+      'வலைத்தள உருவாக்கம் தோல்வியடைந்தது. சேவையகப் பதிவுகளைச் சரிபார்த்து மீண்டும் முயலவும்.',
+  'websiteAiSourceStock':
+      'படங்கள் இந்த வலைத்தள வகைக்குப் பொருந்தும் ஸ்டாக் புகைப்படங்கள்.',
   'generatingTitle': 'உங்கள் வலைத்தளம் தயாராகிறது',
   'generatingBody':
       'இந்த முன்னோட்டம் இந்த சாதனத்திலேயே உருவாகிறது. எழுத்து சேவை இன்னும் இணையவில்லை.',
@@ -497,8 +505,7 @@ const taTranslations = <String, String>{
   'selectFromAlbum': 'ஆல்பத்திலிருந்து தேர்ந்தெடு',
   'takeSelfie': 'செல்பி எடு',
   'capturePhoto': 'எடு',
-  'cameraUnavailable':
-      'கேமரா இல்லை. கேமரா அனுமதி கொடுத்து மீண்டும் முயலவும்.',
+  'cameraUnavailable': 'கேமரா இல்லை. கேமரா அனுமதி கொடுத்து மீண்டும் முயலவும்.',
   'deletePhoto': 'நீக்கு',
   'enterFullName': 'முழு பெயரை உள்ளிடவும்',
   'selectDesignation': 'பதவியைத் தேர்ந்தெடுக்கவும்',
@@ -608,7 +615,8 @@ const taTranslations = <String, String>{
   'letterCopied': 'கடிதம் நகலெடுக்கப்பட்டது.',
   'letterCopy': 'கடிதத்தை நகலெடு',
   'letterCreating': 'உங்கள் கடிதம் எழுதப்படுகிறது...',
-  'letterCreatingBody': 'நீங்கள் உள்ளிட்ட விவரங்களிலிருந்து முறையான கடிதம் தயாரிக்கப்படுகிறது.',
+  'letterCreatingBody':
+      'நீங்கள் உள்ளிட்ட விவரங்களிலிருந்து முறையான கடிதம் தயாரிக்கப்படுகிறது.',
   'letterDate': 'தேதி',
   'letterDesignation': 'அரசியல்வாதியின் பதவி',
   'letterDesignationDetail': 'பதவி',
@@ -633,7 +641,8 @@ const taTranslations = <String, String>{
   'letterNeedDesignationDetail': 'பதவியை உள்ளிடவும்.',
   'letterNeedEmail': 'சரியான மின்னஞ்சலை உள்ளிடவும், அல்லது வெறுமையாக விடவும்.',
   'letterNeedMessage': 'விரிவான செய்தியை உள்ளிடவும்.',
-  'letterNeedMobile': 'சரியான மொபைல் எண்ணை உள்ளிடவும், அல்லது வெறுமையாக விடவும்.',
+  'letterNeedMobile':
+      'சரியான மொபைல் எண்ணை உள்ளிடவும், அல்லது வெறுமையாக விடவும்.',
   'letterNeedPolitician': 'அரசியல்வாதியின் பெயரை உள்ளிடவும்.',
   'letterNeedPurpose': 'நோக்கம் அல்லது கோரிக்கையை உள்ளிடவும்.',
   'letterNeedSender': 'அனுப்புநரின் பெயரை உள்ளிடவும்.',
@@ -652,7 +661,8 @@ const taTranslations = <String, String>{
   'letterSenderAddress': 'அனுப்புநரின் முகவரி',
   'letterSenderName': 'அனுப்புநரின் பெயர்',
   'letterShare': 'பகிர்',
-  'letterShareFailed': 'இந்த சாதனத்தில் பகிர்வு கிடைக்கவில்லை. பதிலாக கடிதம் நகலெடுக்கப்பட்டது.',
+  'letterShareFailed':
+      'இந்த சாதனத்தில் பகிர்வு கிடைக்கவில்லை. பதிலாக கடிதம் நகலெடுக்கப்பட்டது.',
   'letterSubject': 'பொருள்',
   'letterSubtitle':
       'நீங்கள் வழங்கிய விவரங்களிலிருந்து தேர்ந்தெடுக்கப்பட்ட பிரதிநிதிக்கு முறையான கடிதம் எழுதுங்கள்.',
@@ -684,11 +694,13 @@ const taTranslations = <String, String>{
   'vrmFacebook': 'Facebook',
   'vrmFacebookHint': 'Facebook பயனர்பெயர் அல்லது சுயவிவர URL உள்ளிடவும்',
   'vrmGender': 'பாலினம்',
-  'vrmGetMoreBody': 'எத்தனை வாக்காளர் பதிவுகள் கூடுதலாக வேண்டும் எனத் தேர்ந்தெடுக்கவும்.',
+  'vrmGetMoreBody':
+      'எத்தனை வாக்காளர் பதிவுகள் கூடுதலாக வேண்டும் எனத் தேர்ந்தெடுக்கவும்.',
   'vrmGetMoreTitle': 'மேலும் வாக்காளர்களைக் காண்க',
   'vrmInstagram': 'Instagram',
   'vrmInstagramHint': 'Instagram பயனர்பெயர் அல்லது சுயவிவர URL உள்ளிடவும்',
-  'vrmLoadError': 'வாக்காளர் பதிவுகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+  'vrmLoadError':
+      'வாக்காளர் பதிவுகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
   'vrmNeedsReview': 'மதிப்பாய்வு தேவை',
   'vrmPayToGetMore': 'மேலும் வாக்காளர்களைக் காண்க',
   'vrmRecordsBody': 'வாக்காளர் பதிவுகள் (பெயர், வயது, பாலினம், EPIC).',
@@ -724,16 +736,19 @@ const taTranslations = <String, String>{
       'வலைத்தள விவரங்களில் உங்கள் வாழ்க்கை வரலாற்றைச் சேர்க்கவும். இந்த பகுதி உரை மட்டும்.',
   'portfolioVisionPlaceholder':
       'வலைத்தள விவரங்களில் உங்கள் பார்வை, முன்னுரிமைகள், வளர்ச்சி திட்டத்தை பகிரவும்.',
-  'portfolioAchievementsPlaceholder': 'நீங்கள் சேர்க்கும்போது சாதனைகளும் வளர்ச்சி திட்டங்களும் இங்கே தோன்றும்.',
+  'portfolioAchievementsPlaceholder':
+      'நீங்கள் சேர்க்கும்போது சாதனைகளும் வளர்ச்சி திட்டங்களும் இங்கே தோன்றும்.',
   'portfolioGalleryPlaceholder':
       'சேமித்த புகைப்படங்கள், தலைப்புகள், பொது புதுப்பிப்புகள் கிடைக்கும்போது இங்கே தோன்றும்.',
-  'portfolioContactPlaceholder': 'தொடர்பு எண்ணைச் சேர்க்கும்போது பொது தொடர்பு இங்கே தோன்றும்.',
+  'portfolioContactPlaceholder':
+      'தொடர்பு எண்ணைச் சேர்க்கும்போது பொது தொடர்பு இங்கே தோன்றும்.',
   'portfolioPoliticalParty': 'அரசியல் கட்சி',
   'portfolioYourName': 'உங்கள் பெயர்',
   'portfolioJoinMission': 'எங்கள் பணியில் இணையுங்கள்',
   'portfolioNavAchievements': 'சாதனைகள்',
   'portfolioNavVisionFull': 'பார்வை & முன்னுரிமைகள்',
-  'portfolioIntroPlaceholder': 'இணையதள விவரங்களில் அறிமுகம் சேர்த்ததும் இங்கே தொழில்முறை அறிமுகம் தோன்றும்.',
+  'portfolioIntroPlaceholder':
+      'இணையதள விவரங்களில் அறிமுகம் சேர்த்ததும் இங்கே தொழில்முறை அறிமுகம் தோன்றும்.',
   'portfolioKnowMyVision': 'என் தொலைநோக்கை அறியுங்கள்',
   'paymentMethod': 'கட்டண முறை',
   'securePayments': 'பாதுகாப்பான மற்றும் குறியாக்கப்பட்ட பணம்செலுத்தல்கள்',
@@ -743,12 +758,14 @@ const taTranslations = <String, String>{
   'socialConnectTitle': 'Connect {provider}',
   'socialSecureTitle': 'Secure authorization',
   'socialPermissionsTitle': 'Required permissions',
-  'socialRedirectNote': 'You\'ll be redirected to {provider} to authorize the connection.',
+  'socialRedirectNote':
+      'You\'ll be redirected to {provider} to authorize the connection.',
   'socialContinueTo': 'Continue to {provider}',
   'socialCancel': 'Cancel',
   'socialRetry': 'Retry',
   'socialConnecting': 'Connecting...',
-  'socialConnectingHint': 'Please wait while we verify your account with {provider}.',
+  'socialConnectingHint':
+      'Please wait while we verify your account with {provider}.',
   'socialConnectedTitle': 'Connected successfully',
   'socialConnectedHeading': '{provider} connected',
   'socialConnectedBody': 'Your {provider} account is connected successfully.',
@@ -756,30 +773,54 @@ const taTranslations = <String, String>{
   'socialDone': 'Done',
   'socialManage': 'Manage',
   'socialDisconnect': 'Disconnect',
-  'socialNotSignedIn': 'Sign in to VOTE BANKER before connecting a social account.',
-  'socialNotConfiguredProvider': 'This provider is not configured yet. Add the official developer credentials on the backend.',
-  'socialCancelled': 'Authorization was cancelled. The account was not connected.',
-  'socialFailedConnect': 'Authorization failed. Try again from the official provider page.',
-  'socialNoPage': 'Connect a Facebook Page you manage. Personal profile publishing is not supported.',
-  'socialProfessionalRequired': 'Connect a professional Instagram account. Personal accounts are not supported.',
-  'socialNoChannel': 'No YouTube channel was found on the authorized Google account.',
-  'socialWhatsappIncomplete': 'WhatsApp Business messaging was not completed. A Business account and phone number are required.',
-  'socialStorageNotReady': 'Connection storage is not ready. Apply the social_account_connections migration.',
-  'socialIgSummary': 'Connect your Instagram account to manage your political outreach from VOTE BANKER.',
-  'socialIgSecure': 'Sign in through the official Instagram/Meta platform. We never ask for your password.',
-  'socialIgPermissions': 'We request your professional profile info, username, and account identity so we can show the connected account.',
-  'socialFbSummary': 'Connect your Facebook Page to manage your political outreach from VOTE BANKER.',
-  'socialFbSecure': 'Sign in through the official Facebook platform. We never ask for your password.',
-  'socialFbPermissions': 'We request the Pages you manage. Personal Facebook profile publishing is not supported.',
-  'socialWaSummary': 'Connect your WhatsApp Business account for official Cloud API messaging.',
-  'socialWaSecure': 'Authorize through Meta Embedded Signup. We never ask for your WhatsApp password.',
-  'socialWaPermissions': 'We request the WhatsApp Business Account and phone number used for Cloud API messaging. This does not publish WhatsApp Status.',
-  'socialXSummary': 'Connect your X account to manage your political outreach from VOTE BANKER.',
-  'socialXSecure': 'Sign in through the official X platform. We never ask for your password.',
-  'socialXPermissions': 'We request your public profile information so we can show the connected account.',
-  'socialYtSummary': 'Connect your YouTube channel to manage your political outreach from VOTE BANKER.',
-  'socialYtSecure': 'Sign in through Google\'s official platform. We never ask for your password.',
-  'socialYtPermissions': 'We request your channel information so we can show the authorized YouTube channel.',
+  'socialNotSignedIn':
+      'Sign in to VOTE BANKER before connecting a social account.',
+  'socialNotConfiguredProvider':
+      'This provider is not configured yet. Add the official developer credentials on the backend.',
+  'socialCancelled':
+      'Authorization was cancelled. The account was not connected.',
+  'socialFailedConnect':
+      'Authorization failed. Try again from the official provider page.',
+  'socialNoPage':
+      'Connect a Facebook Page you manage. Personal profile publishing is not supported.',
+  'socialProfessionalRequired':
+      'Connect a professional Instagram account. Personal accounts are not supported.',
+  'socialNoChannel':
+      'No YouTube channel was found on the authorized Google account.',
+  'socialWhatsappIncomplete':
+      'WhatsApp Business messaging was not completed. A Business account and phone number are required.',
+  'socialStorageNotReady':
+      'Connection storage is not ready. Apply the social_account_connections migration.',
+  'socialIgSummary':
+      'Connect your Instagram account to manage your political outreach from VOTE BANKER.',
+  'socialIgSecure':
+      'Sign in through the official Instagram/Meta platform. We never ask for your password.',
+  'socialIgPermissions':
+      'We request your professional profile info, username, and account identity so we can show the connected account.',
+  'socialFbSummary':
+      'Connect your Facebook Page to manage your political outreach from VOTE BANKER.',
+  'socialFbSecure':
+      'Sign in through the official Facebook platform. We never ask for your password.',
+  'socialFbPermissions':
+      'We request the Pages you manage. Personal Facebook profile publishing is not supported.',
+  'socialWaSummary':
+      'Connect your WhatsApp Business account for official Cloud API messaging.',
+  'socialWaSecure':
+      'Authorize through Meta Embedded Signup. We never ask for your WhatsApp password.',
+  'socialWaPermissions':
+      'We request the WhatsApp Business Account and phone number used for Cloud API messaging. This does not publish WhatsApp Status.',
+  'socialXSummary':
+      'Connect your X account to manage your political outreach from VOTE BANKER.',
+  'socialXSecure':
+      'Sign in through the official X platform. We never ask for your password.',
+  'socialXPermissions':
+      'We request your public profile information so we can show the connected account.',
+  'socialYtSummary':
+      'Connect your YouTube channel to manage your political outreach from VOTE BANKER.',
+  'socialYtSecure':
+      'Sign in through Google\'s official platform. We never ask for your password.',
+  'socialYtPermissions':
+      'We request your channel information so we can show the authorized YouTube channel.',
   'smiNav': 'Social Media',
   'smiCardBody': 'Connect accounts and prepare posts.',
   'smiTitle': 'Social Media Integration',
@@ -793,7 +834,8 @@ const taTranslations = <String, String>{
   'smiWhatsappBusiness': 'Business Account',
   'smiWhatsappNotReady': 'Business API not connected',
   'smiAccountDetails': 'Account details',
-  'smiSetupBody': 'This platform is not connected. Publishing credentials stay on the server, and none are configured for this account yet.',
+  'smiSetupBody':
+      'This platform is not connected. Publishing credentials stay on the server, and none are configured for this account yet.',
   'smiCreatePost': 'Create New Post',
   'smiCreatePostHint': 'Choose where you want to post and create your content',
   'smiPostContent': 'Post Content',
@@ -803,7 +845,8 @@ const taTranslations = <String, String>{
   'smiAddVideo': 'Add Video',
   'smiAddDocument': 'Add Document',
   'smiAiTitle': 'AI Generate Caption & Hashtags',
-  'smiAiBody': 'A caption model is not configured on the server. Generated text will appear here only after that service is set up.',
+  'smiAiBody':
+      'A caption model is not configured on the server. Generated text will appear here only after that service is set up.',
   'smiGenerate': 'Generate with AI',
   'smiHashtags': 'Hashtags',
   'smiHashtagHint': 'Add a hashtag',
@@ -822,15 +865,21 @@ const taTranslations = <String, String>{
   'smiMediaReady': 'Selected file ready for preview',
   'smiFileTooLarge': 'That file is larger than the allowed size.',
   'smiFileType': 'That file type is not supported.',
-  'smiMediaStorage': 'Media storage is not configured, so the file stays on this device for preview only.',
+  'smiMediaStorage':
+      'Media storage is not configured, so the file stays on this device for preview only.',
   'smiDraftSaved': 'Draft saved.',
   'smiScheduled': 'Post scheduled.',
   'smiPublished': 'Post sent to the connected account.',
   'smiCaptionReady': 'Caption added. Review it before posting.',
-  'smiNotConfigured': 'This action is not available yet. The server has no publishing integration configured.',
-  'smiScheduleUnsupported': 'Scheduling is not available. The server cannot store a scheduled post yet.',
+  'smiNotConfigured':
+      'This action is not available yet. The server has no publishing integration configured.',
+  'smiScheduleUnsupported':
+      'Scheduling is not available. The server cannot store a scheduled post yet.',
   'smiSignIn': 'Sign in to manage social media accounts.',
-  'smiUnreachable': 'Could not reach the social media service. Please try again.',
-  'smiPickSchedule': 'Choose a date and time. The post is saved only if the server accepts it.',
-  'teamCardBody': 'Manage your team members, assign roles, and track their progress.',
+  'smiUnreachable':
+      'Could not reach the social media service. Please try again.',
+  'smiPickSchedule':
+      'Choose a date and time. The post is saved only if the server accepts it.',
+  'teamCardBody':
+      'Manage your team members, assign roles, and track their progress.',
 };

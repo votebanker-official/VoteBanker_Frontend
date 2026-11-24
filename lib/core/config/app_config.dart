@@ -49,22 +49,10 @@ abstract final class AppConfig {
     defaultValue: '',
   );
 
-  /// Voter records application. Local runs open the dev page on port 61714.
-  /// Set VRM_RECORDS_URL at build time for the production address.
+  /// Optional external voter-records application address.
+  /// When unset, navigation stays within the current app.
   static String get vrmRecordsUrl {
     if (_configuredVrmRecordsUrl.isNotEmpty) return _configuredVrmRecordsUrl;
-    if (kDebugMode) return 'http://localhost:61714/vrm/records';
     return '';
-  }
-
-  static const _configuredReadyUrl = String.fromEnvironment(
-    'READY_URL',
-    defaultValue: '',
-  );
-
-  /// Optional external ready page. Without an override, the app uses its
-  /// internal ready route so local navigation stays on the active dev server.
-  static String get readyUrl {
-    return _configuredReadyUrl;
   }
 }

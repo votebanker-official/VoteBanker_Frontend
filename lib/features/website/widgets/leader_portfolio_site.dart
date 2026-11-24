@@ -974,7 +974,7 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _About extends StatelessWidget {
-  const _About({required this.parts, required this.photo, required this.wide, super.key});
+  const _About({required this.parts, required this.photo, required this.wide});
 
   final List<(String, String)> parts;
   final MediaRef photo;
@@ -1041,7 +1041,6 @@ class _VisionBlock extends StatelessWidget {
     required this.vision,
     required this.mission,
     required this.priorities,
-    super.key,
   });
 
   final String vision;

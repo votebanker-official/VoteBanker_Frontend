@@ -33,7 +33,6 @@ import '../../features/onboarding/screens/ready_screen.dart';
 import '../../features/onboarding/blue_tik/blue_tik_screen.dart';
 import '../../features/onboarding/voter_lists/voter_lists_screen.dart';
 import '../../features/onboarding/screens/social_setup_screen.dart';
-import '../../features/onboarding/screens/vrm_setup_screen.dart';
 import '../../features/vrm/screens/vrm_get_more_screen.dart';
 import '../../features/vrm/screens/vrm_records_screen.dart';
 import '../../features/team/screens/team_management_screen.dart';
@@ -76,25 +75,28 @@ abstract final class AppRouter {
       AppRoutes.authCallback => const LoginScreen(),
       AppRoutes.forgotPassword => const ForgotPasswordScreen(),
       AppRoutes.resetChannel => OtpChannelScreen(
-          request: settings.arguments is PasswordResetRequest
-              ? settings.arguments! as PasswordResetRequest
-              : const PasswordResetRequest(identifier: '', isEmail: false),
-        ),
+        request:
+            settings.arguments is PasswordResetRequest
+                ? settings.arguments! as PasswordResetRequest
+                : const PasswordResetRequest(identifier: '', isEmail: false),
+      ),
       AppRoutes.resetOtp => VerifyOtpScreen(
-          request: settings.arguments is PasswordResetRequest
-              ? settings.arguments! as PasswordResetRequest
-              : const PasswordResetRequest(identifier: '', isEmail: false),
-        ),
+        request:
+            settings.arguments is PasswordResetRequest
+                ? settings.arguments! as PasswordResetRequest
+                : const PasswordResetRequest(identifier: '', isEmail: false),
+      ),
       AppRoutes.resetPassword => NewPasswordScreen(
-          request: settings.arguments is PasswordResetRequest
-              ? settings.arguments! as PasswordResetRequest
-              : const PasswordResetRequest(identifier: '', isEmail: false),
-        ),
+        request:
+            settings.arguments is PasswordResetRequest
+                ? settings.arguments! as PasswordResetRequest
+                : const PasswordResetRequest(identifier: '', isEmail: false),
+      ),
       AppRoutes.resetSuccess => const ResetSuccessScreen(),
       AppRoutes.otp => OtpLoginScreen(
-          channel: 'whatsapp',
-          initialPhone: _phoneArgument(settings.arguments),
-        ),
+        channel: 'whatsapp',
+        initialPhone: _phoneArgument(settings.arguments),
+      ),
       AppRoutes.profile => const BasicProfileScreen(),
       AppRoutes.additionalProfile => const AdditionalProfileScreen(),
       AppRoutes.domain => const DomainSearchScreen(),
@@ -112,7 +114,6 @@ abstract final class AppRouter {
       AppRoutes.voterLists => const VoterListsScreen(),
       AppRoutes.campaignTemplates => const CampaignTemplatesScreen(),
       AppRoutes.speechPreview => const SpeechPreviewScreen(),
-      AppRoutes.vrm => const VrmSetupScreen(),
       AppRoutes.vrmRecords => const VrmRecordsScreen(),
       AppRoutes.vrmGetMore => const VrmGetMoreScreen(),
       AppRoutes.volunteers => VolunteerManagementScreen(

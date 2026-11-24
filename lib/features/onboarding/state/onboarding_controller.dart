@@ -72,7 +72,6 @@ class OnboardingController {
       ..domainQuery = ''
       ..selectedDomain = null
       ..websiteTemplate = null
-      ..vrmRequested = false
       ..additionalProfile = <String, dynamic>{};
     draft.socialChannels.clear();
     resetWebsiteFromProfile();

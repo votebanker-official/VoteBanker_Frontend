@@ -75,18 +75,20 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   List<TeamMember> get _visible {
     final query = _search.text.trim().toLowerCase();
     return _members.where((member) {
-      if (_statusFilter.isNotEmpty && member.status != _statusFilter) return false;
+      if (_statusFilter.isNotEmpty && member.status != _statusFilter)
+        return false;
       if (query.isEmpty) return true;
-      final blob = [
-        member.fullName,
-        member.whatsappNumber,
-        member.facebookUrl,
-        member.instagramUrl,
-        member.email,
-        member.designation,
-        member.role,
-        member.location,
-      ].join(' ').toLowerCase();
+      final blob =
+          [
+            member.fullName,
+            member.whatsappNumber,
+            member.facebookUrl,
+            member.instagramUrl,
+            member.email,
+            member.designation,
+            member.role,
+            member.location,
+          ].join(' ').toLowerCase();
       return blob.contains(query);
     }).toList();
   }
@@ -125,30 +127,33 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Theme(
-        data: AppTheme.dark(),
-        child: _MemberDialog(
-          existing: existing,
-          onSubmit: (draft) async {
-            if (existing == null) {
-              await _repository.create(draft.toJson());
-            } else {
-              await _repository.update(existing.id, draft.toJson());
-            }
-            final members = await _repository.list();
-            if (!mounted) return;
-            setState(() {
-              _members = members;
-              _loaded = true;
-              _error = null;
-            });
-            saved = true;
-          },
-        ),
-      ),
+      builder:
+          (context) => Theme(
+            data: AppTheme.dark(),
+            child: _MemberDialog(
+              existing: existing,
+              onSubmit: (draft) async {
+                if (existing == null) {
+                  await _repository.create(draft.toJson());
+                } else {
+                  await _repository.update(existing.id, draft.toJson());
+                }
+                final members = await _repository.list();
+                if (!mounted) return;
+                setState(() {
+                  _members = members;
+                  _loaded = true;
+                  _error = null;
+                });
+                saved = true;
+              },
+            ),
+          ),
     );
     if (saved && mounted) {
-      _showMessage(existing == null ? 'Team member added.' : 'Team member updated.');
+      _showMessage(
+        existing == null ? 'Team member added.' : 'Team member updated.',
+      );
     }
   }
 
@@ -162,20 +167,26 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
   Future<void> _delete(TeamMember member) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete team member'),
-        content: Text(
-          'Remove ${formatPersonName(member.fullName)} from your team?',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete team member'),
+            content: Text(
+              'Remove ${formatPersonName(member.fullName)} from your team?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFDC2626),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     if (confirmed != true || !mounted) return;
     try {
@@ -193,7 +204,9 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _errorText(String code) {
@@ -234,29 +247,32 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         final wide = constraints.maxWidth >= 960;
         return Scaffold(
           key: _scaffoldKey,
-          backgroundColor: colors.isDark ? colors.page : const Color(0xFFF3F8FD),
-          drawer: wide
-              ? null
-              : Drawer(
-                  backgroundColor: colors.sidebar,
-                  child: SafeArea(
-                    child: _Sidebar(
-                      colors: colors,
-                      items: items,
-                      onNavigate: () => Navigator.of(context).pop(),
+          backgroundColor:
+              colors.isDark ? colors.page : const Color(0xFFF3F8FD),
+          drawer:
+              wide
+                  ? null
+                  : Drawer(
+                    backgroundColor: colors.sidebar,
+                    child: SafeArea(
+                      child: _Sidebar(
+                        colors: colors,
+                        items: items,
+                        onNavigate: () => Navigator.of(context).pop(),
+                      ),
                     ),
                   ),
-                ),
           body: SafeArea(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: colors.isDark
-                    ? null
-                    : const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFFF8FBFE), Color(0xFFEAF3FB)],
-                      ),
+                gradient:
+                    colors.isDark
+                        ? null
+                        : const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFF8FBFE), Color(0xFFEAF3FB)],
+                        ),
               ),
               child: Row(
                 children: [
@@ -296,11 +312,20 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
       children: [
         _Header(wide: wide, colors: colors, onAdd: () => _openForm()),
         const SizedBox(height: 18),
-        _StatGrid(colors: colors, stats: stats, unavailable: _error != null && !_loaded),
+        _StatGrid(
+          colors: colors,
+          stats: stats,
+          unavailable: _error != null && !_loaded,
+        ),
         const SizedBox(height: 16),
         _VolunteersSection(
           colors: colors,
-          onAdd: () => AppRouter.open(context, AppRoutes.volunteers, arguments: 'add'),
+          onAdd:
+              () => AppRouter.open(
+                context,
+                AppRoutes.volunteers,
+                arguments: 'add',
+              ),
           onView: () => AppRouter.open(context, AppRoutes.volunteers),
         ),
         const SizedBox(height: 16),
@@ -342,15 +367,36 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
 
 List<_NavItem> _navItems(AppLocalizations l10n) {
   return [
-    _NavItem(Icons.space_dashboard_outlined, l10n.dashboard, AppRoutes.dashboard),
+    _NavItem(
+      Icons.space_dashboard_outlined,
+      l10n.dashboard,
+      AppRoutes.dashboard,
+    ),
     _NavItem(Icons.person_outline, l10n.cardProfile, null),
     _NavItem(Icons.groups_outlined, l10n.cardSocial, AppRoutes.socialContacts),
-    _NavItem(Icons.share_outlined, l10n.line('smiNav'), AppRoutes.socialIntegration),
+    _NavItem(
+      Icons.share_outlined,
+      l10n.line('smiNav'),
+      AppRoutes.socialIntegration,
+    ),
     _NavItem(Icons.auto_awesome_outlined, l10n.cardContent, null),
     _NavItem(Icons.groups_outlined, l10n.cardVolunteers, AppRoutes.volunteers),
     _NavItem(Icons.person_outline, l10n.cardTeam, AppRoutes.team),
-    _NavItem(Icons.storefront_outlined, l10n.cardMarketplace, AppRoutes.merchandise),
-    _NavItem(Icons.account_balance_outlined, l10n.line('cardAdministrations'), AppRoutes.administrations),
+    _NavItem(
+      Icons.storefront_outlined,
+      l10n.cardMarketplace,
+      AppRoutes.merchandise,
+    ),
+    _NavItem(
+      Icons.view_carousel_outlined,
+      l10n.line('campaignTemplatesNav'),
+      AppRoutes.campaignTemplates,
+    ),
+    _NavItem(
+      Icons.account_balance_outlined,
+      l10n.line('cardAdministrations'),
+      AppRoutes.administrations,
+    ),
     _NavItem(Icons.settings_outlined, l10n.cardSettings, AppRoutes.settings),
   ];
 }
@@ -440,17 +486,11 @@ class _VolunteersSection extends StatelessWidget {
                       'Volunteers are part of your working team. Add and manage them from here.',
                       style: TextStyle(color: colors.muted, height: 1.35),
                     ),
-                    if (compact) ...[
-                      const SizedBox(height: 14),
-                      actions,
-                    ],
+                    if (compact) ...[const SizedBox(height: 14), actions],
                   ],
                 ),
               ),
-              if (!compact) ...[
-                const SizedBox(width: 16),
-                actions,
-              ],
+              if (!compact) ...[const SizedBox(width: 16), actions],
             ],
           );
           return content;
@@ -483,7 +523,12 @@ class _Sidebar extends StatelessWidget {
             child: Row(
               children: [
                 ClipOval(
-                  child: Image.asset(AppAssets.logo, width: 36, height: 36, fit: BoxFit.cover),
+                  child: Image.asset(
+                    AppAssets.logo,
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -491,7 +536,11 @@ class _Sidebar extends StatelessWidget {
                     l10n.appName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: colors.text, fontWeight: FontWeight.w800, fontSize: 15),
+                    style: TextStyle(
+                      color: colors.text,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
               ],
@@ -506,16 +555,17 @@ class _Sidebar extends StatelessWidget {
                     colors: colors,
                     item: item,
                     selected: item.route == AppRoutes.team,
-                    onTap: item.route == null || item.route == AppRoutes.team
-                        ? null
-                        : () {
-                            onNavigate?.call();
-                            if (item.route == AppRoutes.dashboard) {
-                              AppRouter.replace(context, AppRoutes.dashboard);
-                            } else {
-                              AppRouter.open(context, item.route!);
-                            }
-                          },
+                    onTap:
+                        item.route == null || item.route == AppRoutes.team
+                            ? null
+                            : () {
+                              onNavigate?.call();
+                              if (item.route == AppRoutes.dashboard) {
+                                AppRouter.replace(context, AppRoutes.dashboard);
+                              } else {
+                                AppRouter.open(context, item.route!);
+                              }
+                            },
                   ),
                   const SizedBox(height: 4),
                 ],
@@ -686,24 +736,19 @@ class _Header extends StatelessWidget {
         ),
       ],
     );
-    final button = _AddButton(key: const Key('add-team-member'), onPressed: onAdd);
+    final button = _AddButton(
+      key: const Key('add-team-member'),
+      onPressed: onAdd,
+    );
     if (!wide) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          title,
-          const SizedBox(height: 12),
-          button,
-        ],
+        children: [title, const SizedBox(height: 12), button],
       );
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: title),
-        const SizedBox(width: 16),
-        button,
-      ],
+      children: [Expanded(child: title), const SizedBox(width: 16), button],
     );
   }
 }
@@ -724,13 +769,20 @@ class _AddButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       icon: const Icon(Icons.add, size: 18),
-      label: const Text('Add Team Member', style: TextStyle(fontWeight: FontWeight.w700)),
+      label: const Text(
+        'Add Team Member',
+        style: TextStyle(fontWeight: FontWeight.w700),
+      ),
     );
   }
 }
 
 class _StatGrid extends StatelessWidget {
-  const _StatGrid({required this.colors, required this.stats, required this.unavailable});
+  const _StatGrid({
+    required this.colors,
+    required this.stats,
+    required this.unavailable,
+  });
 
   final DashboardColors colors;
   final TeamStats stats;
@@ -778,9 +830,10 @@ class _StatGrid extends StatelessWidget {
     ];
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 980
-            ? 4
-            : constraints.maxWidth >= 640
+        final columns =
+            constraints.maxWidth >= 980
+                ? 4
+                : constraints.maxWidth >= 640
                 ? 2
                 : 1;
         return GridView.builder(
@@ -793,7 +846,8 @@ class _StatGrid extends StatelessWidget {
             crossAxisSpacing: 12,
             mainAxisExtent: 108,
           ),
-          itemBuilder: (context, index) => _StatCard(colors: colors, data: cards[index]),
+          itemBuilder:
+              (context, index) => _StatCard(colors: colors, data: cards[index]),
         );
       },
     );
@@ -864,7 +918,11 @@ class _StatCard extends StatelessWidget {
                     data.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: colors.text, fontWeight: FontWeight.w700, fontSize: 13),
+                    style: TextStyle(
+                      color: colors.text,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
                   ),
                   Text(
                     data.body,
@@ -901,7 +959,11 @@ class _EmptyState extends StatelessWidget {
             Text(
               'No Team Members Found',
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.text, fontSize: 20, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                color: colors.text,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 8),
             ConstrainedBox(
@@ -909,11 +971,18 @@ class _EmptyState extends StatelessWidget {
               child: Text(
                 "You haven't added any team members yet. Click the button above to add your first team member.",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: colors.muted, fontSize: 14, height: 1.45),
+                style: TextStyle(
+                  color: colors.muted,
+                  fontSize: 14,
+                  height: 1.45,
+                ),
               ),
             ),
             const SizedBox(height: 18),
-            _AddButton(key: const Key('add-team-member-empty'), onPressed: onAdd),
+            _AddButton(
+              key: const Key('add-team-member-empty'),
+              onPressed: onAdd,
+            ),
           ],
         ),
       ),
@@ -932,9 +1001,21 @@ class _EmptyArt extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const Positioned(top: 8, left: 18, child: Icon(Icons.auto_awesome, size: 14, color: Color(0xFF93C5FD))),
-          const Positioned(top: 16, right: 16, child: Icon(Icons.auto_awesome, size: 12, color: Color(0xFFBFDBFE))),
-          const Positioned(bottom: 18, left: 12, child: Icon(Icons.auto_awesome, size: 10, color: Color(0xFFBFDBFE))),
+          const Positioned(
+            top: 8,
+            left: 18,
+            child: Icon(Icons.auto_awesome, size: 14, color: Color(0xFF93C5FD)),
+          ),
+          const Positioned(
+            top: 16,
+            right: 16,
+            child: Icon(Icons.auto_awesome, size: 12, color: Color(0xFFBFDBFE)),
+          ),
+          const Positioned(
+            bottom: 18,
+            left: 12,
+            child: Icon(Icons.auto_awesome, size: 10, color: Color(0xFFBFDBFE)),
+          ),
           Container(
             width: 92,
             height: 72,
@@ -963,7 +1044,11 @@ class _EmptyArt extends StatelessWidget {
 }
 
 class _FilterRow extends StatelessWidget {
-  const _FilterRow({required this.colors, required this.value, required this.onChanged});
+  const _FilterRow({
+    required this.colors,
+    required this.value,
+    required this.onChanged,
+  });
 
   final DashboardColors colors;
   final String value;
@@ -973,7 +1058,10 @@ class _FilterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text('Team members', style: TextStyle(color: colors.text, fontWeight: FontWeight.w800)),
+        Text(
+          'Team members',
+          style: TextStyle(color: colors.text, fontWeight: FontWeight.w800),
+        ),
         const Spacer(),
         DecoratedBox(
           decoration: _cardDecoration(colors),
@@ -1041,7 +1129,8 @@ class _MemberTable extends StatelessWidget {
             );
           }
           const minWidth = 1100.0;
-          final tableWidth = constraints.maxWidth < minWidth ? minWidth : constraints.maxWidth;
+          final tableWidth =
+              constraints.maxWidth < minWidth ? minWidth : constraints.maxWidth;
           final table = SizedBox(
             width: tableWidth,
             child: Column(
@@ -1125,24 +1214,73 @@ class _MemberRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: colors.border.withValues(alpha: 0.7))),
+        border: Border(
+          bottom: BorderSide(color: colors.border.withValues(alpha: 0.7)),
+        ),
       ),
       child: Row(
         children: [
-          SizedBox(width: 52, child: heading ? cell(cells[0]) : _Avatar(name: person!.fullName)),
-          Expanded(flex: 3, child: cell(heading ? cells[1] : person!.fullName, strong: !heading)),
-          Expanded(flex: 3, child: cell(heading ? cells[2] : person!.whatsappNumber)),
-          Expanded(flex: 5, child: heading ? cell(cells[3]) : _ProfileLink(url: person!.facebookUrl, style: style)),
-          Expanded(flex: 5, child: heading ? cell(cells[4]) : _ProfileLink(url: person!.instagramUrl, style: style)),
-          Expanded(flex: 2, child: cell(heading ? cells[5] : (person!.designation.isEmpty ? '—' : person.designation))),
+          SizedBox(
+            width: 52,
+            child: heading ? cell(cells[0]) : _Avatar(name: person!.fullName),
+          ),
+          Expanded(
+            flex: 3,
+            child: cell(
+              heading ? cells[1] : person!.fullName,
+              strong: !heading,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: cell(heading ? cells[2] : person!.whatsappNumber),
+          ),
+          Expanded(
+            flex: 5,
+            child:
+                heading
+                    ? cell(cells[3])
+                    : _ProfileLink(url: person!.facebookUrl, style: style),
+          ),
+          Expanded(
+            flex: 5,
+            child:
+                heading
+                    ? cell(cells[4])
+                    : _ProfileLink(url: person!.instagramUrl, style: style),
+          ),
+          Expanded(
+            flex: 2,
+            child: cell(
+              heading
+                  ? cells[5]
+                  : (person!.designation.isEmpty ? '—' : person.designation),
+            ),
+          ),
           Expanded(flex: 2, child: cell(heading ? cells[6] : person!.role)),
-          Expanded(flex: 2, child: cell(heading ? cells[7] : (person!.location.isEmpty ? '—' : person.location))),
-          SizedBox(width: 92, child: heading ? cell(cells[8]) : _StatusChip(status: person!.status)),
+          Expanded(
+            flex: 2,
+            child: cell(
+              heading
+                  ? cells[7]
+                  : (person!.location.isEmpty ? '—' : person.location),
+            ),
+          ),
+          SizedBox(
+            width: 92,
+            child:
+                heading ? cell(cells[8]) : _StatusChip(status: person!.status),
+          ),
           SizedBox(
             width: 132,
-            child: heading
-                ? cell(cells[9])
-                : _Actions(onView: onView!, onEdit: onEdit!, onDelete: onDelete!),
+            child:
+                heading
+                    ? cell(cells[9])
+                    : _Actions(
+                      onView: onView!,
+                      onEdit: onEdit!,
+                      onDelete: onDelete!,
+                    ),
           ),
         ],
       ),
@@ -1180,10 +1318,16 @@ class _MemberCard extends StatelessWidget {
               children: [
                 Text(
                   formatPersonName(member.fullName),
-                  style: TextStyle(color: colors.text, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    color: colors.text,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text('${member.whatsappNumber} · ${member.role}', style: TextStyle(color: colors.muted, fontSize: 13)),
+                Text(
+                  '${member.whatsappNumber} · ${member.role}',
+                  style: TextStyle(color: colors.muted, fontSize: 13),
+                ),
                 const SizedBox(height: 4),
                 if (member.facebookUrl.trim().isNotEmpty)
                   _ProfileLink(
@@ -1197,7 +1341,10 @@ class _MemberCard extends StatelessWidget {
                   ),
                 if (member.designation.isNotEmpty || member.location.isNotEmpty)
                   Text(
-                    [member.designation, member.location].where((part) => part.isNotEmpty).join(' · '),
+                    [
+                      member.designation,
+                      member.location,
+                    ].where((part) => part.isNotEmpty).join(' · '),
                     style: TextStyle(color: colors.muted, fontSize: 13),
                   ),
                 const SizedBox(height: 8),
@@ -1213,10 +1360,7 @@ class _MemberCard extends StatelessWidget {
 }
 
 class _ProfileLink extends StatelessWidget {
-  const _ProfileLink({
-    required this.url,
-    required this.style,
-  });
+  const _ProfileLink({required this.url, required this.style});
 
   final String url;
   final TextStyle style;
@@ -1265,16 +1409,30 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final parts = name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
-    final initials = parts.isEmpty
-        ? '?'
-        : parts.length == 1
+    final parts =
+        name
+            .trim()
+            .split(RegExp(r'\s+'))
+            .where((part) => part.isNotEmpty)
+            .toList();
+    final initials =
+        parts.isEmpty
+            ? '?'
+            : parts.length == 1
             ? parts.first.substring(0, 1).toUpperCase()
-            : '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'.toUpperCase();
+            : '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+                .toUpperCase();
     return CircleAvatar(
       radius: 18,
       backgroundColor: const Color(0xFFE8F2FF),
-      child: Text(initials, style: const TextStyle(color: _blue, fontWeight: FontWeight.w800, fontSize: 12)),
+      child: Text(
+        initials,
+        style: const TextStyle(
+          color: _blue,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }
@@ -1302,13 +1460,24 @@ class _StatusChip extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }
 
 class _Actions extends StatelessWidget {
-  const _Actions({required this.onView, required this.onEdit, required this.onDelete});
+  const _Actions({
+    required this.onView,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   final VoidCallback onView;
   final VoidCallback onEdit;
@@ -1335,7 +1504,11 @@ class _Actions extends StatelessWidget {
           tooltip: 'Delete',
           visualDensity: VisualDensity.compact,
           onPressed: onDelete,
-          icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444), size: 20),
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Color(0xFFEF4444),
+            size: 20,
+          ),
         ),
       ],
     );
@@ -1365,12 +1538,27 @@ class _MessageCard extends StatelessWidget {
         padding: const EdgeInsets.all(28),
         child: Column(
           children: [
-            Text(title, style: TextStyle(color: colors.text, fontWeight: FontWeight.w800, fontSize: 18)),
+            Text(
+              title,
+              style: TextStyle(
+                color: colors.text,
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(body, textAlign: TextAlign.center, style: TextStyle(color: colors.muted)),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colors.muted),
+            ),
             if (action != null) ...[
               const SizedBox(height: 16),
-              FilledButton(style: FilledButton.styleFrom(backgroundColor: _blue), onPressed: onPressed, child: Text(action!)),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: _blue),
+                onPressed: onPressed,
+                child: Text(action!),
+              ),
             ],
           ],
         ),
@@ -1407,7 +1595,9 @@ class _MemberDialogState extends State<_MemberDialog> {
     super.initState();
     final existing = widget.existing;
     _name = TextEditingController(text: existing?.fullName ?? '');
-    _whatsappNumber = TextEditingController(text: existing?.whatsappNumber ?? '');
+    _whatsappNumber = TextEditingController(
+      text: existing?.whatsappNumber ?? '',
+    );
     _facebookUrl = TextEditingController(text: existing?.facebookUrl ?? '');
     _instagramUrl = TextEditingController(text: existing?.instagramUrl ?? '');
     _designation = TextEditingController(text: existing?.designation ?? '');
@@ -1512,7 +1702,12 @@ class _MemberDialogState extends State<_MemberDialog> {
   Widget build(BuildContext context) {
     final editing = widget.existing != null;
     final colors = DashboardColors.of(context);
-    final labelStyle = TextStyle(color: colors.text, fontWeight: FontWeight.w700, fontSize: 13, height: 1.2);
+    final labelStyle = TextStyle(
+      color: colors.text,
+      fontWeight: FontWeight.w700,
+      fontSize: 13,
+      height: 1.2,
+    );
     return Dialog(
       backgroundColor: colors.card,
       surfaceTintColor: Colors.transparent,
@@ -1528,7 +1723,11 @@ class _MemberDialogState extends State<_MemberDialog> {
             children: [
               Text(
                 editing ? 'Edit Team Member' : 'Add Team Member',
-                style: TextStyle(color: colors.text, fontSize: 22, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  color: colors.text,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 16),
               _field(colors, _name, 'Full Name', key: const Key('team-name')),
@@ -1541,8 +1740,18 @@ class _MemberDialogState extends State<_MemberDialog> {
                 prefix: _BrandIcon(_Brand.whatsapp, color: colors.text),
                 keyboard: TextInputType.phone,
               ),
-              _field(colors, _designation, 'Designation', key: const Key('team-designation')),
-              _field(colors, _location, 'Location', key: const Key('team-location')),
+              _field(
+                colors,
+                _designation,
+                'Designation',
+                key: const Key('team-designation'),
+              ),
+              _field(
+                colors,
+                _location,
+                'Location',
+                key: const Key('team-location'),
+              ),
               _dropdown(
                 colors: colors,
                 label: 'Assign Role',
@@ -1559,12 +1768,17 @@ class _MemberDialogState extends State<_MemberDialog> {
                   fieldKey: const Key('team-status'),
                   value: _status,
                   items: const ['pending', 'active', 'inactive'],
-                  itemLabel: (value) => value[0].toUpperCase() + value.substring(1),
-                  onChanged: (value) => setState(() => _status = value ?? 'pending'),
+                  itemLabel:
+                      (value) => value[0].toUpperCase() + value.substring(1),
+                  onChanged:
+                      (value) => setState(() => _status = value ?? 'pending'),
                 ),
               _socialFields(colors),
               const SizedBox(height: 2),
-              Text('Access Permissions', style: labelStyle.copyWith(fontSize: 14)),
+              Text(
+                'Access Permissions',
+                style: labelStyle.copyWith(fontSize: 14),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -1577,28 +1791,41 @@ class _MemberDialogState extends State<_MemberDialog> {
                       showCheckmark: false,
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       labelPadding: const EdgeInsets.symmetric(horizontal: 2),
                       backgroundColor: colors.field,
-                      selectedColor: _blue.withValues(alpha: colors.isDark ? 0.28 : 0.16),
-                      labelStyle: TextStyle(color: colors.text, fontWeight: FontWeight.w600, fontSize: 13),
-                      side: BorderSide(
-                        color: _selectedPermissions.contains(permission)
-                            ? _blue
-                            : const Color(0xFFD7E6F5),
+                      selectedColor: _blue.withValues(
+                        alpha: colors.isDark ? 0.28 : 0.16,
                       ),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-                      onSelected: _saving
-                          ? null
-                          : (selected) {
-                              setState(() {
-                                if (selected) {
-                                  _selectedPermissions.add(permission);
-                                } else {
-                                  _selectedPermissions.remove(permission);
-                                }
-                              });
-                            },
+                      labelStyle: TextStyle(
+                        color: colors.text,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                      side: BorderSide(
+                        color:
+                            _selectedPermissions.contains(permission)
+                                ? _blue
+                                : const Color(0xFFD7E6F5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      onSelected:
+                          _saving
+                              ? null
+                              : (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedPermissions.add(permission);
+                                  } else {
+                                    _selectedPermissions.remove(permission);
+                                  }
+                                });
+                              },
                     ),
                 ],
               ),
@@ -1622,7 +1849,11 @@ class _MemberDialogState extends State<_MemberDialog> {
                       key: const Key('team-send'),
                       style: FilledButton.styleFrom(backgroundColor: _blue),
                       onPressed: _saving ? null : _submit,
-                      child: Text(_saving ? 'Saving…' : (editing ? 'Save' : 'Send Invitation')),
+                      child: Text(
+                        _saving
+                            ? 'Saving…'
+                            : (editing ? 'Save' : 'Send Invitation'),
+                      ),
                     ),
                   ],
                 ),
@@ -1689,7 +1920,12 @@ class _MemberDialogState extends State<_MemberDialog> {
         children: [
           Text(
             label,
-            style: TextStyle(color: colors.text, fontWeight: FontWeight.w700, fontSize: 13, height: 1.2),
+            style: TextStyle(
+              color: colors.text,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              height: 1.2,
+            ),
           ),
           const SizedBox(height: 6),
           TextField(
@@ -1726,14 +1962,25 @@ class _MemberDialogState extends State<_MemberDialog> {
         children: [
           Text(
             label,
-            style: TextStyle(color: colors.text, fontWeight: FontWeight.w700, fontSize: 13, height: 1.2),
+            style: TextStyle(
+              color: colors.text,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              height: 1.2,
+            ),
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             key: fieldKey,
             value: value,
             isExpanded: true,
-            hint: hint == null ? null : Text(hint, style: TextStyle(color: colors.muted, fontSize: 15)),
+            hint:
+                hint == null
+                    ? null
+                    : Text(
+                      hint,
+                      style: TextStyle(color: colors.muted, fontSize: 15),
+                    ),
             dropdownColor: colors.card,
             iconEnabledColor: colors.muted,
             style: TextStyle(color: colors.text, fontSize: 15),
@@ -1790,21 +2037,36 @@ class _MemberDetails extends StatelessWidget {
             children: [
               Text(
                 formatPersonName(member.fullName),
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 12),
               for (var i = 0; i < rows.length; i += 2) ...[
-                Text(rows[i], style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                Text(
+                  rows[i],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 if (rows[i] == 'Facebook' || rows[i] == 'Instagram')
-                  _ProfileLink(url: rows[i + 1], style: const TextStyle(fontSize: 14, color: _blue))
+                  _ProfileLink(
+                    url: rows[i + 1],
+                    style: const TextStyle(fontSize: 14, color: _blue),
+                  )
                 else
                   Text(rows[i + 1]),
                 const SizedBox(height: 8),
               ],
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
               ),
             ],
           ),
@@ -1862,10 +2124,7 @@ const _facebookHosts = {
   'm.fb.com',
 };
 
-const _instagramHosts = {
-  'instagram.com',
-  'www.instagram.com',
-};
+const _instagramHosts = {'instagram.com', 'www.instagram.com'};
 
 String _normalizeProfileUrl(String raw) {
   final text = raw.trim();
@@ -1892,18 +2151,21 @@ InputDecoration _inputDecoration({
   return InputDecoration(
     hintText: hint,
     hintStyle: TextStyle(color: colors.muted, fontSize: 14),
-    prefixIcon: prefix == null
-        ? null
-        : Padding(
-            padding: const EdgeInsets.only(left: 12, right: 4),
-            child: prefix,
-          ),
+    prefixIcon:
+        prefix == null
+            ? null
+            : Padding(
+              padding: const EdgeInsets.only(left: 12, right: 4),
+              child: prefix,
+            ),
     prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
     filled: true,
     fillColor: colors.field,
     isDense: false,
     contentPadding: EdgeInsets.fromLTRB(prefix == null ? 14 : 0, 16, 14, 16),
-    border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+    border: const OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(12)),
+    ),
     enabledBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(12)),
       borderSide: BorderSide(color: Color(0xFFD7E6F5)),
@@ -1971,7 +2233,9 @@ BoxDecoration _cardDecoration(DashboardColors colors) {
   return BoxDecoration(
     color: colors.card,
     borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: colors.isDark ? colors.border : const Color(0xFFD7E6F5)),
+    border: Border.all(
+      color: colors.isDark ? colors.border : const Color(0xFFD7E6F5),
+    ),
     boxShadow: [
       BoxShadow(
         color: colors.shadow,

@@ -60,6 +60,5 @@ class OnboardingDraft {
   String? selectedDomain;
   String? websiteTemplate;
   final Set<String> socialChannels = <String>{};
-  bool vrmRequested = false;
   Map<String, dynamic> additionalProfile = <String, dynamic>{};
 }

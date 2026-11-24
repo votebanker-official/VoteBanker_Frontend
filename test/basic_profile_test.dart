@@ -175,14 +175,15 @@ void main() {
 
     await _enter(tester, 'profileContact', '9876543210');
     await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('Additional Leader Profile Details'), findsOneWidget);
-    await _tapLabel(tester, 'Save & Continue');
-    expect(find.text('My Website'), findsOneWidget);
+    expect(find.text('Enter a valid contact number.'), findsNothing);
+    expect(find.text('Leader Profile'), findsOneWidget);
+    expect(find.text('My Website'), findsNothing);
 
     final draft =
-        OnboardingScope.of(tester.element(find.text('My Website'))).draft;
+        OnboardingScope.of(tester.element(find.text('Leader Profile'))).draft;
+    expect(draft.contactNumber, '9876543210');
     expect(draft.publicContact, '9876543210');
-    expect(draft.partNo, '12/A');
+    expect(draft.partNo, '  12/A ');
     expect(draft.partName, 'Booth 4');
     expect(draft.preferredLanguage, 'en');
   });
@@ -227,7 +228,13 @@ void main() {
       // Validation: empty contact number rejected on submit
       await _enter(tester, 'profileContact', '');
       await _tapLabel(tester, 'Save & Continue');
-      expect(find.text('Enter a valid contact number.'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('profileContact')),
+          matching: find.text('Fill this field first'),
+        ),
+        findsOneWidget,
+      );
 
       // Validation: fewer than 10 digits rejected on submit
       await _enter(tester, 'profileContact', '98765');
@@ -242,9 +249,9 @@ void main() {
       // Validation: 10 digits starting with 6–9 accepted on submit
       await _enter(tester, 'profileContact', '6876543210');
       await _tapLabel(tester, 'Save & Continue');
-      expect(find.text('Additional Leader Profile Details'), findsOneWidget);
-      await _tapLabel(tester, 'Save & Continue');
-      expect(find.text('My Website'), findsOneWidget);
+      expect(find.text('Enter a valid contact number.'), findsNothing);
+      expect(find.text('Leader Profile'), findsOneWidget);
+      expect(find.text('My Website'), findsNothing);
     },
   );
 
@@ -442,10 +449,11 @@ void main() {
 
       await _openDropdown(tester, 'profileDesignation');
       expect(find.byKey(const ValueKey('designationSearch')), findsOneWidget);
-      expect(find.text('MLA'), findsOneWidget);
-      expect(find.text('MP'), findsOneWidget);
-      expect(find.text('Minister'), findsOneWidget);
+      expect(find.text('Member of Legislative Assembly (MLA)'), findsOneWidget);
+      expect(find.text('Member of Parliament (MP)'), findsOneWidget);
+      expect(find.text('State Minister'), findsOneWidget);
       expect(find.text('Chief Minister'), findsOneWidget);
+      expect(find.text('Union Minister'), findsOneWidget);
 
       // Search partial text (case-insensitive)
       await tester.enterText(
@@ -453,10 +461,11 @@ void main() {
         'min',
       );
       await tester.pump();
-      expect(find.text('Minister'), findsOneWidget);
+      expect(find.text('State Minister'), findsOneWidget);
       expect(find.text('Chief Minister'), findsOneWidget);
-      expect(find.text('MLA'), findsNothing);
-      expect(find.text('MP'), findsNothing);
+      expect(find.text('Union Minister'), findsOneWidget);
+      expect(find.text('Member of Legislative Assembly (MLA)'), findsNothing);
+      expect(find.text('Member of Parliament (MP)'), findsNothing);
 
       // Clear search
       expect(
@@ -465,7 +474,7 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('clearDesignationSearch')));
       await tester.pump();
-      expect(find.text('MLA'), findsOneWidget);
+      expect(find.text('Member of Legislative Assembly (MLA)'), findsOneWidget);
       expect(find.text('Councillor'), findsOneWidget);
 
       // No results found
@@ -476,7 +485,7 @@ void main() {
       await tester.pump();
       expect(find.text('No results found'), findsOneWidget);
       expect(find.byKey(const ValueKey('noDesignationsFound')), findsOneWidget);
-      expect(find.text('MLA'), findsNothing);
+      expect(find.text('Member of Legislative Assembly (MLA)'), findsNothing);
 
       // Clear and select
       await tester.tap(find.byKey(const ValueKey('clearDesignationSearch')));

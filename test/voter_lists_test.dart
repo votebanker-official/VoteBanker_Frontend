@@ -10,10 +10,12 @@ import 'package:votebanker/features/onboarding/state/onboarding_controller.dart'
 import 'package:votebanker/features/onboarding/voter_lists/voter_lists_screen.dart';
 
 void main() {
-  test('local development points voter records at the dev page', () {
-    expect(AppConfig.vrmRecordsUrl, 'http://localhost:61714/vrm/records');
-    expect(AppConfig.readyUrl, isEmpty);
-  });
+  test(
+    'voter records use the in-app route unless an external URL is configured',
+    () {
+      expect(AppConfig.vrmRecordsUrl, isEmpty);
+    },
+  );
 
   testWidgets(
     'Get your Voter Lists opens voter roll records and back returns to Blue Tik',
@@ -45,8 +47,11 @@ void main() {
       expect(tester.getSize(skip).height, greaterThanOrEqualTo(48));
 
       await tester.tap(find.byKey(const Key('voter-lists-open')));
-      await tester.pump();
-      expect(openedUrl, 'http://localhost:61714/vrm/records');
+      await tester.pumpAndSettle();
+      expect(openedUrl, isNull);
+      expect(find.text('records-destination'), findsOneWidget);
+      Navigator.of(tester.element(find.text('records-destination'))).pop();
+      await tester.pumpAndSettle();
 
       await tester.tap(language);
       await tester.pumpAndSettle();
@@ -70,7 +75,7 @@ void main() {
       await tester.tap(find.byKey(const Key('voter-lists-skip')));
       await tester.pumpAndSettle();
       expect(openedUrl, isNull);
-      expect(find.text("You're all set"), findsOneWidget);
+      expect(find.text('campaign-templates-destination'), findsOneWidget);
     },
   );
 
@@ -125,10 +130,18 @@ Widget _materialApp(ThemeMode themeMode, Locale locale) {
     ],
     initialRoute: AppRoutes.voterLists,
     onGenerateRoute: (settings) {
+      if (settings.name == AppRoutes.campaignTemplates) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder:
+              (_) =>
+                  const Scaffold(body: Text('campaign-templates-destination')),
+        );
+      }
       if (settings.name == AppRoutes.ready) {
         return MaterialPageRoute<void>(
           settings: settings,
-          builder: (_) => const Scaffold(body: Text("You're all set")),
+          builder: (_) => const Scaffold(body: Text('ready-destination')),
         );
       }
       if (settings.name == AppRoutes.vrmRecords) {

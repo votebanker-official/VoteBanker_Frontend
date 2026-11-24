@@ -15,7 +15,7 @@ class VrmException implements Exception {
 /// Loads and updates VRM voter records via the VOTE BANKER API.
 class VrmService {
   VrmService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
@@ -24,9 +24,10 @@ class VrmService {
 
   Future<List<VrmVoterRecord>> listRecords({String query = ''}) async {
     final q = query.trim();
-    final path = q.isEmpty
-        ? '/api/vrm/records'
-        : '/api/vrm/records?q=${Uri.encodeQueryComponent(q)}';
+    final path =
+        q.isEmpty
+            ? '/api/vrm/records'
+            : '/api/vrm/records?q=${Uri.encodeQueryComponent(q)}';
     final response = await _send('GET', path);
     if (response == null) {
       throw const VrmException('unreachable');
@@ -88,6 +89,37 @@ class VrmService {
       throw const VrmException('bad_response');
     }
     return VrmVoterRecord.fromJson(record);
+  }
+
+  Future<Map<String, dynamic>> requestPackage(String packageCode) async {
+    final token = AuthService.instance.session?.accessToken;
+    if (token == null || token.isEmpty) {
+      throw const VrmException('unauthorized');
+    }
+
+    final response = await _send(
+      'POST',
+      '/api/vrm/package-requests',
+      body: {'packageCode': packageCode},
+      token: token,
+    );
+    if (response == null) {
+      throw const VrmException('unreachable');
+    }
+    final body = _json(response);
+    if (response.statusCode == 401) {
+      throw const VrmException('unauthorized');
+    }
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300 ||
+        body['success'] != true) {
+      throw VrmException(body['error'] as String? ?? 'request_failed');
+    }
+    final request = body['request'];
+    if (request is! Map<String, dynamic>) {
+      throw const VrmException('bad_response');
+    }
+    return request;
   }
 
   Future<http.Response?> _send(

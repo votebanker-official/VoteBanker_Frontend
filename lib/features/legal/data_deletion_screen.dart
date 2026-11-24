@@ -90,7 +90,8 @@ class _DataDeletionFormState extends State<DataDeletionForm> {
         details.isEmpty ||
         !_confirmed) {
       setState(() {
-        _error = 'Choose a request type, fill in every field, and confirm you are authorised.';
+        _error =
+            'Choose a request type, fill in every field, and confirm you are authorised.';
         _ready = false;
       });
       return;
@@ -127,20 +128,18 @@ class _DataDeletionFormState extends State<DataDeletionForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('Request type', style: AppTextStyles.label(context)),
-        RadioGroup<String>(
-          groupValue: _type,
-          onChanged: (value) => setState(() => _type = value),
-          child: Column(
-            children: [
-              for (final type in _types)
-                RadioListTile<String>(
-                  key: Key('deletion-type-$type'),
-                  value: type,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(type, style: AppTextStyles.body(context)),
-                ),
-            ],
-          ),
+        Column(
+          children: [
+            for (final type in _types)
+              RadioListTile<String>(
+                key: Key('deletion-type-$type'),
+                value: type,
+                groupValue: _type,
+                onChanged: (value) => setState(() => _type = value),
+                contentPadding: EdgeInsets.zero,
+                title: Text(type, style: AppTextStyles.body(context)),
+              ),
+          ],
         ),
         const SizedBox(height: 12),
         AppTextField(
@@ -184,7 +183,10 @@ class _DataDeletionFormState extends State<DataDeletionForm> {
           ),
         ),
         if (_error != null)
-          Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            _error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         const SizedBox(height: 8),
         PrimaryButton(
           key: const Key('deletion-submit'),
@@ -203,7 +205,10 @@ class _DataDeletionFormState extends State<DataDeletionForm> {
             key: const Key('deletion-ready'),
             style: AppTextStyles.body(context),
           ),
-          PublicRouteLink(label: 'Read the Privacy Policy', route: AppRoutes.privacyPolicy),
+          PublicRouteLink(
+            label: 'Read the Privacy Policy',
+            route: AppRoutes.privacyPolicy,
+          ),
         ],
       ],
     );

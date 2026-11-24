@@ -65,8 +65,7 @@ const enTranslations = <String, String>{
   'optionalHint': 'Every field is optional.',
   'photoError': 'Could not read that image.',
   'domainTitle': 'Name Your Website',
-  'domainDescription':
-      'Find the perfect domain for your VoteBanker presence.',
+  'domainDescription': 'Find the perfect domain for your VoteBanker presence.',
   'searchPlaceholder': 'Search for a domain name...',
   'available': 'Available',
   'unavailable': 'Unavailable',
@@ -263,9 +262,17 @@ const enTranslations = <String, String>{
   'vrmGetMoreBody': 'Choose how many more voter records you want.',
   'vrmNavHome': 'Home',
   'vrmNavRecords': 'Voter Records',
-  'vrmOffer100': 'Pay ₹100 to get 100 voters',
-  'vrmOffer1000': 'Pay ₹999 to get 1000 voters',
-  'vrmOffer10000': 'Pay ₹9999 to get 10000 voters',
+  'vrmOffer100': 'Request 100 voters for ₹100',
+  'vrmOffer1000': 'Request 1000 voters for ₹999',
+  'vrmOffer10000': 'Request 10000 voters for ₹9999',
+  'vrmRequestDisclaimer':
+      'Submitting records a request only. No payment is processed and no voter records are delivered.',
+  'vrmRequestSuccess':
+      'Request recorded. No payment was processed and voter records have not been delivered.',
+  'vrmRequestSignIn': 'Sign in to submit a voter package request.',
+  'vrmRequestProfileRequired':
+      'Add your name and phone number to your profile before requesting.',
+  'vrmRequestError': 'Could not submit the request. Please try again.',
   'cardVolunteers': 'My Volunteers',
   'volTitle': 'My Volunteers',
   'volPageSubtitle': 'Manage and organize your volunteer network.',
@@ -407,6 +414,7 @@ const enTranslations = <String, String>{
       'Manage your team members, assign roles, and track their progress.',
   'cardAnalytics': 'Analytics',
   'cardMarketplace': 'Campaign',
+  'campaignTemplatesNav': 'Campaign Templates',
   'comingLater': 'Coming later',
   'stepProgress': 'Step {step} of {total}',
   'optionalLabel': 'Optional',
@@ -545,8 +553,7 @@ const enTranslations = <String, String>{
   'blueTikProfileUrl': '{platform} profile URL',
   'blueTikSubmit': 'Submit application',
   'blueTikSaving': 'Please wait...',
-  'blueTikSaveFailed':
-      'The application could not be saved. Please try again.',
+  'blueTikSaveFailed': 'The application could not be saved. Please try again.',
   'blueTikNameRequired': "Enter the leader's name.",
   'blueTikMobileInvalid': 'Enter a valid mobile number.',
   'blueTikEmailInvalid': 'Enter a valid email address.',
@@ -559,15 +566,6 @@ const enTranslations = <String, String>{
   'blueTikDone': 'Done',
   'blueTikAssistanceNote':
       'Assistance charge only. This does not approve or guarantee a blue tick.',
-  'vrmTitle': 'Voter Relationship Management',
-  'vrmBody':
-      'Voter relationship management stays off until you choose it. No contacts are stored yet.',
-  'vrmPointContacts': 'Contacts and follow-ups',
-  'vrmPointTeam': 'Team and volunteer assignment',
-  'vrmPointIssues': 'Public issues and events',
-  'vrmSetup': 'Set up VRM',
-  'vrmLater':
-      'VRM will be connected when the database and APIs are added. Continuing for now.',
   'readyTitle': "You're all set",
   'readyBody':
       'Every feature is optional. Open the dashboard and use only what you need.',

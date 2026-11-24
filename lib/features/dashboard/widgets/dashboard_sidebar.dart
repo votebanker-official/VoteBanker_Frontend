@@ -46,6 +46,11 @@ List<DashboardNavEntry> dashboardSidebarItems(AppLocalizations l10n) {
       route: AppRoutes.merchandise,
     ),
     DashboardNavEntry(
+      icon: Icons.view_carousel_outlined,
+      label: l10n.line('campaignTemplatesNav'),
+      route: AppRoutes.campaignTemplates,
+    ),
+    DashboardNavEntry(
       icon: Icons.account_balance_outlined,
       label: l10n.line('cardAdministrations'),
       route: AppRoutes.administrations,
@@ -107,13 +112,11 @@ class _DashboardSidebarState extends State<DashboardSidebar> {
       label: l10n.line('adminPanel'),
       route: AppRoutes.admin,
     );
-    final settings = items.indexWhere((item) => item.icon == Icons.settings_outlined);
+    final settings = items.indexWhere(
+      (item) => item.icon == Icons.settings_outlined,
+    );
     if (settings < 0) return [...items, admin];
-    return [
-      ...items.sublist(0, settings),
-      admin,
-      ...items.sublist(settings),
-    ];
+    return [...items.sublist(0, settings), admin, ...items.sublist(settings)];
   }
 
   @override

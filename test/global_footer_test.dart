@@ -46,6 +46,10 @@ void main() {
     }
   });
 
+  test('voter records route is excluded from the shared footer shell', () {
+    expect(AppRoutes.showsGlobalFooter(AppRoutes.vrmRecords), isFalse);
+  });
+
   testWidgets('footer link hover has no fill and turns the words teal', (
     tester,
   ) async {
@@ -88,10 +92,7 @@ void main() {
     final pillBox = tester.widget<AnimatedContainer>(
       find.ancestor(of: pill, matching: find.byType(AnimatedContainer)).first,
     );
-    expect(
-      (pillBox.decoration! as BoxDecoration).color,
-      GlobalFooter.pill,
-    );
+    expect((pillBox.decoration! as BoxDecoration).color, GlobalFooter.pill);
     await gesture.removePointer();
   });
 
@@ -145,7 +146,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
-    final brand = tester.getTopLeft(find.text('Voter Relationship Management Private Limited'));
+    final brand = tester.getTopLeft(
+      find.text('Voter Relationship Management Private Limited'),
+    );
     final quick = tester.getTopLeft(find.text('Quick Links'));
     final support = tester.getTopLeft(find.text('Support'));
     final company = tester.getTopLeft(find.text('Company'));
@@ -158,7 +161,11 @@ void main() {
 
     expect(
       tester
-          .getTopLeft(find.text('© 2026 Voter Relationship Management Private Limited. All rights reserved.'))
+          .getTopLeft(
+            find.text(
+              '© 2026 Voter Relationship Management Private Limited. All rights reserved.',
+            ),
+          )
           .dx,
       lessThan(tester.getTopLeft(find.text('Privacy Policy')).dx),
     );
@@ -175,7 +182,12 @@ void main() {
     expect(
       tester.getTopLeft(find.text('Quick Links')).dy,
       greaterThan(
-        tester.getTopLeft(find.text('Voter Relationship Management Private Limited')).dy + 20,
+        tester
+                .getTopLeft(
+                  find.text('Voter Relationship Management Private Limited'),
+                )
+                .dy +
+            20,
       ),
     );
     expect(
@@ -196,7 +208,11 @@ void main() {
     expect(
       tester.getTopLeft(find.text('Support')).dy,
       greaterThan(
-        tester.getTopLeft(find.text('Voter Relationship Management Private Limited')).dy,
+        tester
+            .getTopLeft(
+              find.text('Voter Relationship Management Private Limited'),
+            )
+            .dy,
       ),
     );
   });
@@ -223,7 +239,10 @@ void main() {
     expect(footer.top, greaterThanOrEqualTo(page.bottom - 1));
     expect(find.byType(VerticalDivider), findsNothing);
     expect(find.byType(Divider), findsNothing);
-    expect(find.text('Voter Relationship Management Private Limited'), findsWidgets);
+    expect(
+      find.text('Voter Relationship Management Private Limited'),
+      findsWidgets,
+    );
     expect(find.text('Quick Links'), findsOneWidget);
     expect(find.text('Privacy Policy'), findsOneWidget);
     expect(find.text('Refund & Shipping Policy'), findsOneWidget);
@@ -246,7 +265,11 @@ void main() {
     expect(
       tester.getTopLeft(find.text('Quick Links')).dy,
       greaterThan(
-        tester.getTopLeft(find.text('Voter Relationship Management Private Limited')).dy,
+        tester
+            .getTopLeft(
+              find.text('Voter Relationship Management Private Limited'),
+            )
+            .dy,
       ),
     );
     expect(
@@ -286,10 +309,18 @@ void main() {
     expect(after.top, lessThan(before.top));
     expect(after.height, before.height);
     expect(after.width, 800);
-    expect(find.text('Voter Relationship Management Private Limited'), findsWidgets);
+    expect(
+      find.text('Voter Relationship Management Private Limited'),
+      findsWidgets,
+    );
     expect(find.text('Quick Links'), findsOneWidget);
     expect(find.text('Follow Us'), findsOneWidget);
-    expect(find.text('© 2026 Voter Relationship Management Private Limited. All rights reserved.'), findsOneWidget);
+    expect(
+      find.text(
+        '© 2026 Voter Relationship Management Private Limited. All rights reserved.',
+      ),
+      findsOneWidget,
+    );
   });
 }
 

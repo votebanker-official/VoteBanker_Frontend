@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
-import '../../../app/routing/app_routes.dart';
 import '../../../core/services/auth_service.dart';
 import '../../merchandise/merchandise_intent.dart';
 import '../state/onboarding_controller.dart';

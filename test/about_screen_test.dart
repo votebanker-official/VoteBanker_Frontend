@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/routing/app_router.dart';
-import 'package:votebanker/app/routing/app_routes.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/core/widgets/global_footer.dart';

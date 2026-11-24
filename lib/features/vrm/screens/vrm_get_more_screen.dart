@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_service.dart';
+import '../services/vrm_service.dart';
 
-/// View More Voters. Layout only — the three offer actions are unchanged.
+/// Lets signed-in users request one of the available voter packages.
 class VrmGetMoreScreen extends StatelessWidget {
-  const VrmGetMoreScreen({super.key});
+  const VrmGetMoreScreen({super.key, this.service});
+
+  final VrmService? service;
 
   static const _navy = Color(0xFF1B2559);
   static const _muted = Color(0xFF8B93A7);
@@ -18,30 +23,90 @@ class VrmGetMoreScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FC),
       body: Stack(
-        children: const [
-          Positioned.fill(child: _PageWash()),
-          Positioned(left: 0, right: 0, bottom: 0, height: 160, child: _Dunes()),
-          Positioned.fill(child: _GetMoreBody()),
+        children: [
+          const Positioned.fill(child: _PageWash()),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 160,
+            child: _Dunes(),
+          ),
+          Positioned.fill(child: _GetMoreBody(service: service)),
         ],
       ),
     );
   }
 }
 
-class _GetMoreBody extends StatelessWidget {
-  const _GetMoreBody();
+class _GetMoreBody extends StatefulWidget {
+  const _GetMoreBody({this.service});
+
+  final VrmService? service;
+
+  @override
+  State<_GetMoreBody> createState() => _GetMoreBodyState();
+}
+
+class _GetMoreBodyState extends State<_GetMoreBody> {
+  late final VrmService _service;
+  var _requesting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _service = widget.service ?? VrmService();
+  }
+
+  Future<void> _requestPackage(_Offer offer) async {
+    if (_requesting) return;
+    setState(() => _requesting = true);
+    try {
+      await _service.requestPackage(offer.packageCode);
+      if (!mounted) return;
+      _showMessage(AppLocalizations.of(context).line('vrmRequestSuccess'));
+    } on VrmException catch (error) {
+      if (!mounted) return;
+      final key = switch (error.code) {
+        'unauthorized' => 'vrmRequestSignIn',
+        'profile_details_required' => 'vrmRequestProfileRequired',
+        _ => 'vrmRequestError',
+      };
+      _showMessage(AppLocalizations.of(context).line(key), isError: true);
+    } catch (_) {
+      if (!mounted) return;
+      _showMessage(
+        AppLocalizations.of(context).line('vrmRequestError'),
+        isError: true,
+      );
+    } finally {
+      if (mounted) setState(() => _requesting = false);
+    }
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor:
+            isError ? const Color(0xFFB42318) : const Color(0xFF16794A),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final offers = <_Offer>[
       _Offer(
+        packageCode: 'voters_100',
         label: l10n.line('vrmOffer100'),
         icon: Icons.groups_rounded,
         color: const Color(0xFF3B82F6),
         background: const Color(0xFFE8F1FF),
       ),
       _Offer(
+        packageCode: 'voters_1000',
         label: l10n.line('vrmOffer1000'),
         icon: Icons.emoji_events_rounded,
         color: const Color(0xFFF59E0B),
@@ -49,6 +114,7 @@ class _GetMoreBody extends StatelessWidget {
         crown: true,
       ),
       _Offer(
+        packageCode: 'voters_10000',
         label: l10n.line('vrmOffer10000'),
         icon: Icons.diamond_rounded,
         color: const Color(0xFF8B5CF6),
@@ -64,9 +130,15 @@ class _GetMoreBody extends StatelessWidget {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final wide = constraints.maxWidth >= VrmGetMoreScreen.wideBreakpoint;
+                final wide =
+                    constraints.maxWidth >= VrmGetMoreScreen.wideBreakpoint;
                 return SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(wide ? 28 : 16, 20, wide ? 28 : 16, 36),
+                  padding: EdgeInsets.fromLTRB(
+                    wide ? 28 : 16,
+                    20,
+                    wide ? 28 : 16,
+                    36,
+                  ),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 1120),
@@ -84,14 +156,34 @@ class _GetMoreBody extends StatelessWidget {
                           ],
                         ),
                         child: Padding(
-                          padding: EdgeInsets.fromLTRB(wide ? 36 : 16, wide ? 28 : 18, wide ? 36 : 16, wide ? 32 : 20),
+                          padding: EdgeInsets.fromLTRB(
+                            wide ? 36 : 16,
+                            wide ? 28 : 18,
+                            wide ? 36 : 16,
+                            wide ? 32 : 20,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _Heading(wide: wide),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.line('vrmRequestDisclaimer'),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFF667085),
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
+                              ),
                               SizedBox(height: wide ? 28 : 18),
                               for (final offer in offers) ...[
-                                _OfferCard(offer: offer, onPressed: () {}),
+                                _OfferCard(
+                                  offer: offer,
+                                  loading: _requesting,
+                                  onPressed:
+                                      () => unawaited(_requestPackage(offer)),
+                                ),
                                 const SizedBox(height: 14),
                               ],
                             ],
@@ -112,6 +204,7 @@ class _GetMoreBody extends StatelessWidget {
 
 class _Offer {
   const _Offer({
+    required this.packageCode,
     required this.label,
     required this.icon,
     required this.color,
@@ -120,6 +213,7 @@ class _Offer {
     this.gem = false,
   });
 
+  final String packageCode;
   final String label;
   final IconData icon;
   final Color color;
@@ -137,13 +231,12 @@ class _TopBar extends StatelessWidget {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF5A524), width: 2),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFF5A524), width: 2)),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final desktop = constraints.maxWidth >= VrmGetMoreScreen.wideBreakpoint;
+          final desktop =
+              constraints.maxWidth >= VrmGetMoreScreen.wideBreakpoint;
           return SizedBox(
             height: 64,
             child: Padding(
@@ -153,33 +246,42 @@ class _TopBar extends StatelessWidget {
                   if (!desktop)
                     PopupMenuButton<String>(
                       tooltip: l10n.line('vrmNavHome'),
-                      icon: const Icon(Icons.menu_rounded, color: VrmGetMoreScreen._navy),
+                      icon: const Icon(
+                        Icons.menu_rounded,
+                        color: VrmGetMoreScreen._navy,
+                      ),
                       onSelected: (value) => _open(context, value),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: AppRoutes.dashboard,
-                          child: Text(l10n.line('vrmNavHome')),
-                        ),
-                        PopupMenuItem(
-                          value: AppRoutes.vrmRecords,
-                          child: Text(l10n.line('vrmNavRecords')),
-                        ),
-                      ],
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem(
+                              value: AppRoutes.dashboard,
+                              child: Text(l10n.line('vrmNavHome')),
+                            ),
+                            PopupMenuItem(
+                              value: AppRoutes.vrmRecords,
+                              child: Text(l10n.line('vrmNavRecords')),
+                            ),
+                          ],
                     ),
                   const Expanded(
-                    child: Align(alignment: Alignment.centerLeft, child: _Brand()),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _Brand(),
+                    ),
                   ),
                   if (desktop) ...[
                     _NavLink(
                       icon: Icons.home_rounded,
                       label: l10n.line('vrmNavHome'),
-                      onPressed: () => AppRouter.open(context, AppRoutes.dashboard),
+                      onPressed:
+                          () => AppRouter.open(context, AppRoutes.dashboard),
                     ),
                     const SizedBox(width: 8),
                     _NavLink(
                       icon: Icons.bar_chart_rounded,
                       label: l10n.line('vrmNavRecords'),
-                      onPressed: () => AppRouter.open(context, AppRoutes.vrmRecords),
+                      onPressed:
+                          () => AppRouter.open(context, AppRoutes.vrmRecords),
                     ),
                     const SizedBox(width: 16),
                   ],
@@ -280,12 +382,13 @@ class _ProfileMenu extends StatelessWidget {
           AppRouter.open(context, AppRoutes.profile);
         }
       },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: AppRoutes.profile,
-          child: Text(l10n.cardProfile),
-        ),
-      ],
+      itemBuilder:
+          (context) => [
+            PopupMenuItem(
+              value: AppRoutes.profile,
+              child: Text(l10n.cardProfile),
+            ),
+          ],
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -293,11 +396,19 @@ class _ProfileMenu extends StatelessWidget {
             radius: 16,
             backgroundColor: const Color(0xFFE8F1FF),
             backgroundImage: avatar.isEmpty ? null : NetworkImage(avatar),
-            child: avatar.isEmpty
-                ? const Icon(Icons.person_rounded, size: 18, color: Color(0xFF3B82F6))
-                : null,
+            child:
+                avatar.isEmpty
+                    ? const Icon(
+                      Icons.person_rounded,
+                      size: 18,
+                      color: Color(0xFF3B82F6),
+                    )
+                    : null,
           ),
-          const Icon(Icons.keyboard_arrow_down_rounded, color: VrmGetMoreScreen._muted),
+          const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: VrmGetMoreScreen._muted,
+          ),
         ],
       ),
     );
@@ -369,11 +480,7 @@ class _Heading extends StatelessWidget {
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: copy),
-        const SizedBox(width: 12),
-        art,
-      ],
+      children: [Expanded(child: copy), const SizedBox(width: 12), art],
     );
   }
 }
@@ -423,10 +530,15 @@ class _OfferIcon extends StatelessWidget {
 }
 
 class _OfferCard extends StatefulWidget {
-  const _OfferCard({required this.offer, required this.onPressed});
+  const _OfferCard({
+    required this.offer,
+    required this.onPressed,
+    this.loading = false,
+  });
 
   final _Offer offer;
   final VoidCallback onPressed;
+  final bool loading;
 
   @override
   State<_OfferCard> createState() => _OfferCardState();
@@ -464,11 +576,14 @@ class _OfferCardState extends State<_OfferCard> {
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: widget.onPressed,
+            onTap: widget.loading ? null : widget.onPressed,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 72),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 child: Row(
                   children: [
                     DecoratedBox(
@@ -495,11 +610,18 @@ class _OfferCardState extends State<_OfferCard> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: Color(0xFF94A3B8),
-                    ),
+                    if (widget.loading)
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    else
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: Color(0xFF94A3B8),
+                      ),
                   ],
                 ),
               ),
@@ -521,11 +643,7 @@ class _PageWash extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFFF6EA),
-            Color(0xFFF7F9FC),
-            Color(0xFFEEF5FF),
-          ],
+          colors: [Color(0xFFFFF6EA), Color(0xFFF7F9FC), Color(0xFFEEF5FF)],
           stops: [0, 0.45, 1],
         ),
       ),
@@ -549,20 +667,42 @@ class _DunePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final saffron = Paint()..color = const Color(0xFFF8E7D2);
     final blue = Paint()..color = const Color(0xFFE4EEF8);
-    final front = Path()
-      ..moveTo(0, size.height * 0.55)
-      ..quadraticBezierTo(size.width * 0.25, size.height * 0.15, size.width * 0.55, size.height * 0.5)
-      ..quadraticBezierTo(size.width * 0.8, size.height * 0.78, size.width, size.height * 0.35)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    final back = Path()
-      ..moveTo(0, size.height * 0.75)
-      ..quadraticBezierTo(size.width * 0.35, size.height * 0.35, size.width * 0.7, size.height * 0.7)
-      ..quadraticBezierTo(size.width * 0.85, size.height * 0.85, size.width, size.height * 0.55)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final front =
+        Path()
+          ..moveTo(0, size.height * 0.55)
+          ..quadraticBezierTo(
+            size.width * 0.25,
+            size.height * 0.15,
+            size.width * 0.55,
+            size.height * 0.5,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.8,
+            size.height * 0.78,
+            size.width,
+            size.height * 0.35,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
+    final back =
+        Path()
+          ..moveTo(0, size.height * 0.75)
+          ..quadraticBezierTo(
+            size.width * 0.35,
+            size.height * 0.35,
+            size.width * 0.7,
+            size.height * 0.7,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.85,
+            size.height * 0.85,
+            size.width,
+            size.height * 0.55,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
     canvas.drawPath(back, blue);
     canvas.drawPath(front, saffron);
   }
@@ -578,24 +718,38 @@ class _BallotPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final leaf = Paint()..color = const Color(0xFFF3D7A6);
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(size.width * 0.22, size.height * 0.42), width: 46, height: 18),
+      Rect.fromCenter(
+        center: Offset(size.width * 0.22, size.height * 0.42),
+        width: 46,
+        height: 18,
+      ),
       leaf,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(size.width * 0.82, size.height * 0.38), width: 42, height: 16),
+      Rect.fromCenter(
+        center: Offset(size.width * 0.82, size.height * 0.38),
+        width: 42,
+        height: 16,
+      ),
       leaf,
     );
 
     final box = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.28, size.height * 0.34, size.width * 0.46, size.height * 0.5),
+      Rect.fromLTWH(
+        size.width * 0.28,
+        size.height * 0.34,
+        size.width * 0.46,
+        size.height * 0.5,
+      ),
       const Radius.circular(10),
     );
-    final boxPaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFFFFC857), Color(0xFFF5A524)],
-      ).createShader(box.outerRect);
+    final boxPaint =
+        Paint()
+          ..shader = const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFC857), Color(0xFFF5A524)],
+          ).createShader(box.outerRect);
     canvas.drawRRect(box, boxPaint);
     canvas.drawRRect(
       box,
@@ -632,15 +786,17 @@ class _BallotPainter extends CustomPainter {
         ..color = const Color(0xFFD6E0EA),
     );
 
-    final check = Paint()
-      ..color = const Color(0xFF3B82F6)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    final mark = Path()
-      ..moveTo(size.width * 0.52, size.height * 0.28)
-      ..lineTo(size.width * 0.56, size.height * 0.33)
-      ..lineTo(size.width * 0.66, size.height * 0.22);
+    final check =
+        Paint()
+          ..color = const Color(0xFF3B82F6)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.4
+          ..strokeCap = StrokeCap.round;
+    final mark =
+        Path()
+          ..moveTo(size.width * 0.52, size.height * 0.28)
+          ..lineTo(size.width * 0.56, size.height * 0.33)
+          ..lineTo(size.width * 0.66, size.height * 0.22);
     canvas.drawPath(mark, check);
   }
 
@@ -656,19 +812,25 @@ class _CrownPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
-    final path = Path()
-      ..moveTo(size.width * 0.1, size.height * 0.74)
-      ..lineTo(size.width * 0.16, size.height * 0.36)
-      ..lineTo(size.width * 0.34, size.height * 0.56)
-      ..lineTo(size.width * 0.5, size.height * 0.18)
-      ..lineTo(size.width * 0.66, size.height * 0.56)
-      ..lineTo(size.width * 0.84, size.height * 0.36)
-      ..lineTo(size.width * 0.9, size.height * 0.74)
-      ..close();
+    final path =
+        Path()
+          ..moveTo(size.width * 0.1, size.height * 0.74)
+          ..lineTo(size.width * 0.16, size.height * 0.36)
+          ..lineTo(size.width * 0.34, size.height * 0.56)
+          ..lineTo(size.width * 0.5, size.height * 0.18)
+          ..lineTo(size.width * 0.66, size.height * 0.56)
+          ..lineTo(size.width * 0.84, size.height * 0.36)
+          ..lineTo(size.width * 0.9, size.height * 0.74)
+          ..close();
     canvas.drawPath(path, paint);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.14, size.height * 0.74, size.width * 0.72, size.height * 0.12),
+        Rect.fromLTWH(
+          size.width * 0.14,
+          size.height * 0.74,
+          size.width * 0.72,
+          size.height * 0.12,
+        ),
         const Radius.circular(2),
       ),
       paint,
@@ -676,7 +838,8 @@ class _CrownPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CrownPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _CrownPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _GemPainter extends CustomPainter {
@@ -687,12 +850,13 @@ class _GemPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
-    final path = Path()
-      ..moveTo(size.width * 0.5, size.height * 0.06)
-      ..lineTo(size.width * 0.9, size.height * 0.36)
-      ..lineTo(size.width * 0.5, size.height * 0.94)
-      ..lineTo(size.width * 0.1, size.height * 0.36)
-      ..close();
+    final path =
+        Path()
+          ..moveTo(size.width * 0.5, size.height * 0.06)
+          ..lineTo(size.width * 0.9, size.height * 0.36)
+          ..lineTo(size.width * 0.5, size.height * 0.94)
+          ..lineTo(size.width * 0.1, size.height * 0.36)
+          ..close();
     canvas.drawPath(path, paint);
     canvas.drawLine(
       Offset(size.width * 0.18, size.height * 0.36),
@@ -704,5 +868,6 @@ class _GemPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _GemPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _GemPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

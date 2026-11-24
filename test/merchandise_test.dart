@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
+import 'package:votebanker/app/routing/app_routes.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 import 'package:votebanker/features/merchandise/models/merchandise_pricing.dart';
@@ -111,7 +112,9 @@ void main() {
       expect(saved?.containsKey('campaign_photo'), isFalse);
       expect(find.textContaining('nothing is charged'), findsOneWidget);
       expect(
-        find.text('Your product is booked, and our VoteBanker team will contact you soon.'),
+        find.text(
+          'Your product is booked, and our VoteBanker team will contact you soon.',
+        ),
         findsOneWidget,
       );
       expect(find.text('Cap'), findsWidgets);
@@ -167,7 +170,8 @@ void main() {
         CampaignTemplatesScreen(
           service: MerchandiseService(
             client: MockClient(
-              (request) async => http.Response('{"error":"price_not_configured"}', 409),
+              (request) async =>
+                  http.Response('{"error":"price_not_configured"}', 409),
             ),
             baseUrls: const ['http://127.0.0.1:9'],
           ),
@@ -226,7 +230,36 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('every merchandise product keeps its own quantity', (tester) async {
+  testWidgets('Skip now on campaign templates opens the ready page', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        CampaignTemplatesScreen(
+          service: MerchandiseService(
+            client: MockClient(
+              (_) async => http.Response('{"error":"unavailable"}', 503),
+            ),
+            baseUrls: const ['http://merchandise.test'],
+          ),
+        ),
+        routes: {
+          AppRoutes.ready:
+              (_) => const Scaffold(body: Text('ready-destination')),
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Skip now'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ready-destination'), findsOneWidget);
+  });
+
+  testWidgets('every merchandise product keeps its own quantity', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1280, 1100);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -241,9 +274,16 @@ void main() {
     );
     await tester.pump();
 
-    expect(tester.getSize(find.byKey(const ValueKey('merchArrow-next'))).shortestSide, 52);
+    expect(
+      tester
+          .getSize(find.byKey(const ValueKey('merchArrow-next')))
+          .shortestSide,
+      52,
+    );
     expect(find.byKey(const ValueKey('merchArrow-previous')), findsNothing);
-    final art = tester.getSize(find.byKey(const ValueKey('merchProductArt-t-shirt')));
+    final art = tester.getSize(
+      find.byKey(const ValueKey('merchProductArt-t-shirt')),
+    );
     expect(art.shortestSide, greaterThanOrEqualTo(320));
 
     await tester.tap(find.byType(DropdownButtonFormField<int>));
@@ -294,10 +334,15 @@ void main() {
       expect(find.text(label), findsOneWidget);
       expect(find.text(total), findsOneWidget);
       expect(find.text('Price is not configured'), findsNothing);
-      expect(find.byIcon(Icons.chevron_left).hitTestable(), index == 0 ? findsNothing : findsOneWidget);
+      expect(
+        find.byIcon(Icons.chevron_left).hitTestable(),
+        index == 0 ? findsNothing : findsOneWidget,
+      );
       expect(
         find.byIcon(Icons.chevron_right).hitTestable(),
-        index == campaignTemplateProducts.length - 1 ? findsNothing : findsOneWidget,
+        index == campaignTemplateProducts.length - 1
+            ? findsNothing
+            : findsOneWidget,
       );
       if (index < campaignTemplateProducts.length - 1) {
         await tester.tap(find.byIcon(Icons.chevron_right).hitTestable());
@@ -314,7 +359,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the quantity menu lists only the seven priced options', (tester) async {
+  testWidgets('the quantity menu lists only the seven priced options', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1280, 1100);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -323,7 +370,10 @@ void main() {
     await tester.pumpWidget(
       _app(
         CampaignTemplatesScreen(
-          products: campaignTemplateProducts.where((item) => item.slug == 'mug').toList(),
+          products:
+              campaignTemplateProducts
+                  .where((item) => item.slug == 'mug')
+                  .toList(),
           service: MerchandiseService(baseUrls: const ['http://127.0.0.1:9']),
         ),
       ),
@@ -407,7 +457,9 @@ void main() {
     await tester.tap(find.text('Order now').first);
     await tester.pumpAndSettle();
     expect(
-      find.text('Your product is booked, and our VoteBanker team will contact you soon.'),
+      find.text(
+        'Your product is booked, and our VoteBanker team will contact you soon.',
+      ),
       findsOneWidget,
     );
     expect(find.text('₹1,800'), findsOneWidget);
@@ -418,7 +470,7 @@ void main() {
   });
 }
 
-Widget _app(Widget home) {
+Widget _app(Widget home, {Map<String, WidgetBuilder> routes = const {}}) {
   return ThemeScope(
     controller: ThemeController(),
     child: OnboardingScope(
@@ -432,6 +484,7 @@ Widget _app(Widget home) {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
+        routes: routes,
         home: home,
       ),
     ),

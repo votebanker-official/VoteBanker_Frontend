@@ -103,33 +103,44 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
     if (changed && mounted) setState(() {});
   }
 
-  Future<void> _leave() async {
-    if (_dirtyIds.isEmpty) {
-      AppRouter.back(context, AppRoutes.dashboard);
-      return;
-    }
+  Future<bool> _confirmLeave() async {
+    if (_dirtyIds.isEmpty) return true;
     final l10n = AppLocalizations.of(context);
     final leave = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.line('vrmUnsavedTitle')),
-        content: Text(l10n.line('vrmUnsavedBody')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.line('vrmStay')),
+      builder:
+          (context) => AlertDialog(
+            title: Text(l10n.line('vrmUnsavedTitle')),
+            content: Text(l10n.line('vrmUnsavedBody')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l10n.line('vrmStay')),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l10n.line('vrmLeave')),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.line('vrmLeave')),
-          ),
-        ],
-      ),
     );
-    if (leave == true && mounted) {
+    return leave == true && mounted;
+  }
+
+  Future<void> _leave() async {
+    if (!await _confirmLeave()) return;
+    if (_dirtyIds.isNotEmpty) {
       setState(() => _dirtyIds.clear());
-      AppRouter.back(context, AppRoutes.dashboard);
     }
+    AppRouter.back(context, AppRoutes.dashboard);
+  }
+
+  Future<void> _skipToCampaignTemplates() async {
+    if (!await _confirmLeave()) return;
+    if (_dirtyIds.isNotEmpty) {
+      setState(() => _dirtyIds.clear());
+    }
+    AppRouter.open(context, AppRoutes.campaignTemplates);
   }
 
   String _message(AppLocalizations l10n, String code) {
@@ -145,7 +156,8 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
     return switch (_filter) {
       _VoterFilter.all => _records,
       _VoterFilter.complete => _records.where(_savedComplete).toList(),
-      _VoterFilter.incomplete => _records.where((row) => !_savedComplete(row)).toList(),
+      _VoterFilter.incomplete =>
+        _records.where((row) => !_savedComplete(row)).toList(),
       _VoterFilter.review => _records.where((row) => row.needsReview).toList(),
     };
   }
@@ -172,51 +184,61 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
             child: SizedBox(
               width: double.infinity,
               child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(wide ? 24 : 12, 12, wide ? 24 : 12, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _RecordsHeader(
-                        title: l10n.cardVrm,
-                        countLabel: l10n
-                            .line('vrmRecordCount')
-                            .replaceAll('{count}', '${_records.length}'),
-                        subtitle: l10n.line('vrmRecordsBody'),
-                        backTooltip: l10n.back,
-                        refreshTooltip: l10n.line('vrmRefresh'),
-                        onBack: _leave,
-                        onRefresh: _loading ? null : () => _load(),
-                      ),
-                      const SizedBox(height: 14),
-                      _SearchBar(
-                        controller: _search,
-                        hint: l10n.line('vrmSearchHint'),
-                        showClear: _search.text.isNotEmpty,
-                        onSubmit: _searchNow,
-                        onClear: _clearSearch,
-                      ),
-                      if (!_loading && _error == null && _records.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        _FilterPills(
-                          records: _records,
-                          selected: _filter,
-                          allLabel: l10n.line('vrmFilterAll'),
-                          completeLabel: 'Complete',
-                          incompleteLabel: 'Incomplete',
-                          reviewLabel: l10n.line('vrmNeedsReview'),
-                          onSelected: (value) => setState(() => _filter = value),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      wide ? 24 : 12,
+                      12,
+                      wide ? 24 : 12,
+                      0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _RecordsHeader(
+                          title: l10n.cardVrm,
+                          countLabel: l10n
+                              .line('vrmRecordCount')
+                              .replaceAll('{count}', '${_records.length}'),
+                          subtitle: l10n.line('vrmRecordsBody'),
+                          backTooltip: l10n.back,
+                          refreshTooltip: l10n.line('vrmRefresh'),
+                          skipLabel: l10n.line('blueTikSkip'),
+                          onBack: _leave,
+                          onRefresh: _loading ? null : () => _load(),
+                          onSkip: _skipToCampaignTemplates,
                         ),
+                        const SizedBox(height: 14),
+                        _SearchBar(
+                          controller: _search,
+                          hint: l10n.line('vrmSearchHint'),
+                          showClear: _search.text.isNotEmpty,
+                          onSubmit: _searchNow,
+                          onClear: _clearSearch,
+                        ),
+                        if (!_loading &&
+                            _error == null &&
+                            _records.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _FilterPills(
+                            records: _records,
+                            selected: _filter,
+                            allLabel: l10n.line('vrmFilterAll'),
+                            completeLabel: 'Complete',
+                            incompleteLabel: 'Incomplete',
+                            reviewLabel: l10n.line('vrmNeedsReview'),
+                            onSelected:
+                                (value) => setState(() => _filter = value),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(child: _body(context, l10n, wide)),
-              ],
-            ),
+                  const SizedBox(height: 12),
+                  Expanded(child: _body(context, l10n, wide)),
+                ],
+              ),
             ),
           ),
         ),
@@ -300,7 +322,8 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
 }
 
 bool _savedComplete(VrmVoterRecord item) {
-  final hasCore = item.name.trim().isNotEmpty &&
+  final hasCore =
+      item.name.trim().isNotEmpty &&
       item.age != null &&
       (item.gender?.trim().isNotEmpty ?? false) &&
       (item.epicNumber?.trim().isNotEmpty ?? false);
@@ -310,8 +333,14 @@ bool _savedComplete(VrmVoterRecord item) {
   final facebook = item.facebookContact?.trim() ?? '';
   if (whatsapp.isEmpty || instagram.isEmpty || facebook.isEmpty) return false;
   return SocialContactLinks.validWhatsapp(whatsapp) &&
-      SocialContactLinks.validProfile(instagram, SocialContactLinks.instagramHosts) &&
-      SocialContactLinks.validProfile(facebook, SocialContactLinks.facebookHosts);
+      SocialContactLinks.validProfile(
+        instagram,
+        SocialContactLinks.instagramHosts,
+      ) &&
+      SocialContactLinks.validProfile(
+        facebook,
+        SocialContactLinks.facebookHosts,
+      );
 }
 
 class _PayToGetMoreButton extends StatelessWidget {
@@ -331,7 +360,9 @@ class _PayToGetMoreButton extends StatelessWidget {
           foregroundColor: const Color(0xFF1D4ED8),
           backgroundColor: Colors.white,
           side: const BorderSide(color: Color(0xFFBFDBFE)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
         child: Text(
           l10n.line('vrmPayToGetMore'),
@@ -373,9 +404,15 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
   @override
   void initState() {
     super.initState();
-    _whatsapp = TextEditingController(text: widget.record.whatsappContact ?? '');
-    _instagram = TextEditingController(text: widget.record.instagramContact ?? '');
-    _facebook = TextEditingController(text: widget.record.facebookContact ?? '');
+    _whatsapp = TextEditingController(
+      text: widget.record.whatsappContact ?? '',
+    );
+    _instagram = TextEditingController(
+      text: widget.record.instagramContact ?? '',
+    );
+    _facebook = TextEditingController(
+      text: widget.record.facebookContact ?? '',
+    );
     for (final controller in [_whatsapp, _instagram, _facebook]) {
       controller.addListener(_onContactChanged);
     }
@@ -385,7 +422,8 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
   void didUpdateWidget(covariant _VoterRecordCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     final sameId = oldWidget.record.id == widget.record.id;
-    final contactsChanged = oldWidget.record.whatsappContact != widget.record.whatsappContact ||
+    final contactsChanged =
+        oldWidget.record.whatsappContact != widget.record.whatsappContact ||
         oldWidget.record.instagramContact != widget.record.instagramContact ||
         oldWidget.record.facebookContact != widget.record.facebookContact;
     if (!sameId || (contactsChanged && !_isDirty)) {
@@ -428,15 +466,22 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
 
   bool get _contactsValid {
     return SocialContactLinks.validWhatsapp(_whatsapp.text) &&
-        SocialContactLinks.validProfile(_instagram.text, SocialContactLinks.instagramHosts) &&
-        SocialContactLinks.validProfile(_facebook.text, SocialContactLinks.facebookHosts);
+        SocialContactLinks.validProfile(
+          _instagram.text,
+          SocialContactLinks.instagramHosts,
+        ) &&
+        SocialContactLinks.validProfile(
+          _facebook.text,
+          SocialContactLinks.facebookHosts,
+        );
   }
 
   /// Green only when core voter fields AND WhatsApp, Instagram, Facebook
   /// are all filled with valid values. Any empty social field = red.
   bool get _detailsComplete {
     final item = widget.record;
-    final hasCore = item.name.trim().isNotEmpty &&
+    final hasCore =
+        item.name.trim().isNotEmpty &&
         item.age != null &&
         (item.gender?.trim().isNotEmpty ?? false) &&
         (item.epicNumber?.trim().isNotEmpty ?? false);
@@ -535,14 +580,16 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
     final statusColor = complete ? _complete : _incomplete;
     final statusLabel = complete ? 'Complete details' : 'Incomplete details';
     final feedback = _status;
-    final feedbackColor = feedback == null
-        ? _completeDeep
-        : feedback == l10n.line('vrmContactSaved')
+    final feedbackColor =
+        feedback == null
+            ? _completeDeep
+            : feedback == l10n.line('vrmContactSaved')
             ? _completeDeep
             : feedback == l10n.line('vrmContactSaving')
-                ? _muted
-                : _incomplete;
-    final note = feedback ?? (complete ? l10n.line('vrmContactVerified') : null);
+            ? _muted
+            : _incomplete;
+    final note =
+        feedback ?? (complete ? l10n.line('vrmContactVerified') : null);
 
     final contacts = [
       _ContactField(
@@ -588,7 +635,9 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
           foregroundColor: const Color(0xFF2563EB),
           backgroundColor: const Color(0xFFEFF6FF),
           side: const BorderSide(color: Color(0xFFBFDBFE)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 22),
         ),
         child: Text(
@@ -604,11 +653,20 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: statusColor, width: 1.4),
         boxShadow: const [
-          BoxShadow(color: Color(0x0F0F172A), blurRadius: 16, offset: Offset(0, 6)),
+          BoxShadow(
+            color: Color(0x0F0F172A),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(wide ? 22 : 14, wide ? 20 : 14, wide ? 22 : 14, wide ? 18 : 14),
+        padding: EdgeInsets.fromLTRB(
+          wide ? 22 : 14,
+          wide ? 20 : 14,
+          wide ? 22 : 14,
+          wide ? 18 : 14,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -642,18 +700,31 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                     children: [
                       Text(
                         '${l10n.line('vrmEpic')}: ${item.epicNumber ?? '—'}',
-                        style: const TextStyle(color: _ink, fontWeight: FontWeight.w600, fontSize: 13),
+                        style: const TextStyle(
+                          color: _ink,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                       if ((item.epicNumber ?? '').trim().isNotEmpty)
                         IconButton(
                           tooltip: l10n.line('vrmEpic'),
                           visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          constraints: const BoxConstraints(
+                            minWidth: 28,
+                            minHeight: 28,
+                          ),
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: item.epicNumber!.trim()));
+                            Clipboard.setData(
+                              ClipboardData(text: item.epicNumber!.trim()),
+                            );
                           },
-                          icon: const Icon(Icons.copy_rounded, size: 14, color: _muted),
+                          icon: const Icon(
+                            Icons.copy_rounded,
+                            size: 14,
+                            color: _muted,
+                          ),
                         ),
                     ],
                   ),
@@ -674,7 +745,11 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   l10n.line('vrmNeedsReview'),
-                  style: const TextStyle(color: _review, fontWeight: FontWeight.w700, fontSize: 13),
+                  style: const TextStyle(
+                    color: _review,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             const SizedBox(height: 14),
@@ -707,7 +782,10 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                     Expanded(
                       child: Text(
                         note,
-                        style: TextStyle(color: feedbackColor, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          color: feedbackColor,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     )
                   else
@@ -719,7 +797,10 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
               if (note != null) ...[
                 Text(
                   note,
-                  style: TextStyle(color: feedbackColor, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: feedbackColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 10),
               ],
@@ -759,7 +840,11 @@ class _ContactField extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: _muted, fontWeight: FontWeight.w600, fontSize: 13),
+                style: const TextStyle(
+                  color: _muted,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],
@@ -797,7 +882,11 @@ class _StatusPill extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               label,
-              style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -834,8 +923,10 @@ class _RecordsHeader extends StatelessWidget {
     required this.subtitle,
     required this.backTooltip,
     required this.refreshTooltip,
+    required this.skipLabel,
     required this.onBack,
     required this.onRefresh,
+    required this.onSkip,
   });
 
   final String title;
@@ -843,8 +934,10 @@ class _RecordsHeader extends StatelessWidget {
   final String subtitle;
   final String backTooltip;
   final String refreshTooltip;
+  final String skipLabel;
   final VoidCallback onBack;
   final VoidCallback? onRefresh;
+  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -864,7 +957,11 @@ class _RecordsHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: _ink, fontSize: 26, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  color: _ink,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -874,7 +971,10 @@ class _RecordsHeader extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 child: Text(
                   countLabel,
                   style: const TextStyle(
@@ -896,7 +996,19 @@ class _RecordsHeader extends StatelessWidget {
         const SizedBox(height: 6),
         Padding(
           padding: const EdgeInsets.only(left: 48),
-          child: Text(subtitle, style: const TextStyle(color: _muted, fontSize: 14)),
+          child: Text(
+            subtitle,
+            style: const TextStyle(color: _muted, fontSize: 14),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            key: const Key('vrm-records-skip'),
+            onPressed: onSkip,
+            icon: const Icon(Icons.skip_next_rounded),
+            label: Text(skipLabel),
+          ),
         ),
       ],
     );
@@ -972,7 +1084,10 @@ class _SearchBar extends StatelessWidget {
             ),
           ],
         ),
-        suffixIconConstraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+        suffixIconConstraints: const BoxConstraints(
+          minHeight: 48,
+          minWidth: 48,
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(28),
@@ -1098,7 +1213,14 @@ class _FilterPill extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
               ],
-              Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 13)),
+              Text(
+                label,
+                style: TextStyle(
+                  color: fg,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
               const SizedBox(width: 6),
               Text(
                 '$count',

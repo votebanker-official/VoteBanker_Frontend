@@ -29,11 +29,13 @@ class CampaignTemplatesScreen extends StatefulWidget {
   final List<MerchandiseProduct>? products;
 
   @override
-  State<CampaignTemplatesScreen> createState() => _CampaignTemplatesScreenState();
+  State<CampaignTemplatesScreen> createState() =>
+      _CampaignTemplatesScreenState();
 }
 
 class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
-  late final MerchandiseService _service = widget.service ?? MerchandiseService();
+  late final MerchandiseService _service =
+      widget.service ?? MerchandiseService();
   final _pages = PageController();
   final _booked = <String>{};
   final _quantities = <String, int>{};
@@ -100,17 +102,19 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
     final quantity = _quantityFor(product);
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => MerchandiseDesignScreen(
-          product: product,
-          service: _service,
-          initialQuantity: quantity,
-          onQuantityChanged: (value) => _setQuantity(product, value),
-        ),
+        builder:
+            (_) => MerchandiseDesignScreen(
+              product: product,
+              service: _service,
+              initialQuantity: quantity,
+              onQuantityChanged: (value) => _setQuantity(product, value),
+            ),
       ),
     );
   }
 
-  Future<({String name, String phone, String email, String party})> _buyerContact() async {
+  Future<({String name, String phone, String email, String party})>
+  _buyerContact() async {
     final draft = OnboardingScope.maybeOf(context)?.draft;
     try {
       final profile = await ProfileService.instance.fetchProfile();
@@ -159,7 +163,11 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
     } on MerchandiseException {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('The price could not be confirmed. Booking stays closed.')),
+          const SnackBar(
+            content: Text(
+              'The price could not be confirmed. Booking stays closed.',
+            ),
+          ),
         );
         setState(() => _booking = false);
       }
@@ -184,7 +192,9 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
       if (!mounted) return;
       if (buyer.name.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Add your name on your profile before ordering.')),
+          const SnackBar(
+            content: Text('Add your name on your profile before ordering.'),
+          ),
         );
         return;
       }
@@ -212,7 +222,9 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
     } on MerchandiseException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The order could not be saved. Please try again.')),
+        const SnackBar(
+          content: Text('The order could not be saved. Please try again.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _booking = false);
@@ -239,54 +251,56 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
       body: Stack(
         children: [
           SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 12, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    tooltip: 'Back',
-                    onPressed: () => AppRouter.back(context, AppRoutes.blueTik),
-                    icon: const Icon(Icons.arrow_back),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 6, 12, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Back',
+                        onPressed:
+                            () => AppRouter.back(context, AppRoutes.blueTik),
+                        icon: const Icon(Icons.arrow_back),
+                      ),
+                      const Spacer(),
+                      const ThemeToggle(),
+                      const SizedBox(width: 8),
+                      const LanguageSelector(),
+                    ],
                   ),
-                  const Spacer(),
-                  const ThemeToggle(),
-                  const SizedBox(width: 8),
-                  const LanguageSelector(),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pages,
+                    itemCount: _products.length,
+                    onPageChanged: (index) => setState(() => _index = index),
+                    itemBuilder: (context, index) {
+                      final product = _products[index];
+                      return _ProductShowcase(
+                        product: product,
+                        party: party,
+                        photo: photo,
+                        index: index,
+                        total: _products.length,
+                        booked: _booked.contains(product.slug),
+                        booking: _booking,
+                        quantity: _quantityFor(product),
+                        onQuantity: (value) => _setQuantity(product, value),
+                        onDesign: () => _open(product),
+                        onBook: () => _book(product),
+                        onSkip: () => AppRouter.open(context, AppRoutes.ready),
+                        onPrevious: index == 0 ? null : () => _go(index - 1),
+                        onNext:
+                            index == _products.length - 1
+                                ? () => AppRouter.open(context, AppRoutes.ready)
+                                : () => _go(index + 1),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: PageView.builder(
-                controller: _pages,
-                itemCount: _products.length,
-                onPageChanged: (index) => setState(() => _index = index),
-                itemBuilder: (context, index) {
-                  final product = _products[index];
-                  return _ProductShowcase(
-                    product: product,
-                    party: party,
-                    photo: photo,
-                    index: index,
-                    total: _products.length,
-                    booked: _booked.contains(product.slug),
-                    booking: _booking,
-                    quantity: _quantityFor(product),
-                    onQuantity: (value) => _setQuantity(product, value),
-                    onDesign: () => _open(product),
-                    onBook: () => _book(product),
-                    onSkip: () => AppRouter.open(context, AppRoutes.vrm),
-                    onPrevious: index == 0 ? null : () => _go(index - 1),
-                    onNext: index == _products.length - 1
-                        ? () => AppRouter.open(context, AppRoutes.vrm)
-                        : () => _go(index + 1),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
           ),
           if (_burst > 0)
             Positioned.fill(
@@ -342,7 +356,12 @@ class _ProductShowcase extends StatelessWidget {
         final tagline = _taglineFor(product);
         final quote = quoteMerchandise(product.priceSlabs, quantity);
         return Padding(
-          padding: EdgeInsets.fromLTRB(wide ? 28 : 16, 2, wide ? 28 : 16, wide ? 8 : 6),
+          padding: EdgeInsets.fromLTRB(
+            wide ? 28 : 16,
+            2,
+            wide ? 28 : 16,
+            wide ? 8 : 6,
+          ),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1040),
@@ -358,7 +377,10 @@ class _ProductShowcase extends StatelessWidget {
                       ),
                       children: const [
                         TextSpan(text: 'Create Your '),
-                        TextSpan(text: 'Campaign ', style: TextStyle(color: Color(0xFFF97316))),
+                        TextSpan(
+                          text: 'Campaign ',
+                          style: TextStyle(color: Color(0xFFF97316)),
+                        ),
                         TextSpan(text: 'Merchandise'),
                       ],
                     ),
@@ -367,7 +389,11 @@ class _ProductShowcase extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '${index + 1} of $total',
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   _PageDots(count: total, index: index),
@@ -395,7 +421,10 @@ class _ProductShowcase extends StatelessWidget {
                   Text(
                     tagline,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: const Color(0xFF64748B), fontSize: wide ? 16 : 14),
+                    style: TextStyle(
+                      color: const Color(0xFF64748B),
+                      fontSize: wide ? 16 : 14,
+                    ),
                   ),
                   SizedBox(height: wide ? 12 : 8),
                   _PurchaseRow(
@@ -408,25 +437,51 @@ class _ProductShowcase extends StatelessWidget {
                   SizedBox(height: wide ? 12 : 8),
                   wide
                       ? Row(
-                          children: [
-                            Expanded(child: _DesignButton(onPressed: onDesign)),
-                            const SizedBox(width: 12),
-                            Expanded(child: _BookButton(booked: booked, busy: booking, onPressed: onBook)),
-                          ],
-                        )
+                        children: [
+                          Expanded(child: _DesignButton(onPressed: onDesign)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _BookButton(
+                              booked: booked,
+                              busy: booking,
+                              onPressed: onBook,
+                            ),
+                          ),
+                        ],
+                      )
                       : Column(
-                          children: [
-                            SizedBox(width: double.infinity, child: _DesignButton(compact: true, onPressed: onDesign)),
-                            const SizedBox(height: 8),
-                            SizedBox(width: double.infinity, child: _BookButton(compact: true, booked: booked, busy: booking, onPressed: onBook)),
-                          ],
-                        ),
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: _DesignButton(
+                              compact: true,
+                              onPressed: onDesign,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: _BookButton(
+                              compact: true,
+                              booked: booked,
+                              busy: booking,
+                              onPressed: onBook,
+                            ),
+                          ),
+                        ],
+                      ),
                   TextButton(
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFF64748B),
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      textStyle: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                       minimumSize: const Size(0, 28),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
                     ),
@@ -475,7 +530,10 @@ class _PurchaseRow extends StatelessWidget {
               ? '${formatMerchandisePrice(quote.unitPricePaise!)} per piece'
               : 'Price is not configured',
           style: TextStyle(
-            color: quote.configured ? const Color(0xFF1E3A8A) : const Color(0xFF9A3412),
+            color:
+                quote.configured
+                    ? const Color(0xFF1E3A8A)
+                    : const Color(0xFF9A3412),
             fontSize: 14,
             fontWeight: FontWeight.w700,
           ),
@@ -483,15 +541,22 @@ class _PurchaseRow extends StatelessWidget {
       ],
     );
     final totalSide = Column(
-      crossAxisAlignment: stacked ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+      crossAxisAlignment:
+          stacked ? CrossAxisAlignment.start : CrossAxisAlignment.end,
       children: [
         const Text(
           'Total Price',
-          style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(height: 6),
         Text(
-          quote.configured ? formatMerchandisePrice(quote.lineTotalPaise!) : '—',
+          quote.configured
+              ? formatMerchandisePrice(quote.lineTotalPaise!)
+              : '—',
           key: const ValueKey('merchPriceTotal'),
           style: TextStyle(
             color: const Color(0xFF1E3A8A),
@@ -506,11 +571,7 @@ class _PurchaseRow extends StatelessWidget {
     if (stacked) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          quantitySide,
-          const SizedBox(height: 10),
-          totalSide,
-        ],
+        children: [quantitySide, const SizedBox(height: 10), totalSide],
       );
     }
     return Row(
@@ -550,7 +611,11 @@ class _ProductStage extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
               boxShadow: const [
-                BoxShadow(color: Color(0x140F172A), blurRadius: 28, offset: Offset(0, 14)),
+                BoxShadow(
+                  color: Color(0x140F172A),
+                  blurRadius: 28,
+                  offset: Offset(0, 14),
+                ),
               ],
             ),
             child: Padding(
@@ -577,18 +642,31 @@ class _ProductStage extends StatelessWidget {
             right: 16,
             bottom: 16,
             child: ClipOval(
-              child: Image.memory(photo!, width: 40, height: 40, fit: BoxFit.cover),
+              child: Image.memory(
+                photo!,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         if (onPrevious != null)
           Align(
             alignment: Alignment.centerLeft,
-            child: _PageArrow(icon: Icons.chevron_left, direction: 'previous', onPressed: onPrevious!),
+            child: _PageArrow(
+              icon: Icons.chevron_left,
+              direction: 'previous',
+              onPressed: onPrevious!,
+            ),
           ),
         if (onNext != null)
           Align(
             alignment: Alignment.centerRight,
-            child: _PageArrow(icon: Icons.chevron_right, direction: 'next', onPressed: onNext!),
+            child: _PageArrow(
+              icon: Icons.chevron_right,
+              direction: 'next',
+              onPressed: onNext!,
+            ),
           ),
       ],
     );
@@ -607,7 +685,10 @@ class _DesignButton extends StatelessWidget {
       style: FilledButton.styleFrom(
         backgroundColor: const Color(0xFF1D4ED8),
         foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 18, vertical: compact ? 10 : 14),
+        padding: EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: compact ? 10 : 14,
+        ),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         shape: const StadiumBorder(),
       ),
@@ -619,7 +700,12 @@ class _DesignButton extends StatelessWidget {
 }
 
 class _BookButton extends StatelessWidget {
-  const _BookButton({required this.booked, required this.onPressed, this.busy = false, this.compact = false});
+  const _BookButton({
+    required this.booked,
+    required this.onPressed,
+    this.busy = false,
+    this.compact = false,
+  });
 
   final bool booked;
   final bool busy;
@@ -630,17 +716,30 @@ class _BookButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilledButton.icon(
       style: FilledButton.styleFrom(
-        backgroundColor: booked ? const Color(0xFF16A34A) : const Color(0xFFF97316),
+        backgroundColor:
+            booked ? const Color(0xFF16A34A) : const Color(0xFFF97316),
         disabledBackgroundColor: const Color(0xFF16A34A),
         foregroundColor: Colors.white,
         disabledForegroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 18, vertical: compact ? 10 : 14),
+        padding: EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: compact ? 10 : 14,
+        ),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         shape: const StadiumBorder(),
       ),
       onPressed: booked || busy ? null : onPressed,
-      icon: Icon(booked ? Icons.check_circle : Icons.event_available_outlined, size: 18),
-      label: Text(booked ? 'Booked' : busy ? 'Saving…' : 'Order now'),
+      icon: Icon(
+        booked ? Icons.check_circle : Icons.event_available_outlined,
+        size: 18,
+      ),
+      label: Text(
+        booked
+            ? 'Booked'
+            : busy
+            ? 'Saving…'
+            : 'Order now',
+      ),
     );
   }
 }
@@ -676,7 +775,8 @@ class _ConfettiPiece {
   final int shape;
 }
 
-class _ConfettiBurstState extends State<_ConfettiBurst> with SingleTickerProviderStateMixin {
+class _ConfettiBurstState extends State<_ConfettiBurst>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final List<_ConfettiPiece> _pieces;
 
@@ -709,7 +809,10 @@ class _ConfettiBurstState extends State<_ConfettiBurst> with SingleTickerProvide
           shape: i % 3,
         ),
     ];
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 2400))..forward();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..forward();
   }
 
   @override
@@ -724,7 +827,10 @@ class _ConfettiBurstState extends State<_ConfettiBurst> with SingleTickerProvide
       animation: _controller,
       builder: (context, _) {
         return CustomPaint(
-          painter: _ConfettiPainter(progress: _controller.value, pieces: _pieces),
+          painter: _ConfettiPainter(
+            progress: _controller.value,
+            pieces: _pieces,
+          ),
           child: const SizedBox.expand(),
         );
       },
@@ -744,12 +850,16 @@ class _ConfettiPainter extends CustomPainter {
       final span = 1 - piece.delay;
       final t = ((progress - piece.delay) / span).clamp(0.0, 1.0);
       if (t <= 0) continue;
-      final fade = t < 0.08 ? t / 0.08 : (t > 0.72 ? ((1 - t) / 0.28).clamp(0.0, 1.0) : 1.0);
+      final fade =
+          t < 0.08
+              ? t / 0.08
+              : (t > 0.72 ? ((1 - t) / 0.28).clamp(0.0, 1.0) : 1.0);
       // Launch from 60% down the screen and shoot upward, then gravity pulls the pieces back.
       final vx = math.sin(piece.spread) * piece.reach;
       final vy = -math.cos(piece.spread) * piece.reach;
       final x = piece.origin * size.width + vx * t * size.width * 0.72;
-      final y = size.height * 0.6 + vy * t * size.height + 0.95 * t * t * size.height;
+      final y =
+          size.height * 0.6 + vy * t * size.height + 0.95 * t * t * size.height;
       canvas.save();
       canvas.translate(x, y);
       canvas.rotate(piece.spin * t);
@@ -760,7 +870,11 @@ class _ConfettiPainter extends CustomPainter {
         case 2:
           canvas.drawRRect(
             RRect.fromRectAndRadius(
-              Rect.fromCenter(center: Offset.zero, width: piece.w * 0.45, height: piece.h),
+              Rect.fromCenter(
+                center: Offset.zero,
+                width: piece.w * 0.45,
+                height: piece.h,
+              ),
               const Radius.circular(3),
             ),
             paint,
@@ -768,7 +882,11 @@ class _ConfettiPainter extends CustomPainter {
         default:
           canvas.drawRRect(
             RRect.fromRectAndRadius(
-              Rect.fromCenter(center: Offset.zero, width: piece.w, height: piece.w * 0.62),
+              Rect.fromCenter(
+                center: Offset.zero,
+                width: piece.w,
+                height: piece.w * 0.62,
+              ),
               const Radius.circular(2),
             ),
             paint,
@@ -779,11 +897,16 @@ class _ConfettiPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ConfettiPainter oldDelegate) => oldDelegate.progress != progress;
+  bool shouldRepaint(_ConfettiPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 class _PageArrow extends StatefulWidget {
-  const _PageArrow({required this.icon, required this.onPressed, required this.direction});
+  const _PageArrow({
+    required this.icon,
+    required this.onPressed,
+    required this.direction,
+  });
 
   final IconData icon;
   final VoidCallback onPressed;
@@ -801,7 +924,7 @@ class _PageArrowState extends State<_PageArrow> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-        child: AnimatedContainer(
+      child: AnimatedContainer(
         key: ValueKey('merchArrow-${widget.direction}'),
         duration: const Duration(milliseconds: 160),
         width: 52,
@@ -846,7 +969,10 @@ class _PageDots extends StatelessWidget {
             height: 6,
             margin: const EdgeInsets.symmetric(horizontal: 3),
             decoration: BoxDecoration(
-              color: i == index ? const Color(0xFF1D4ED8) : const Color(0xFFCBD5E1),
+              color:
+                  i == index
+                      ? const Color(0xFF1D4ED8)
+                      : const Color(0xFFCBD5E1),
               borderRadius: BorderRadius.circular(99),
             ),
           ),
@@ -969,7 +1095,11 @@ class CampaignMerchandiseHero extends StatelessWidget {
           colors: [Color(0xFFFFF7ED), Color(0xFFFFFFFF), Color(0xFFECFDF3)],
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x140F172A), blurRadius: 24, offset: Offset(0, 10)),
+          BoxShadow(
+            color: Color(0x140F172A),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
         ],
       ),
       child: const Column(
@@ -977,10 +1107,18 @@ class CampaignMerchandiseHero extends StatelessWidget {
         children: [
           Text.rich(
             TextSpan(
-              style: TextStyle(fontSize: 40, height: 1.12, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
+              style: TextStyle(
+                fontSize: 40,
+                height: 1.12,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1E3A8A),
+              ),
               children: [
                 TextSpan(text: 'Create Your\n'),
-                TextSpan(text: 'Campaign ', style: TextStyle(color: Color(0xFFF97316))),
+                TextSpan(
+                  text: 'Campaign ',
+                  style: TextStyle(color: Color(0xFFF97316)),
+                ),
                 TextSpan(text: 'Merchandise'),
               ],
             ),
@@ -1027,7 +1165,11 @@ class CampaignTemplateCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x120F172A), blurRadius: 18, offset: Offset(0, 8)),
+                  BoxShadow(
+                    color: Color(0x120F172A),
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
+                  ),
                 ],
               ),
               padding: EdgeInsets.all(compact ? 14 : 22),
@@ -1060,7 +1202,10 @@ class CampaignTemplateCard extends StatelessWidget {
                           _taglineFor(product),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: const Color(0xFF64748B), fontSize: compact ? 13 : 16),
+                          style: TextStyle(
+                            color: const Color(0xFF64748B),
+                            fontSize: compact ? 13 : 16,
+                          ),
                         ),
                         SizedBox(height: compact ? 8 : 16),
                         Align(
@@ -1069,7 +1214,10 @@ class CampaignTemplateCard extends StatelessWidget {
                             style: FilledButton.styleFrom(
                               backgroundColor: const Color(0xFF1D4ED8),
                               foregroundColor: Colors.white,
-                              visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+                              visualDensity:
+                                  compact
+                                      ? VisualDensity.compact
+                                      : VisualDensity.standard,
                               padding: EdgeInsets.symmetric(
                                 horizontal: compact ? 12 : 18,
                                 vertical: compact ? 8 : 14,
@@ -1096,7 +1244,6 @@ class CampaignTemplateCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 String _merchandiseAsset(String slug) {
@@ -1118,25 +1265,30 @@ String _merchandiseAsset(String slug) {
 }
 
 String _taglineFor(MerchandiseProduct product) {
-    const lines = {
-      't-shirt': 'Wear Your Support',
-      'scarf': 'Wrap the Spirit',
-      'flag': 'Wave Your Support',
-      'badge': 'Show Your Pride',
-      'cap': 'Wear It Proudly',
-      'mug': 'Sip the Support',
-      'poster': 'Spread the Message',
-      'sticker': 'Stick the Support',
-      'keychain': 'Carry the Change',
-      'pen': 'Write for a Better India',
-      'bag': 'Carry the Campaign',
-      'gift-box': 'Share the Support',
-    };
-    return lines[product.slug] ?? product.description;
+  const lines = {
+    't-shirt': 'Wear Your Support',
+    'scarf': 'Wrap the Spirit',
+    'flag': 'Wave Your Support',
+    'badge': 'Show Your Pride',
+    'cap': 'Wear It Proudly',
+    'mug': 'Sip the Support',
+    'poster': 'Spread the Message',
+    'sticker': 'Stick the Support',
+    'keychain': 'Carry the Change',
+    'pen': 'Write for a Better India',
+    'bag': 'Carry the Campaign',
+    'gift-box': 'Share the Support',
+  };
+  return lines[product.slug] ?? product.description;
 }
 
 class _ProductArt extends StatelessWidget {
-  const _ProductArt({required this.slug, this.party, this.photo, this.size = 168});
+  const _ProductArt({
+    required this.slug,
+    this.party,
+    this.photo,
+    this.size = 168,
+  });
 
   final String slug;
   final PartyOption? party;
@@ -1171,7 +1323,10 @@ class _ProductArt extends StatelessWidget {
             Positioned(
               left: 6,
               top: 6,
-              child: PartySymbol(party!.name, diameter: (size * 0.18).clamp(24, 64)),
+              child: PartySymbol(
+                party!.name,
+                diameter: (size * 0.18).clamp(24, 64),
+              ),
             ),
           if (photo != null && photo!.isNotEmpty)
             Positioned(

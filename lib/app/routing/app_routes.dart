@@ -33,7 +33,6 @@ abstract final class AppRoutes {
   static const voterLists = '/voter-lists';
   static const campaignTemplates = '/campaign-templates';
   static const speechPreview = '/campaign-templates/speech-preview';
-  static const vrm = '/vrm';
   static const vrmRecords = '/vrm/records';
   static const vrmGetMore = '/vrm/get-more';
   static const volunteers = '/volunteers';
@@ -63,7 +62,6 @@ abstract final class AppRoutes {
   /// screens are omitted on purpose.
   static const globalFooterRoutes = <String>{
     dashboard,
-    vrmRecords,
     merchandise,
     team,
     volunteers,

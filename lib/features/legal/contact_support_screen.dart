@@ -69,9 +69,13 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
     final email = _email.text.trim();
     final message = _message.text.trim();
     final emailLooksValid = email.contains('@') && email.contains('.');
-    if (_category == null || name.isEmpty || !emailLooksValid || message.length < 10) {
+    if (_category == null ||
+        name.isEmpty ||
+        !emailLooksValid ||
+        message.length < 10) {
       setState(() {
-        _error = 'Add your name, a valid email, a category, and a message of at least a sentence.';
+        _error =
+            'Add your name, a valid email, a category, and a message of at least a sentence.';
         _ready = false;
       });
       return;
@@ -129,7 +133,7 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
           key: const Key('support-category'),
-          initialValue: _category,
+          value: _category,
           isExpanded: true,
           decoration: const InputDecoration(labelText: 'Category'),
           items: [
@@ -147,7 +151,10 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
         ),
         if (_error != null) ...[
           const SizedBox(height: 8),
-          Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          Text(
+            _error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         ],
         const SizedBox(height: 12),
         PrimaryButton(
@@ -166,8 +173,14 @@ class _SupportRequestFormState extends State<SupportRequestForm> {
         const SizedBox(height: 8),
         Wrap(
           children: [
-            PublicRouteLink(label: 'Data Deletion', route: AppRoutes.dataDeletion),
-            PublicRouteLink(label: 'Election Disclaimer', route: AppRoutes.electionDisclaimer),
+            PublicRouteLink(
+              label: 'Data Deletion',
+              route: AppRoutes.dataDeletion,
+            ),
+            PublicRouteLink(
+              label: 'Election Disclaimer',
+              route: AppRoutes.electionDisclaimer,
+            ),
             PublicRouteLink(label: 'Help Center', route: AppRoutes.helpCenter),
           ],
         ),

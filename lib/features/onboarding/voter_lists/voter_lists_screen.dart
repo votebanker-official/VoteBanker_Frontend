@@ -8,18 +8,10 @@ import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 
 class VoterListsScreen extends StatelessWidget {
-  const VoterListsScreen({
-    this.recordsUrl,
-    this.readyUrl,
-    this.redirect,
-    super.key,
-  });
+  const VoterListsScreen({this.recordsUrl, this.redirect, super.key});
 
   /// Overrides [AppConfig.vrmRecordsUrl] in tests.
   final String? recordsUrl;
-
-  /// Overrides [AppConfig.readyUrl] in tests.
-  final String? readyUrl;
 
   /// Overrides the browser redirect in tests. The signed-in session is left as it is.
   final void Function(String url)? redirect;
@@ -38,14 +30,9 @@ class VoterListsScreen extends StatelessWidget {
               children: [
                 _TopBar(
                   wide: wide,
-                  onSkip: () {
-                    final target = readyUrl ?? AppConfig.readyUrl;
-                    if (target.isEmpty) {
-                      AppRouter.open(context, AppRoutes.ready);
-                    } else {
-                      openVoterRecords(context, target, redirect: redirect);
-                    }
-                  },
+                  onSkip:
+                      () =>
+                          AppRouter.open(context, AppRoutes.campaignTemplates),
                 ),
                 Expanded(
                   child: SingleChildScrollView(
@@ -61,12 +48,19 @@ class VoterListsScreen extends StatelessWidget {
                         constraints: const BoxConstraints(maxWidth: 720),
                         child: _IntroCard(
                           wide: wide,
-                          onOpen:
-                              () => openVoterRecords(
+                          onOpen: () {
+                            final target =
+                                recordsUrl ?? AppConfig.vrmRecordsUrl;
+                            if (target.trim().isEmpty) {
+                              AppRouter.open(context, AppRoutes.vrmRecords);
+                            } else {
+                              openVoterRecords(
                                 context,
-                                recordsUrl ?? AppConfig.vrmRecordsUrl,
+                                target,
                                 redirect: redirect,
-                              ),
+                              );
+                            }
+                          },
                         ),
                       ),
                     ),

@@ -246,13 +246,6 @@ class AppLocalizations {
   String get socialMeta => _t('socialMeta');
   String get viewPlans => _t('viewPlans');
   String get socialLater => _t('socialLater');
-  String get vrmTitle => _t('vrmTitle');
-  String get vrmBody => _t('vrmBody');
-  String get vrmPointContacts => _t('vrmPointContacts');
-  String get vrmPointTeam => _t('vrmPointTeam');
-  String get vrmPointIssues => _t('vrmPointIssues');
-  String get vrmSetup => _t('vrmSetup');
-  String get vrmLater => _t('vrmLater');
   String get readyTitle => _t('readyTitle');
   String get readyBody => _t('readyBody');
   String get goToDashboard => _t('goToDashboard');

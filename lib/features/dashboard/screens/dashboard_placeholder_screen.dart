@@ -265,6 +265,13 @@ class _DashboardPlaceholderScreenState
         route: AppRoutes.merchandise,
       ),
       _Module(
+        Icons.view_carousel_outlined,
+        l10n.line('campaignTemplatesNav'),
+        subtitle: l10n.line('dashCampaignBody'),
+        color: const Color(0xFF8B5CF6),
+        route: AppRoutes.campaignTemplates,
+      ),
+      _Module(
         Icons.account_balance_outlined,
         l10n.line('cardAdministrations'),
         subtitle: l10n.line('dashAdminBody'),

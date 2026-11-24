@@ -36,10 +36,12 @@ class ProfileService {
     final session = AuthService.instance.session;
     if (session == null) return null;
     try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
-        headers: {'Authorization': 'Bearer ${session.accessToken}'},
-      ).timeout(const Duration(seconds: 20));
+      final response = await http
+          .get(
+            Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+            headers: {'Authorization': 'Bearer ${session.accessToken}'},
+          )
+          .timeout(const Duration(seconds: 20));
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) return null;
@@ -57,10 +59,12 @@ class ProfileService {
     final session = AuthService.instance.session;
     if (session == null) return null;
     try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
-        headers: {'Authorization': 'Bearer ${session.accessToken}'},
-      ).timeout(const Duration(seconds: 20));
+      final response = await http
+          .get(
+            Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+            headers: {'Authorization': 'Bearer ${session.accessToken}'},
+          )
+          .timeout(const Duration(seconds: 20));
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) return null;
@@ -74,10 +78,12 @@ class ProfileService {
     final session = AuthService.instance.session;
     if (session == null) return null;
     try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
-        headers: {'Authorization': 'Bearer ${session.accessToken}'},
-      ).timeout(const Duration(seconds: 20));
+      final response = await http
+          .get(
+            Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+            headers: {'Authorization': 'Bearer ${session.accessToken}'},
+          )
+          .timeout(const Duration(seconds: 20));
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       final decoded = jsonDecode(response.body);
       return decoded is Map<String, dynamic> ? decoded : null;
@@ -107,8 +113,9 @@ class ProfileService {
 
   Future<Uint8List?> downloadPhoto(String url) async {
     try {
-      final response =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 20));
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
       if (response.bodyBytes.length > maxPhotoBytes) return null;
       return response.bodyBytes;
@@ -131,9 +138,10 @@ class ProfileService {
       'constituency': draft.constituency,
       'public_contact': draft.publicContact,
       'contact_email': draft.email,
-      'language': draft.preferredLanguage.isNotEmpty
-          ? draft.preferredLanguage
-          : draft.selectedLanguage,
+      'language':
+          draft.preferredLanguage.isNotEmpty
+              ? draft.preferredLanguage
+              : draft.selectedLanguage,
       'selected_domain': draft.selectedDomain,
       'website_template': draft.websiteTemplate,
       'booth_number': draft.boothNumber,
@@ -147,7 +155,6 @@ class ProfileService {
         'assembly_constituency_id': draft.assemblyConstituencyId,
       if (draft.socialChannels.isNotEmpty)
         'social_channels': draft.socialChannels.toList(),
-      if (draft.vrmRequested) 'vrm_requested': true,
       if (draft.additionalProfile.isNotEmpty)
         'additional_profile': draft.additionalProfile,
     };
@@ -308,10 +315,12 @@ class ProfileService {
 
   Future<bool> _deletePhoto(String token) async {
     try {
-      final response = await http.delete(
-        Uri.parse('${AppConfig.apiBaseUrl}/api/profile/photo'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 20));
+      final response = await http
+          .delete(
+            Uri.parse('${AppConfig.apiBaseUrl}/api/profile/photo'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(const Duration(seconds: 20));
       return response.statusCode >= 200 && response.statusCode < 300;
     } catch (_) {
       return false;

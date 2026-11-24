@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
+import 'package:votebanker/app/routing/app_routes.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/dashboard/screens/dashboard_placeholder_screen.dart';
@@ -19,7 +20,9 @@ void main() {
           addTearDown(() => tester.binding.setSurfaceSize(null));
           await tester.pumpWidget(
             ThemeScope(
-              controller: ThemeController(dark ? ThemeMode.dark : ThemeMode.light),
+              controller: ThemeController(
+                dark ? ThemeMode.dark : ThemeMode.light,
+              ),
               child: OnboardingScope(
                 controller: OnboardingController(),
                 child: MaterialApp(
@@ -48,8 +51,47 @@ void main() {
           expect(find.text('Saved Voters'), findsNothing);
           expect(find.text('My Voters'), findsWidgets);
           expect(find.text('Social Media'), findsWidgets);
+          expect(find.text('Campaign Templates'), findsWidgets);
         },
       );
     }
   }
+
+  testWidgets('dashboard campaign templates entry opens its named page', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ThemeScope(
+        controller: ThemeController(),
+        child: OnboardingScope(
+          controller: OnboardingController(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            routes: {
+              AppRoutes.campaignTemplates:
+                  (_) => const Scaffold(
+                    body: Text('campaign-templates-destination'),
+                  ),
+            },
+            home: const DashboardPlaceholderScreen(),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Campaign Templates').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('campaign-templates-destination'), findsOneWidget);
+  });
 }
