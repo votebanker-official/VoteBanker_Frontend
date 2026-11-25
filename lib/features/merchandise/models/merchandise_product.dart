@@ -47,7 +47,8 @@ class MerchandiseProduct {
     }
     return [
       for (final item in value)
-        if (item is Map) MerchandisePriceSlab.fromJson(Map<String, dynamic>.from(item)),
+        if (item is Map)
+          MerchandisePriceSlab.fromJson(Map<String, dynamic>.from(item)),
     ];
   }
 }

@@ -142,10 +142,9 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder:
-            (_) => AppFooterShell(
-              child: WebsiteBuilderScreen(
-                continueOnboarding: continueOnboarding,
-              ),
+            (context) => GlobalFooter.wrapIfDisplayed(
+              context,
+              WebsiteBuilderScreen(continueOnboarding: continueOnboarding),
             ),
       ),
     );
@@ -247,7 +246,11 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                   alignment: Alignment.centerLeft,
                   child: IconButton(
                     tooltip: l10n.back,
-                    onPressed: () => AppRouter.back(context, AppRoutes.domain),
+                    onPressed:
+                        () => AppRouter.back(
+                          context,
+                          AppRoutes.additionalProfile,
+                        ),
                     icon: const Icon(Icons.arrow_back),
                   ),
                 ),

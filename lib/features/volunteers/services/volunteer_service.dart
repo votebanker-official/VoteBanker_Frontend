@@ -14,7 +14,7 @@ class VolunteerException implements Exception {
 
 class VolunteerService {
   VolunteerService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
@@ -75,14 +75,21 @@ class VolunteerService {
       pageSize: body['pageSize'] is int ? body['pageSize'] as int : pageSize,
       total: body['total'] is int ? body['total'] as int : 0,
       locations: [
-        for (final item in body['locations'] is List ? body['locations'] as List : const [])
+        for (final item
+            in body['locations'] is List ? body['locations'] as List : const [])
           if ('$item'.trim().isNotEmpty) '$item'.trim(),
       ],
     );
   }
 
-  Future<({VolunteerRecord volunteer, List<VolunteerTask> tasks, List<VolunteerActivity> activity})>
-      getVolunteer(String id) async {
+  Future<
+    ({
+      VolunteerRecord volunteer,
+      List<VolunteerTask> tasks,
+      List<VolunteerActivity> activity,
+    })
+  >
+  getVolunteer(String id) async {
     final body = await _jsonGet('/api/volunteers/volunteers/$id');
     final volunteer = body['volunteer'];
     if (volunteer is! Map<String, dynamic>) {
@@ -91,11 +98,13 @@ class VolunteerService {
     return (
       volunteer: VolunteerRecord.fromJson(volunteer),
       tasks: [
-        for (final row in body['tasks'] is List ? body['tasks'] as List : const [])
+        for (final row
+            in body['tasks'] is List ? body['tasks'] as List : const [])
           if (row is Map<String, dynamic>) VolunteerTask.fromJson(row),
       ],
       activity: [
-        for (final row in body['activity'] is List ? body['activity'] as List : const [])
+        for (final row
+            in body['activity'] is List ? body['activity'] as List : const [])
           if (row is Map<String, dynamic>) VolunteerActivity.fromJson(row),
       ],
     );
@@ -110,8 +119,15 @@ class VolunteerService {
     return VolunteerRecord.fromJson(volunteer);
   }
 
-  Future<VolunteerRecord> updateVolunteer(String id, Map<String, dynamic> payload) async {
-    final body = await _jsonSend('PATCH', '/api/volunteers/volunteers/$id', payload);
+  Future<VolunteerRecord> updateVolunteer(
+    String id,
+    Map<String, dynamic> payload,
+  ) async {
+    final body = await _jsonSend(
+      'PATCH',
+      '/api/volunteers/volunteers/$id',
+      payload,
+    );
     final volunteer = body['volunteer'];
     if (volunteer is! Map<String, dynamic>) {
       throw const VolunteerException('bad_response');
@@ -124,9 +140,10 @@ class VolunteerService {
   }
 
   Future<List<VolunteerTask>> listTasks({String status = ''}) async {
-    final path = status.trim().isEmpty
-        ? '/api/volunteers/tasks'
-        : '/api/volunteers/tasks?status=${Uri.encodeQueryComponent(status.trim())}';
+    final path =
+        status.trim().isEmpty
+            ? '/api/volunteers/tasks'
+            : '/api/volunteers/tasks?status=${Uri.encodeQueryComponent(status.trim())}';
     final body = await _jsonGet(path);
     final rows = body['tasks'];
     if (rows is! List) return const [];
@@ -145,7 +162,10 @@ class VolunteerService {
     return VolunteerTask.fromJson(task);
   }
 
-  Future<VolunteerTask> updateTask(String id, Map<String, dynamic> payload) async {
+  Future<VolunteerTask> updateTask(
+    String id,
+    Map<String, dynamic> payload,
+  ) async {
     final body = await _jsonSend('PATCH', '/api/volunteers/tasks/$id', payload);
     final task = body['task'];
     if (task is! Map<String, dynamic>) {
@@ -154,10 +174,13 @@ class VolunteerService {
     return VolunteerTask.fromJson(task);
   }
 
-  Future<List<VolunteerApplication>> listApplications({String status = ''}) async {
-    final path = status.trim().isEmpty
-        ? '/api/volunteers/applications'
-        : '/api/volunteers/applications?status=${Uri.encodeQueryComponent(status.trim())}';
+  Future<List<VolunteerApplication>> listApplications({
+    String status = '',
+  }) async {
+    final path =
+        status.trim().isEmpty
+            ? '/api/volunteers/applications'
+            : '/api/volunteers/applications?status=${Uri.encodeQueryComponent(status.trim())}';
     final body = await _jsonGet(path);
     final rows = body['applications'];
     if (rows is! List) return const [];
@@ -167,8 +190,14 @@ class VolunteerService {
     ];
   }
 
-  Future<VolunteerApplication> createApplication(Map<String, dynamic> payload) async {
-    final body = await _jsonSend('POST', '/api/volunteers/applications', payload);
+  Future<VolunteerApplication> createApplication(
+    Map<String, dynamic> payload,
+  ) async {
+    final body = await _jsonSend(
+      'POST',
+      '/api/volunteers/applications',
+      payload,
+    );
     final application = body['application'];
     if (application is! Map<String, dynamic>) {
       throw const VolunteerException('bad_response');
@@ -176,10 +205,8 @@ class VolunteerService {
     return VolunteerApplication.fromJson(application);
   }
 
-  Future<({VolunteerApplication application, VolunteerRecord? volunteer})> reviewApplication(
-    String id,
-    String status,
-  ) async {
+  Future<({VolunteerApplication application, VolunteerRecord? volunteer})>
+  reviewApplication(String id, String status) async {
     final body = await _jsonSend(
       'POST',
       '/api/volunteers/applications/$id/review',
@@ -192,9 +219,10 @@ class VolunteerService {
     final volunteer = body['volunteer'];
     return (
       application: VolunteerApplication.fromJson(application),
-      volunteer: volunteer is Map<String, dynamic>
-          ? VolunteerRecord.fromJson(volunteer)
-          : null,
+      volunteer:
+          volunteer is Map<String, dynamic>
+              ? VolunteerRecord.fromJson(volunteer)
+              : null,
     );
   }
 

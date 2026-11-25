@@ -16,7 +16,7 @@ class LetterException implements Exception {
 /// Asks the VOTE BANKER backend to draft an official letter. The model key stays on the server.
 class LetterService {
   LetterService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
@@ -40,9 +40,12 @@ class LetterService {
       throw const LetterException('unreachable');
     }
     final body = _json(response);
-    if (response.statusCode >= 200 && response.statusCode < 300 && body['success'] == true) {
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        body['success'] == true) {
       final letter = body['letter'];
-      if (letter is Map<String, dynamic> && (letter['text'] as String? ?? '').trim().isNotEmpty) {
+      if (letter is Map<String, dynamic> &&
+          (letter['text'] as String? ?? '').trim().isNotEmpty) {
         return GeneratedLetter.fromJson(letter);
       }
     }

@@ -71,8 +71,9 @@ class WebsiteBuilderApi {
       if (decoded is! Map<String, dynamic>) return null;
       final website = decoded['website'];
       if (website is! Map) return null;
-      final saved =
-          WebsiteBuilderDraft.fromJson(Map<String, dynamic>.from(website));
+      final saved = WebsiteBuilderDraft.fromJson(
+        Map<String, dynamic>.from(website),
+      );
       // Keep local image bytes that were not uploaded yet.
       _mergeLocalMedia(saved, draft);
       return saved;
@@ -108,7 +109,8 @@ class WebsiteBuilderApi {
           )
           .timeout(const Duration(seconds: 25));
       final decoded = jsonDecode(response.body);
-      final body = decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
+      final body =
+          decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
       if (response.statusCode < 200 || response.statusCode >= 300) {
         return (
           draft: null,
@@ -119,8 +121,9 @@ class WebsiteBuilderApi {
       if (website is! Map) {
         return (draft: null, error: 'publish_failed');
       }
-      final saved =
-          WebsiteBuilderDraft.fromJson(Map<String, dynamic>.from(website));
+      final saved = WebsiteBuilderDraft.fromJson(
+        Map<String, dynamic>.from(website),
+      );
       _mergeLocalMedia(saved, draft);
       return (draft: saved, error: null);
     } on TimeoutException {
@@ -130,7 +133,10 @@ class WebsiteBuilderApi {
     }
   }
 
-  void _mergeLocalMedia(WebsiteBuilderDraft target, WebsiteBuilderDraft source) {
+  void _mergeLocalMedia(
+    WebsiteBuilderDraft target,
+    WebsiteBuilderDraft source,
+  ) {
     if (!target.profilePhoto.hasImage && source.profilePhoto.hasImage) {
       target.profilePhoto = source.profilePhoto;
     }

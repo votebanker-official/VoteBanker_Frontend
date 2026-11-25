@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -6,7 +5,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/routing/app_routes.dart';
@@ -30,6 +28,27 @@ class GlobalFooter extends StatelessWidget {
   static const companyName = 'Voter Relationship Management Private Limited';
   static const copyrightLine =
       '© 2026 Voter Relationship Management Private Limited. All rights reserved.';
+
+  static const mobileBreakpoint = columnBreakpoint;
+
+  static bool shouldDisplay(BuildContext context) {
+    final platform = Theme.of(context).platform;
+    final nativeMobile =
+        !kIsWeb &&
+        (platform == TargetPlatform.android || platform == TargetPlatform.iOS);
+    return !nativeMobile &&
+        MediaQuery.sizeOf(context).width >= mobileBreakpoint;
+  }
+
+  static Widget wrapIfDisplayed(
+    BuildContext context,
+    Widget child, {
+    bool compactFooter = false,
+  }) {
+    return shouldDisplay(context)
+        ? AppFooterShell(compactFooter: compactFooter, child: child)
+        : child;
+  }
 
   /// Official VoteBanker profiles. An empty value stays visible and does not
   /// open a guessed address.
@@ -334,6 +353,7 @@ class _AppFooterShellState extends State<AppFooterShell> {
 
   @override
   Widget build(BuildContext context) {
+    if (!GlobalFooter.shouldDisplay(context)) return widget.child;
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: LayoutBuilder(
@@ -345,11 +365,6 @@ class _AppFooterShellState extends State<AppFooterShell> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!context.mounted) return;
             _sync();
-            // #region agent log
-            if (kIsWeb) {
-              _logFooterPlacement(context, width, height, pageExtent, _long);
-            }
-            // #endregion
           });
           return SizedBox(
             width: width,
@@ -1194,67 +1209,3 @@ const _instagramSvg = '''
   <circle cx="32.2" cy="15.8" r="1.7" fill="#fff"/>
 </svg>
 ''';
-
-// #region agent log
-void _logFooterPlacement(
-  BuildContext context,
-  double maxWidth,
-  double maxHeight,
-  double pageExtent,
-  bool long,
-) {
-  try {
-    final shell = context.findRenderObject();
-    if (shell is! RenderBox || !shell.hasSize) return;
-    RenderBox? footer;
-    void walk(Element element) {
-      if (element.widget.key == const Key('global-footer') &&
-          element.renderObject is RenderBox) {
-        footer = element.renderObject! as RenderBox;
-      }
-      if (footer == null) element.visitChildren(walk);
-    }
-
-    context.visitChildElements(walk);
-    final footerBox = footer;
-    if (footerBox == null || !footerBox.hasSize) return;
-    final shellOrigin = shell.localToGlobal(Offset.zero);
-    final footerOrigin = footerBox.localToGlobal(Offset.zero);
-    final dx = footerOrigin.dx - shellOrigin.dx;
-    final dy = footerOrigin.dy - shellOrigin.dy;
-    http
-        .post(
-          Uri.parse(
-            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-          ),
-          headers: const {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '133bb1',
-          },
-          body: jsonEncode({
-            'sessionId': '133bb1',
-            'runId': 'post-fix',
-            'hypothesisId': 'A',
-            'location': 'global_footer.dart:AppFooterShell',
-            'message': 'footer placement',
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-            'data': {
-              'maxWidth': maxWidth,
-              'maxHeight': maxHeight,
-              'pageExtent': pageExtent,
-              'long': long,
-              'shellWidth': shell.size.width,
-              'footerWidth': footerBox.size.width,
-              'footerDx': dx,
-              'footerDy': dy,
-              'beside': dx.abs() > 1,
-              'below': dy > 0 && dx.abs() <= 1,
-              'fullWidth': (footerBox.size.width - shell.size.width).abs() < 1,
-            },
-          }),
-        )
-        .then((_) {}, onError: (_) {});
-  } catch (_) {}
-}
-
-// #endregion

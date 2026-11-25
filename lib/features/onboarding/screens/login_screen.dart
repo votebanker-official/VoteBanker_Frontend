@@ -10,6 +10,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/utils/person_name.dart';
 import '../../../core/widgets/language_selector.dart';
@@ -103,7 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
         await ProfileService.instance.saveDraft(draft);
       }
       if (!mounted) return;
-      final next = await routeAfterBlueTikSignIn(AppRoutes.profile);
+      final resume =
+          await OnboardingProgressService.instance.resolveResumeRoute();
+      final next = await routeAfterBlueTikSignIn(resume);
       if (!mounted) return;
       replaceBrowserPath(next);
       Navigator.of(context).pushReplacementNamed(next);
@@ -190,22 +193,52 @@ class _LoginScreenState extends State<LoginScreen> {
     AppRouter.open(context, AppRoutes.otp, arguments: phone ?? 'whatsapp');
   }
 
-  void _submit(AppLocalizations l10n) {
+  Future<void> _submit(AppLocalizations l10n) async {
     if (_busy) return;
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
     final raw = _identifier.text.trim();
-    if (raw.contains('@')) {
-      setState(() => _formError = l10n.loginEmailUsesGoogle);
+    final password = _password.text;
+    if (password.isEmpty) {
+      setState(() => _formError = 'Enter your password.');
       return;
     }
-    final phone = AuthService.normalizePhone(raw);
-    if (phone == null) {
-      setState(() => _formError = 'Enter a valid mobile number.');
-      return;
+
+    setState(() {
+      _busy = true;
+      _formError = null;
+    });
+    try {
+      await AuthService.instance.login(identifier: raw, password: password);
+      if (!mounted) return;
+      final draft = OnboardingScope.of(context).draft;
+      final savedProfile = await ProfileService.instance.fetchProfile();
+      if (!mounted) return;
+      if (savedProfile != null) {
+        ProfileService.applyProfile(draft, savedProfile);
+      }
+      final email = AuthService.instance.signedInEmail;
+      if (email.isNotEmpty) draft.email = email;
+      final phone = AuthService.instance.session?.phone ?? '';
+      if (phone.trim().isNotEmpty) draft.contactNumber = phone.trim();
+      if (savedProfile != null) {
+        await ProfileService.instance.saveDraft(draft);
+      }
+      if (!mounted) return;
+      final resume =
+          await OnboardingProgressService.instance.resolveResumeRoute();
+      final next = await routeAfterBlueTikSignIn(resume);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(next);
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _formError = e.message);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _formError = 'Could not sign in. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
-    setState(() => _formError = null);
-    _openOtp(phone: phone);
   }
 
   @override

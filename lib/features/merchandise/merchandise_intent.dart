@@ -30,7 +30,10 @@ class MerchandiseIntent {
       _slug = slug;
       _quantity = quantity;
     }
-    if (slug == null || slug.isEmpty || quantity == null || !isMerchandiseQuantity(quantity)) {
+    if (slug == null ||
+        slug.isEmpty ||
+        quantity == null ||
+        !isMerchandiseQuantity(quantity)) {
       return null;
     }
     return (slug: slug, quantity: quantity);

@@ -8,16 +8,19 @@ import '../models/website_draft.dart';
 class WebsiteTypeDetector {
   const WebsiteTypeDetector();
 
-  String detect(String story, WebsiteDraft draft) => detectWebsiteType(story, draft);
+  String detect(String story, WebsiteDraft draft) =>
+      detectWebsiteType(story, draft);
 }
 
 /// Chooses colors, type scale, radius, and hero layout from the type and style.
 class WebsiteThemeEngine {
   const WebsiteThemeEngine();
 
-  String choose({required String style, required String type}) => chooseTheme(style, type);
+  String choose({required String style, required String type}) =>
+      chooseTheme(style, type);
 
-  String heroLayout({required String type, required int variant}) => _heroLayout(type, variant);
+  String heroLayout({required String type, required int variant}) =>
+      _heroLayout(type, variant);
 }
 
 /// Decides which sections belong on the page.
@@ -31,7 +34,8 @@ class WebsiteSectionPlanner {
 class WebsiteContentGenerator {
   const WebsiteContentGenerator();
 
-  WebsiteDocument generate(WebsiteDraft draft) => const WebsiteSectionPlanner().plan(draft);
+  WebsiteDocument generate(WebsiteDraft draft) =>
+      const WebsiteSectionPlanner().plan(draft);
 }
 
 /// Local stand-in for POST /api/website/generate.
@@ -40,16 +44,35 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
   final story = _story(draft);
   final type = const WebsiteTypeDetector().detect(story, draft);
   final subject = _subject(story, draft, type);
-  final loves = type == 'pet' ? _afterVerb(story, RegExp(r'\bloves?\s+([^.]+)', caseSensitive: false)) : <String>[];
+  final loves =
+      type == 'pet'
+          ? _afterVerb(
+            story,
+            RegExp(r'\bloves?\s+([^.]+)', caseSensitive: false),
+          )
+          : <String>[];
   final traits = type == 'pet' ? _traits(story) : <String>[];
-  final made = _afterVerb(story, RegExp(r'\b(?:we make|we offer|specializing in|provides?|providing)\s+([^.]+)', caseSensitive: false));
+  final made = _afterVerb(
+    story,
+    RegExp(
+      r'\b(?:we make|we offer|specializing in|provides?|providing)\s+([^.]+)',
+      caseSensitive: false,
+    ),
+  );
   final focuses = type == 'leadership' ? focusTopics(story) : <String>[];
   final sentences = _sentences(story);
   final aboutField = draft.about.trim();
-  final aboutBody = aboutField.isNotEmpty ? aboutField : _aboutBody(type, sentences);
+  final aboutBody =
+      aboutField.isNotEmpty ? aboutField : _aboutBody(type, sentences);
   final heroLine = _heroLine(type, subject, loves, made, sentences);
-  final theme = const WebsiteThemeEngine().choose(style: draft.style, type: type);
-  final heroLayout = const WebsiteThemeEngine().heroLayout(type: type, variant: draft.layoutVariant);
+  final theme = const WebsiteThemeEngine().choose(
+    style: draft.style,
+    type: type,
+  );
+  final heroLayout = const WebsiteThemeEngine().heroLayout(
+    type: type,
+    variant: draft.layoutVariant,
+  );
 
   final sections = <WebsiteSection>[];
   var order = 0;
@@ -83,10 +106,28 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
   }
 
   if (draft.vision.trim().isNotEmpty) {
-    add(_prose('vision', WebsiteSectionType.vision, 'secVision', 'Vision', draft.vision.trim(), order));
+    add(
+      _prose(
+        'vision',
+        WebsiteSectionType.vision,
+        'secVision',
+        'Vision',
+        draft.vision.trim(),
+        order,
+      ),
+    );
   }
   if (draft.mission.trim().isNotEmpty) {
-    add(_prose('mission', WebsiteSectionType.mission, 'secMission', 'Mission', draft.mission.trim(), order));
+    add(
+      _prose(
+        'mission',
+        WebsiteSectionType.mission,
+        'secMission',
+        'Mission',
+        draft.mission.trim(),
+        order,
+      ),
+    );
   }
 
   if (loves.isNotEmpty) {
@@ -105,7 +146,15 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
     );
   }
   if (traits.isNotEmpty) {
-    add(_cards('personality', WebsiteSectionType.personality, 'Personality', traits, order));
+    add(
+      _cards(
+        'personality',
+        WebsiteSectionType.personality,
+        'Personality',
+        traits,
+        order,
+      ),
+    );
   }
   if (focuses.isNotEmpty) {
     add(
@@ -115,13 +164,17 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
         titleKey: 'prioritiesTitle',
         heading: 'Key priorities',
         order: order,
-        content: _sentenceContaining(story, RegExp(r'focus|priorit', caseSensitive: false)),
+        content: _sentenceContaining(
+          story,
+          RegExp(r'focus|priorit', caseSensitive: false),
+        ),
         items: [for (final topic in focuses) WebsiteItem(title: topic)],
       ),
     );
   }
   if (made.isNotEmpty && type == 'business') {
-    final cakes = made.where((item) => item.toLowerCase().contains('cake')).toList();
+    final cakes =
+        made.where((item) => item.toLowerCase().contains('cake')).toList();
     add(_cards('menu', WebsiteSectionType.menu, 'Our menu', made, order));
     if (cakes.isNotEmpty && made.length > cakes.length) {
       add(_cards('cakes', WebsiteSectionType.services, 'Cakes', cakes, order));
@@ -142,19 +195,56 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
   if (type == 'photographer') {
     final shots = made.isEmpty ? _photoSubjects(story) : made;
     if (shots.isNotEmpty) {
-      add(_cards('portfolio', WebsiteSectionType.portfolio, 'Portfolio', shots, order));
+      add(
+        _cards(
+          'portfolio',
+          WebsiteSectionType.portfolio,
+          'Portfolio',
+          shots,
+          order,
+        ),
+      );
     }
   }
   if (type == 'healthcare') {
     final services = made.isEmpty ? _careSubjects(story) : made;
     if (services.isNotEmpty) {
-      add(_cards('services', WebsiteSectionType.services, 'Services', services, order));
+      add(
+        _cards(
+          'services',
+          WebsiteSectionType.services,
+          'Services',
+          services,
+          order,
+        ),
+      );
     }
     final place = _place(story);
     if (place.isNotEmpty) {
-      add(_prose('clinic', WebsiteSectionType.contact, 'secContact', 'Clinic', place, order));
+      add(
+        _prose(
+          'clinic',
+          WebsiteSectionType.contact,
+          'secContact',
+          'Clinic',
+          place,
+          order,
+        ),
+      );
     }
-    add(_prose('appointments', WebsiteSectionType.appointments, 'secContact', 'Appointments', _sentenceContaining(story, RegExp(r'clinic|care|vaccin', caseSensitive: false)), order));
+    add(
+      _prose(
+        'appointments',
+        WebsiteSectionType.appointments,
+        'secContact',
+        'Appointments',
+        _sentenceContaining(
+          story,
+          RegExp(r'clinic|care|vaccin', caseSensitive: false),
+        ),
+        order,
+      ),
+    );
   }
 
   final workLines = _chunks(draft.achievements);
@@ -167,13 +257,29 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
         heading: 'My work',
         order: order,
         content: workLines.length == 1 ? workLines.first : '',
-        items: workLines.length == 1 ? const [] : [for (final line in workLines) WebsiteItem(title: line)],
+        items:
+            workLines.length == 1
+                ? const []
+                : [for (final line in workLines) WebsiteItem(title: line)],
       ),
     );
-  } else if (type == 'leadership' && RegExp(r'\bwork\b', caseSensitive: false).hasMatch(story)) {
-    final line = _sentenceContaining(story, RegExp(r'\bwork\b', caseSensitive: false));
+  } else if (type == 'leadership' &&
+      RegExp(r'\bwork\b', caseSensitive: false).hasMatch(story)) {
+    final line = _sentenceContaining(
+      story,
+      RegExp(r'\bwork\b', caseSensitive: false),
+    );
     if (line.isNotEmpty) {
-      add(_prose('work', WebsiteSectionType.achievements, 'workTitle', 'My work', line, order));
+      add(
+        _prose(
+          'work',
+          WebsiteSectionType.achievements,
+          'workTitle',
+          'My work',
+          line,
+          order,
+        ),
+      );
     }
   }
 
@@ -191,7 +297,9 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
     );
   }
 
-  final wantsRequests = draft.sections.contains('requests') || RegExp(r'\brequests?\b', caseSensitive: false).hasMatch(story);
+  final wantsRequests =
+      draft.sections.contains('requests') ||
+      RegExp(r'\brequests?\b', caseSensitive: false).hasMatch(story);
   if (wantsRequests && type == 'leadership') {
     add(
       WebsiteSection(
@@ -200,17 +308,26 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
         titleKey: 'secRequests',
         heading: 'Public requests',
         order: order,
-        content: _sentenceContaining(story, RegExp(r'request', caseSensitive: false)),
+        content: _sentenceContaining(
+          story,
+          RegExp(r'request', caseSensitive: false),
+        ),
       ),
     );
   }
 
-  final showGallery = draft.photos.isNotEmpty || type == 'pet' || type == 'photographer' || type == 'business' || type == 'artist';
-  final galleryItems = loves.isNotEmpty
-      ? loves
-      : made.isNotEmpty
-      ? made
-      : focuses;
+  final showGallery =
+      draft.photos.isNotEmpty ||
+      type == 'pet' ||
+      type == 'photographer' ||
+      type == 'business' ||
+      type == 'artist';
+  final galleryItems =
+      loves.isNotEmpty
+          ? loves
+          : made.isNotEmpty
+          ? made
+          : focuses;
   if (showGallery) {
     add(
       WebsiteSection(
@@ -219,15 +336,21 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
         titleKey: 'secGallery',
         heading: 'Gallery',
         order: order,
-        items: [for (final label in galleryItems.take(6)) WebsiteItem(title: label)],
+        items: [
+          for (final label in galleryItems.take(6)) WebsiteItem(title: label),
+        ],
       ),
     );
   }
 
   final contactItems = _contactItems(draft);
-  final contactLine = _sentenceContaining(story, RegExp(r'contact|office|clinic', caseSensitive: false));
+  final contactLine = _sentenceContaining(
+    story,
+    RegExp(r'contact|office|clinic', caseSensitive: false),
+  );
   final alreadyClinic = sections.any((section) => section.id == 'clinic');
-  if (contactItems.isNotEmpty || (contactLine.isNotEmpty && !alreadyClinic && type != 'healthcare')) {
+  if (contactItems.isNotEmpty ||
+      (contactLine.isNotEmpty && !alreadyClinic && type != 'healthcare')) {
     add(
       WebsiteSection(
         id: 'contact',
@@ -255,24 +378,36 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
     );
   }
 
-  final ctas = _ctas(type, subject.name.isEmpty ? subject.fallback : subject.name, sections);
-  final portrait = draft.logo ?? (draft.photos.isEmpty ? null : draft.photos.first);
-  final gallery = draft.logo == null && draft.photos.length > 1
-      ? draft.photos.skip(1).toList()
-      : (draft.logo != null ? List<Uint8List>.from(draft.photos) : <Uint8List>[]);
+  final ctas = _ctas(
+    type,
+    subject.name.isEmpty ? subject.fallback : subject.name,
+    sections,
+  );
+  final portrait =
+      draft.logo ?? (draft.photos.isEmpty ? null : draft.photos.first);
+  final gallery =
+      draft.logo == null && draft.photos.length > 1
+          ? draft.photos.skip(1).toList()
+          : (draft.logo != null
+              ? List<Uint8List>.from(draft.photos)
+              : <Uint8List>[]);
 
   return WebsiteDocument(
     siteTitle: subject.name.isEmpty ? subject.fallback : subject.name,
-    personName: draft.fullName.trim().isNotEmpty
-        ? formatPersonName(draft.fullName)
-        : (type == 'pet' ||
-                type == 'leadership' ||
-                type == 'healthcare' ||
-                type == 'personal'
-            ? subject.name
-            : ''),
+    personName:
+        draft.fullName.trim().isNotEmpty
+            ? formatPersonName(draft.fullName)
+            : (type == 'pet' ||
+                    type == 'leadership' ||
+                    type == 'healthcare' ||
+                    type == 'personal'
+                ? subject.name
+                : ''),
     professionalTitle: draft.publicTitle.trim(),
-    organization: draft.organization.trim().isNotEmpty ? draft.organization.trim() : (type == 'healthcare' ? _place(story) : ''),
+    organization:
+        draft.organization.trim().isNotEmpty
+            ? draft.organization.trim()
+            : (type == 'healthcare' ? _place(story) : ''),
     tagline: draft.callToAction.trim(),
     introduction: sentences.isNotEmpty ? sentences.first : heroLine,
     heroTitle: _heroTitle(type, subject),
@@ -297,21 +432,30 @@ WebsiteDocument planWebsite(WebsiteDraft draft) {
 
 String detectWebsiteType(String story, WebsiteDraft draft) {
   final text = story.toLowerCase();
-  bool has(String pattern) => RegExp(pattern, caseSensitive: false).hasMatch(text);
+  bool has(String pattern) =>
+      RegExp(pattern, caseSensitive: false).hasMatch(text);
 
   if (has(r'\b(photographer|photography|portraits?)\b')) {
     return 'photographer';
   }
-  if (has(r'\b(pediatrician|doctor|dentist|physician|clinic|vaccination|hospital)\b')) {
+  if (has(
+    r'\b(pediatrician|doctor|dentist|physician|clinic|vaccination|hospital)\b',
+  )) {
     return 'healthcare';
   }
   if (has(r'\b(cat|cats|kitten|kittens|dog|dogs|puppy|pet|pets)\b')) {
     return 'pet';
   }
-  if (has(r'\b(constituency|voters|mla|minister|election|public requests?)\b') || draft.sections.contains('requests')) {
+  if (has(
+        r'\b(constituency|voters|mla|minister|election|public requests?)\b',
+      ) ||
+      draft.sections.contains('requests')) {
     return 'leadership';
   }
-  if (has(r'\b(bakery|cakes?|pastries|pastry|restaurant|cafe|café|shop|boutique)\b') || has(r'\b(i run|we make|we bake)\b')) {
+  if (has(
+        r'\b(bakery|cakes?|pastries|pastry|restaurant|cafe|café|shop|boutique)\b',
+      ) ||
+      has(r'\b(i run|we make|we bake)\b')) {
     return 'business';
   }
   if (has(r'\b(artist|painter|illustrator)\b')) {
@@ -352,7 +496,8 @@ List<String> focusTopics(String text) {
   final found = <String>[];
   void add(String raw) {
     final label = _label(raw);
-    if (label.isEmpty || found.any((item) => item.toLowerCase() == label.toLowerCase())) {
+    if (label.isEmpty ||
+        found.any((item) => item.toLowerCase() == label.toLowerCase())) {
       return;
     }
     found.add(label);
@@ -393,22 +538,37 @@ _Subject _subject(String story, WebsiteDraft draft, String type) {
   if (called != null) {
     return _Subject(called.group(1)!.trim(), called.group(1)!.trim(), type);
   }
-  final petName = RegExp(r'\b(?:cat|dog|kitten|puppy)\s+([A-Z][a-z]+)\b').firstMatch(story);
+  final petName = RegExp(
+    r'\b(?:cat|dog|kitten|puppy)\s+([A-Z][a-z]+)\b',
+  ).firstMatch(story);
   if (petName != null) {
     return _Subject(petName.group(1)!, petName.group(1)!, 'pet');
   }
-  final brand = RegExp(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b').firstMatch(story);
+  final brand = RegExp(
+    r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b',
+  ).firstMatch(story);
   if (brand != null && type == 'business') {
     return _Subject(brand.group(1)!, brand.group(1)!, type);
   }
-  final iAm = RegExp(r'\bI am\s+(?!a\b|an\b)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})').firstMatch(story);
+  final iAm = RegExp(
+    r'\bI am\s+(?!a\b|an\b)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})',
+  ).firstMatch(story);
   if (iAm != null) {
     return _Subject(iAm.group(1)!, iAm.group(1)!, type);
   }
   final kind = switch (type) {
     'pet' => _kindWord(story, const ['cat', 'dog', 'kitten', 'puppy', 'pet']),
-    'business' => _kindWord(story, const ['bakery', 'cafe', 'shop', 'restaurant']),
-    'healthcare' => _kindWord(story, const ['clinic', 'pediatrician', 'doctor']),
+    'business' => _kindWord(story, const [
+      'bakery',
+      'cafe',
+      'shop',
+      'restaurant',
+    ]),
+    'healthcare' => _kindWord(story, const [
+      'clinic',
+      'pediatrician',
+      'doctor',
+    ]),
     'photographer' => 'Photography',
     'leadership' => 'Constituency',
     _ => '',
@@ -435,7 +595,10 @@ String _heroLine(
   List<String> sentences,
 ) {
   if (type == 'pet' && loves.isNotEmpty) {
-    final who = subject.name.isEmpty ? 'This ${_kindWord(subject.fallback, const ['cat', 'dog', 'pet']).toLowerCase()}' : subject.name;
+    final who =
+        subject.name.isEmpty
+            ? 'This ${_kindWord(subject.fallback, const ['cat', 'dog', 'pet']).toLowerCase()}'
+            : subject.name;
     return '$who loves ${_join(loves.map((item) => item.toLowerCase()).toList())}.';
   }
   if (type == 'business' && made.isNotEmpty) {
@@ -457,10 +620,12 @@ String _aboutBody(String type, List<String> sentences) {
   if (type == 'personal' && sentences.length <= 1) {
     return '';
   }
-  final kept = sentences.where((sentence) {
-    final lower = sentence.toLowerCase();
-    return !lower.startsWith('i want a') && !lower.startsWith('i would like');
-  }).toList();
+  final kept =
+      sentences.where((sentence) {
+        final lower = sentence.toLowerCase();
+        return !lower.startsWith('i want a') &&
+            !lower.startsWith('i would like');
+      }).toList();
   if (kept.isEmpty) {
     return '';
   }
@@ -484,16 +649,32 @@ String _petCardTitle(String phrase) {
   return _label(phrase);
 }
 
-(String, String) _ctas(String type, String name, List<WebsiteSection> sections) {
-  bool has(WebsiteSectionType kind) => sections.any((section) => section.type == kind);
+(String, String) _ctas(
+  String type,
+  String name,
+  List<WebsiteSection> sections,
+) {
+  bool has(WebsiteSectionType kind) =>
+      sections.any((section) => section.type == kind);
   return switch (type) {
-    'pet' => ('Meet ${name.isEmpty ? 'them' : name}', has(WebsiteSectionType.gallery) ? 'View gallery' : ''),
+    'pet' => (
+      'Meet ${name.isEmpty ? 'them' : name}',
+      has(WebsiteSectionType.gallery) ? 'View gallery' : '',
+    ),
     'leadership' => (
-      has(WebsiteSectionType.contact) || has(WebsiteSectionType.publicRequests) ? 'Contact office' : '',
+      has(WebsiteSectionType.contact) || has(WebsiteSectionType.publicRequests)
+          ? 'Contact office'
+          : '',
       has(WebsiteSectionType.achievements) ? 'View my work' : '',
     ),
-    'business' => ('See the menu', has(WebsiteSectionType.gallery) ? 'View gallery' : ''),
-    'photographer' || 'artist' => ('View portfolio', has(WebsiteSectionType.gallery) ? 'View gallery' : ''),
+    'business' => (
+      'See the menu',
+      has(WebsiteSectionType.gallery) ? 'View gallery' : '',
+    ),
+    'photographer' || 'artist' => (
+      'View portfolio',
+      has(WebsiteSectionType.gallery) ? 'View gallery' : '',
+    ),
     'healthcare' => ('Clinic details', ''),
     _ => ('', ''),
   };
@@ -511,7 +692,14 @@ String _heroLayout(String type, int variant) {
   return layouts[variant % layouts.length];
 }
 
-WebsiteSection _prose(String id, WebsiteSectionType type, String titleKey, String heading, String content, int order) {
+WebsiteSection _prose(
+  String id,
+  WebsiteSectionType type,
+  String titleKey,
+  String heading,
+  String content,
+  int order,
+) {
   return WebsiteSection(
     id: id,
     type: type,
@@ -522,7 +710,13 @@ WebsiteSection _prose(String id, WebsiteSectionType type, String titleKey, Strin
   );
 }
 
-WebsiteSection _cards(String id, WebsiteSectionType type, String heading, List<String> labels, int order) {
+WebsiteSection _cards(
+  String id,
+  WebsiteSectionType type,
+  String heading,
+  List<String> labels,
+  int order,
+) {
   return WebsiteSection(
     id: id,
     type: type,
@@ -530,7 +724,8 @@ WebsiteSection _cards(String id, WebsiteSectionType type, String heading, List<S
     heading: heading,
     order: order,
     items: [
-      for (final label in labels) WebsiteItem(title: _label(label), description: label.trim()),
+      for (final label in labels)
+        WebsiteItem(title: _label(label), description: label.trim()),
     ],
   );
 }
@@ -540,7 +735,9 @@ List<String> _afterVerb(String text, RegExp pattern) {
   if (match == null) {
     return const [];
   }
-  return _splitList(match.group(1)!).map(_tidyPhrase).where((item) => item.isNotEmpty).toList();
+  return _splitList(
+    match.group(1)!,
+  ).map(_tidyPhrase).where((item) => item.isNotEmpty).toList();
 }
 
 List<String> _traits(String text) {
@@ -552,9 +749,16 @@ List<String> _traits(String text) {
     return const [];
   }
   return _splitList(match.group(1)!)
-      .map((word) => word.replaceAll(RegExp(r'\bvery\b', caseSensitive: false), '').trim())
+      .map(
+        (word) =>
+            word
+                .replaceAll(RegExp(r'\bvery\b', caseSensitive: false), '')
+                .trim(),
+      )
       .map(_label)
-      .where((word) => word.isNotEmpty && !_traitSkip.contains(word.toLowerCase()))
+      .where(
+        (word) => word.isNotEmpty && !_traitSkip.contains(word.toLowerCase()),
+      )
       .toList();
 }
 
@@ -573,7 +777,10 @@ List<String> _photoSubjects(String text) {
 
 List<String> _careSubjects(String text) {
   final found = <String>[];
-  if (RegExp(r'child healthcare|child care|pediatric', caseSensitive: false).hasMatch(text)) {
+  if (RegExp(
+    r'child healthcare|child care|pediatric',
+    caseSensitive: false,
+  ).hasMatch(text)) {
     found.add('Child healthcare');
   }
   if (RegExp(r'vaccination', caseSensitive: false).hasMatch(text)) {
@@ -583,7 +790,9 @@ List<String> _careSubjects(String text) {
 }
 
 String _place(String text) {
-  final match = RegExp(r'\b(?:in|at)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)').firstMatch(text);
+  final match = RegExp(
+    r'\b(?:in|at)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)',
+  ).firstMatch(text);
   return match == null ? '' : match.group(1)!;
 }
 
@@ -610,13 +819,22 @@ List<String> _sentences(String text) {
 }
 
 List<String> _chunks(String text) {
-  return text.split(RegExp(r'\n+')).map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
+  return text
+      .split(RegExp(r'\n+'))
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList();
 }
 
 List<WebsiteItem> _events(String note) {
   final items = <WebsiteItem>[];
   for (final line in _chunks(note)) {
-    final parts = line.split('|').map((part) => part.trim()).where((part) => part.isNotEmpty).toList();
+    final parts =
+        line
+            .split('|')
+            .map((part) => part.trim())
+            .where((part) => part.isNotEmpty)
+            .toList();
     if (parts.isEmpty) {
       continue;
     }
@@ -657,8 +875,17 @@ List<WebsiteItem> _socialItems(String raw) {
       continue;
     }
     final lower = value.toLowerCase();
-    final network = _networks.entries.where((entry) => lower.contains(entry.key)).map((entry) => entry.value).firstOrNull;
-    items.add(WebsiteItem(title: network ?? value, description: network == null ? '' : value));
+    final network =
+        _networks.entries
+            .where((entry) => lower.contains(entry.key))
+            .map((entry) => entry.value)
+            .firstOrNull;
+    items.add(
+      WebsiteItem(
+        title: network ?? value,
+        description: network == null ? '' : value,
+      ),
+    );
   }
   return items;
 }
@@ -687,7 +914,13 @@ String _tidyPhrase(String raw) {
 }
 
 String _label(String raw) {
-  final words = _tidyPhrase(raw).split(RegExp(r'\s+')).where((word) => word.isNotEmpty && !_skip.contains(word.toLowerCase())).toList();
+  final words =
+      _tidyPhrase(raw)
+          .split(RegExp(r'\s+'))
+          .where(
+            (word) => word.isNotEmpty && !_skip.contains(word.toLowerCase()),
+          )
+          .toList();
   if (words.isEmpty || words.length > 6) {
     return words.length > 6 ? words.take(6).map(_cap).join(' ') : '';
   }
@@ -714,12 +947,15 @@ String _kindWord(String text, List<String> words) {
 }
 
 String _firstWords(String text) {
-  final words = text
-      .replaceAll(RegExp(r'[^A-Za-z0-9\s]'), ' ')
-      .split(RegExp(r'\s+'))
-      .where((word) => word.length > 2 && !_intent.contains(word.toLowerCase()))
-      .take(3)
-      .toList();
+  final words =
+      text
+          .replaceAll(RegExp(r'[^A-Za-z0-9\s]'), ' ')
+          .split(RegExp(r'\s+'))
+          .where(
+            (word) => word.length > 2 && !_intent.contains(word.toLowerCase()),
+          )
+          .take(3)
+          .toList();
   return words.isEmpty ? 'Website' : words.map(_cap).join(' ');
 }
 
@@ -765,14 +1001,7 @@ const _skip = <String>{
   'with',
 };
 
-const _traitSkip = <String>{
-  'a',
-  'an',
-  'the',
-  'working',
-  'able',
-  'people',
-};
+const _traitSkip = <String>{'a', 'an', 'the', 'working', 'able', 'people'};
 
 const _intent = <String>{
   'want',

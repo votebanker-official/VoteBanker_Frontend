@@ -80,7 +80,7 @@ class SocialMediaContacts {
 /// Reads saved VRM social contacts from the VoteBanker API.
 class SocialMediaService {
   SocialMediaService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
@@ -102,9 +102,10 @@ class SocialMediaService {
       throw const SocialMediaException('unauthorized');
     }
     final q = query.trim();
-    final path = q.isEmpty
-        ? '/api/social-media/contacts'
-        : '/api/social-media/contacts?q=${Uri.encodeQueryComponent(q)}';
+    final path =
+        q.isEmpty
+            ? '/api/social-media/contacts'
+            : '/api/social-media/contacts?q=${Uri.encodeQueryComponent(q)}';
 
     http.Response? response;
     for (final base in _bases) {

@@ -184,6 +184,54 @@ class AuthService {
     await _post('/api/auth/otp/send', {'phone': phone, 'channel': 'whatsapp'});
   }
 
+  Future<AuthSession> register({
+    required String email,
+    required String mobile,
+    required String password,
+    required String confirmPassword,
+    required bool termsAccepted,
+  }) async {
+    final body = await _post('/api/auth/register', {
+      'email': email.trim(),
+      'mobile': mobile.trim(),
+      'password': password,
+      'confirm_password': confirmPassword,
+      'terms_accepted': termsAccepted,
+    });
+    return _sessionFromResponse(body, fallbackPhone: mobile.trim());
+  }
+
+  Future<AuthSession> login({
+    required String identifier,
+    required String password,
+  }) async {
+    final body = await _post('/api/auth/login', {
+      'identifier': identifier.trim(),
+      'password': password,
+    });
+    return _sessionFromResponse(body);
+  }
+
+  AuthSession _sessionFromResponse(
+    Map<String, dynamic> body, {
+    String fallbackPhone = '',
+  }) {
+    final user = body['user'] as Map<String, dynamic>? ?? const {};
+    final result = AuthSession(
+      accessToken: body['access_token'] as String,
+      refreshToken: body['refresh_token'] as String,
+      userId: (user['id'] ?? '') as String,
+      phone: (user['phone'] ?? fallbackPhone) as String,
+      fullName: (user['full_name'] ?? '') as String,
+      email: (user['email'] ?? '') as String,
+      avatarUrl: (user['avatar_url'] ?? '') as String,
+      expiresAt: body['expires_at'] as int?,
+    );
+    session = result;
+    unawaited(_persist(result));
+    return result;
+  }
+
   /// Opens a social provider in the browser. The provider sends the user back here.
   Future<void> startSocial(String provider) async {
     if (!kIsWeb) {
@@ -199,24 +247,6 @@ class AuthService {
     final uri = Uri.parse(
       '$apiBase/api/auth/oauth/$provider/start',
     ).replace(queryParameters: {'return_to': returnTo});
-    // #region agent log
-    _debugSessionLog('B', 'social start', {
-      'provider': provider,
-      'apiHost': uri.host,
-      'apiPort': uri.hasPort ? uri.port : 0,
-      'returnTo': returnTo,
-    });
-    // #endregion
-    // #region agent log
-    _googleDebugLog('A', 'continue with google navigation', {
-      'provider': provider,
-      'apiHost': uri.host,
-      'apiPort': uri.hasPort ? uri.port : 0,
-      'apiPath': uri.path,
-      'returnTo': returnTo,
-      'phase': 'post-fix',
-    });
-    // #endregion
     redirectBrowser(uri.toString());
   }
 
@@ -276,21 +306,7 @@ class AuthService {
         error = location.queryParameters['auth_error'];
       }
     }
-    // #region agent log
-    _sessionDebugLog('C', 'pending social return', {
-      'hasTicket': ticket != null && ticket.isNotEmpty,
-      'hasError': error != null && error.isNotEmpty,
-      'errorCode': (error != null && error.isNotEmpty) ? error : '',
-      'source': source,
-    });
-    // #endregion
     if (error != null && error.isNotEmpty) {
-      // #region agent log
-      _googleDebugLog('E', 'social return error', {
-        'errorCode': error,
-        'source': source,
-      });
-      // #endregion
       socialLaunchError = error;
       return;
     }
@@ -318,16 +334,6 @@ class AuthService {
     );
     session = result;
     await _persist(result);
-    // #region agent log
-    _sessionDebugLog('C', 'social ticket exchanged', {
-      'hasEmail': result.email.trim().isNotEmpty,
-      'emailLength': result.email.trim().length,
-      'hasFullName': result.fullName.trim().isNotEmpty,
-      'fullNameLength': result.fullName.trim().length,
-      'hasUserId': result.userId.isNotEmpty,
-      'hasAvatar': result.avatarUrl.trim().isNotEmpty,
-    });
-    // #endregion
     return result;
   }
 
@@ -464,133 +470,11 @@ class AuthService {
     return bases.first;
   }
 
-  // #region agent log
-  void _debugSessionLog(
-    String hypothesisId,
-    String message,
-    Map<String, Object?> data,
-  ) {
-    http
-        .post(
-          Uri.parse(
-            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-          ),
-          headers: const {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': 'b1102e',
-          },
-          body: jsonEncode({
-            'sessionId': 'b1102e',
-            'runId': 'pre-fix',
-            'hypothesisId': hypothesisId,
-            'location': 'auth_service.dart:startSocial',
-            'message': message,
-            'data': data,
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          }),
-        )
-        .timeout(const Duration(seconds: 2))
-        .catchError((_) => http.Response('', 599));
-  }
-
-  void _sessionDebugLog(
-    String hypothesisId,
-    String message,
-    Map<String, Object?> data,
-  ) {
-    http
-        .post(
-          Uri.parse(
-            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-          ),
-          headers: const {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '6d3aea',
-          },
-          body: jsonEncode({
-            'sessionId': '6d3aea',
-            'runId': 'pre-fix',
-            'hypothesisId': hypothesisId,
-            'location': 'auth_service.dart:exchangeSocialTicket',
-            'message': message,
-            'data': data,
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          }),
-        )
-        .timeout(const Duration(seconds: 2))
-        .catchError((_) => http.Response('', 599));
-  }
-
-  void _agentLog(
-    String hypothesisId,
-    String message,
-    Map<String, Object?> data,
-  ) {
-    http
-        .post(
-          Uri.parse(
-            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-          ),
-          headers: const {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': 'f6f27c',
-          },
-          body: jsonEncode({
-            'sessionId': 'f6f27c',
-            'runId': 'pre-fix',
-            'hypothesisId': hypothesisId,
-            'location': 'auth_service.dart',
-            'message': message,
-            'data': data,
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          }),
-        )
-        .timeout(const Duration(seconds: 2))
-        .catchError((_) => http.Response('', 599));
-  }
-
-  void _googleDebugLog(
-    String hypothesisId,
-    String message,
-    Map<String, Object?> data,
-  ) {
-    http
-        .post(
-          Uri.parse(
-            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-          ),
-          headers: const {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '90cc82',
-          },
-          body: jsonEncode({
-            'sessionId': '90cc82',
-            'runId': 'pre-fix',
-            'hypothesisId': hypothesisId,
-            'location': 'auth_service.dart:startSocial',
-            'message': message,
-            'data': data,
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          }),
-        )
-        .timeout(const Duration(seconds: 2))
-        .catchError((_) => http.Response('', 599));
-  }
-  // #endregion
-
   Future<Map<String, dynamic>> _post(
     String path,
     Map<String, dynamic> payload,
   ) async {
     final uri = Uri.parse('${AppConfig.apiBaseUrl}$path');
-    // #region agent log
-    _agentLog('A', 'auth request start', {
-      'scheme': uri.scheme,
-      'host': uri.host,
-      'port': uri.hasPort ? uri.port : 0,
-      'path': uri.path,
-    });
-    // #endregion
     http.Response response;
     try {
       response = await http
@@ -601,37 +485,16 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 20));
     } on TimeoutException {
-      // #region agent log
-      _agentLog('E', 'auth request timed out', {
-        'host': uri.host,
-        'path': uri.path,
-      });
-      // #endregion
       throw const AuthException(
         'timeout',
         'The server took too long to respond. Please try again.',
       );
     } catch (error) {
-      // #region agent log
-      _agentLog('C', 'auth request failed before a readable response', {
-        'host': uri.host,
-        'path': uri.path,
-        'errorType': error.runtimeType.toString(),
-        'errorMessage': error.toString(),
-      });
-      // #endregion
       throw const AuthException(
         'network',
         'Could not reach the server. Check your internet connection.',
       );
     }
-    // #region agent log
-    _agentLog('B', 'auth response received', {
-      'host': uri.host,
-      'path': uri.path,
-      'status': response.statusCode,
-    });
-    // #endregion
 
     Map<String, dynamic> body = const {};
     try {
@@ -651,6 +514,24 @@ class AuthService {
     switch (code) {
       case 'invalid_phone':
         return 'Enter a valid mobile number.';
+      case 'invalid_email':
+        return 'Enter a valid email address.';
+      case 'invalid_password':
+        return 'Enter a valid password.';
+      case 'password_too_short':
+        return 'Password must be at least 8 characters long.';
+      case 'password_weak':
+        return 'Password must include at least one letter and one number.';
+      case 'password_mismatch':
+        return 'Passwords do not match.';
+      case 'terms_required':
+        return 'Please accept the Terms & Conditions.';
+      case 'email_already_registered':
+        return 'This email address is already registered. Please log in.';
+      case 'mobile_already_registered':
+        return 'This mobile number is already registered. Please log in.';
+      case 'invalid_credentials':
+        return 'Incorrect email/mobile number or password.';
       case 'invalid_code':
         return 'Enter the 6-digit code.';
       case 'incorrect_code':
@@ -670,6 +551,8 @@ class AuthService {
             'Ask the VoteBanker team to add it, then try again.';
       case 'too_many_requests':
         return 'Too many attempts. Please wait a few minutes and try again.';
+      case 'registration_unavailable':
+        return 'Account registration is temporarily unavailable. Please try again shortly.';
       case 'social_expired':
         return 'That sign-in expired. Please try Facebook, Google, or Instagram again.';
       case 'social_not_configured':

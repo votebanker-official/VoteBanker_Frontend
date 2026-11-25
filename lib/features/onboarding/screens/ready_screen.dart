@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/onboarding_header.dart';
@@ -13,6 +14,7 @@ class ReadyScreen extends StatelessWidget {
   const ReadyScreen({super.key});
 
   void _dashboard(BuildContext context) {
+    OnboardingProgressService.instance.markComplete();
     AppRouter.open(context, AppRoutes.dashboard);
   }
 
@@ -22,41 +24,65 @@ class ReadyScreen extends StatelessWidget {
 
     return OnboardingFrame(
       child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            Icon(Icons.verified_outlined, color: context.palette.secondary, size: 42),
-            const SizedBox(height: 12),
-            OnboardingHeader(
-              compact: true,
-              title: l10n.readyTitle,
-              description: l10n.readyBody,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Icon(
+                  Icons.verified_outlined,
+                  color: context.palette.secondary,
+                  size: 42,
+                ),
+                const SizedBox(height: 12),
+                OnboardingHeader(
+                  compact: true,
+                  title: l10n.readyTitle,
+                  description: l10n.readyBody,
+                ),
+                const SizedBox(height: 22),
+                PrimaryButton(
+                  label: l10n.goToDashboard,
+                  icon: Icons.dashboard_outlined,
+                  onPressed: () => _dashboard(context),
+                ),
+                const SizedBox(height: 12),
+                SecondaryButton(
+                  label: l10n.exploreFeatures,
+                  icon: Icons.explore_outlined,
+                  onPressed: () => _dashboard(context),
+                ),
+                const SizedBox(height: 12),
+                SecondaryButton(
+                  label: l10n.joinNetwork,
+                  icon: Icons.groups_outlined,
+                  onPressed: () {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(l10n.joinLater)));
+                  },
+                ),
+                TextButton(
+                  onPressed: () => _dashboard(context),
+                  child: Text(l10n.skipForNow),
+                ),
+              ],
             ),
-            const SizedBox(height: 22),
-            PrimaryButton(
-              label: l10n.goToDashboard,
-              icon: Icons.dashboard_outlined,
-              onPressed: () => _dashboard(context),
-            ),
-            const SizedBox(height: 12),
-            SecondaryButton(
-              label: l10n.exploreFeatures,
-              icon: Icons.explore_outlined,
-              onPressed: () => _dashboard(context),
-            ),
-            const SizedBox(height: 12),
-            SecondaryButton(
-              label: l10n.joinNetwork,
-              icon: Icons.groups_outlined,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.joinLater)),
-                );
-              },
-            ),
-            TextButton(
-              onPressed: () => _dashboard(context),
-              child: Text(l10n.skipForNow),
+            Positioned(
+              top: 0,
+              left: 0,
+              child: IconButton(
+                key: const Key('ready-back'),
+                tooltip: l10n.back,
+                onPressed: () => AppRouter.back(context, AppRoutes.blueTik),
+                style: IconButton.styleFrom(
+                  foregroundColor: context.palette.text,
+                  fixedSize: const Size(48, 48),
+                  padding: EdgeInsets.zero,
+                  shape: const CircleBorder(),
+                ),
+                icon: const Icon(Icons.arrow_back),
+              ),
             ),
           ],
         ),

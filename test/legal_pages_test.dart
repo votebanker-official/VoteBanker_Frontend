@@ -6,6 +6,7 @@ import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/routing/app_router.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
+import 'package:votebanker/core/widgets/global_footer.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 
 void main() {
@@ -65,9 +66,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 200));
         expect(tester.takeException(), isNull, reason: route);
         final footer = find.byKey(const Key('global-footer'));
-        await tester.ensureVisible(footer);
-        await tester.pump();
-        expect(footer.hitTestable(), findsOneWidget, reason: route);
+        if (size.width >= GlobalFooter.mobileBreakpoint) {
+          await tester.ensureVisible(footer);
+          await tester.pump();
+          expect(footer.hitTestable(), findsOneWidget, reason: route);
+        } else {
+          expect(footer, findsNothing, reason: route);
+        }
       }
     });
   }
@@ -147,7 +152,7 @@ Widget _app(String route) {
       controller: OnboardingController(),
       child: MaterialApp(
         key: ValueKey(route),
-        theme: AppTheme.light(),
+        theme: AppTheme.light().copyWith(platform: TargetPlatform.windows),
         locale: const Locale('en'),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [

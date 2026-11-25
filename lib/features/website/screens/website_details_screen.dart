@@ -119,7 +119,10 @@ class _WebsiteDetailsScreenState extends State<WebsiteDetailsScreen> {
   }
 
   Future<void> _addGalleryItem() async {
-    final file = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
+    final file = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+    );
     if (file == null) return;
     final bytes = await file.readAsBytes();
     setState(() {
@@ -229,7 +232,8 @@ class _WebsiteDetailsScreenState extends State<WebsiteDetailsScreen> {
                   ChoiceChip(
                     label: Text(layout),
                     selected: design.layoutKey == layout,
-                    onSelected: (_) => setState(() => design.layoutKey = layout),
+                    onSelected:
+                        (_) => setState(() => design.layoutKey = layout),
                   ),
               ],
             ),
@@ -238,14 +242,15 @@ class _WebsiteDetailsScreenState extends State<WebsiteDetailsScreen> {
             for (var i = 0; i < design.gallery.length; i++)
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: design.gallery[i].image == null
-                    ? const Icon(Icons.image_outlined)
-                    : Image.memory(
-                        design.gallery[i].image!,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                      ),
+                leading:
+                    design.gallery[i].image == null
+                        ? const Icon(Icons.image_outlined)
+                        : Image.memory(
+                          design.gallery[i].image!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                        ),
                 title: TextFormField(
                   key: ValueKey('caption-${design.gallery[i].id}'),
                   initialValue: design.gallery[i].caption,
@@ -254,9 +259,10 @@ class _WebsiteDetailsScreenState extends State<WebsiteDetailsScreen> {
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: () => setState(() {
-                    design.gallery = [...design.gallery]..removeAt(i);
-                  }),
+                  onPressed:
+                      () => setState(() {
+                        design.gallery = [...design.gallery]..removeAt(i);
+                      }),
                 ),
               ),
             TextButton.icon(
@@ -267,9 +273,10 @@ class _WebsiteDetailsScreenState extends State<WebsiteDetailsScreen> {
             const SizedBox(height: 16),
             PrimaryButton(
               key: const ValueKey('websiteDetailsSave'),
-              label: widget.continueOnboarding
-                  ? l10n.saveAndContinue
-                  : l10n.line('portfolioSave'),
+              label:
+                  widget.continueOnboarding
+                      ? l10n.saveAndContinue
+                      : l10n.line('portfolioSave'),
               onPressed: _save,
             ),
           ],
@@ -278,7 +285,11 @@ class _WebsiteDetailsScreenState extends State<WebsiteDetailsScreen> {
     );
   }
 
-  Widget _field(TextEditingController controller, String label, {int maxLines = 1}) {
+  Widget _field(
+    TextEditingController controller,
+    String label, {
+    int maxLines = 1,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextField(

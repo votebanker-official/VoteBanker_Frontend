@@ -5,7 +5,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/language_selector.dart';
-import '../screens/otp_login_screen.dart';
+
 import '../state/onboarding_controller.dart';
 
 const _bg = Color(0xFFEAF4FF);
@@ -128,27 +128,34 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
     setState(() => _busy = true);
     try {
-      await AuthService.instance.sendOtp(phone);
+      await AuthService.instance.register(
+        email: _email.text.trim(),
+        mobile: phone,
+        password: _password.text,
+        confirmPassword: _confirmPassword.text,
+        termsAccepted: _termsAccepted,
+      );
       if (!mounted) return;
       final draft = OnboardingScope.of(context).draft;
       draft.email = _email.text.trim();
       draft.contactNumber = phone;
-      Navigator.of(context).pushReplacementNamed(
-        AppRoutes.otp,
-        arguments: OtpLoginArgs(
-          phone: phone,
-          codeSent: true,
-          signupEmail: _email.text.trim(),
-        ),
-      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.profile, (route) => false);
     } on AuthException catch (e) {
       if (mounted) setState(() => _submitError = e.message);
     } catch (_) {
       if (mounted) {
         setState(
-          () =>
-              _submitError =
-                  'Could not send verification code. Please try again.',
+          () => _submitError = 'Could not create account. Please try again.',
         );
       }
     } finally {
@@ -882,7 +889,7 @@ class _CreateAccountButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: enabled ? onPressed : null,
+          onTap: busy ? null : onPressed,
           borderRadius: BorderRadius.circular(30),
           child: SizedBox(
             height: 52,

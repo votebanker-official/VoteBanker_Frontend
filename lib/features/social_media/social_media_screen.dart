@@ -22,7 +22,8 @@ class SocialMediaScreen extends StatefulWidget {
 }
 
 class _SocialMediaScreenState extends State<SocialMediaScreen> {
-  late final SocialMediaService _service = widget.service ?? SocialMediaService();
+  late final SocialMediaService _service =
+      widget.service ?? SocialMediaService();
   final _search = TextEditingController();
 
   SocialMediaContacts? _contacts;
@@ -83,13 +84,16 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
     }
   }
 
-  String _count(String template, int count) => template.replaceAll('{count}', '$count');
+  String _count(String template, int count) =>
+      template.replaceAll('{count}', '$count');
 
   Future<void> _copy(String value) async {
     await Clipboard.setData(ClipboardData(text: value));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).line('socialCopied'))),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).line('socialCopied')),
+      ),
     );
   }
 
@@ -97,7 +101,9 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
     final opened = await launchUrl(url, mode: LaunchMode.externalApplication);
     if (!opened && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).line('socialLoadError'))),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).line('socialLoadError')),
+        ),
       );
     }
   }
@@ -120,7 +126,8 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      onPressed: () => AppRouter.back(context, AppRoutes.dashboard),
+                      onPressed:
+                          () => AppRouter.back(context, AppRoutes.dashboard),
                       icon: const Icon(Icons.arrow_back),
                       tooltip: l10n.back,
                     ),
@@ -163,7 +170,11 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
     );
   }
 
-  Widget _body(BuildContext context, AppLocalizations l10n, SocialMediaContacts? contacts) {
+  Widget _body(
+    BuildContext context,
+    AppLocalizations l10n,
+    SocialMediaContacts? contacts,
+  ) {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return Center(
@@ -175,7 +186,9 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
               Text(
                 _message(l10n, _error!),
                 textAlign: TextAlign.center,
-                style: AppTextStyles.body(context).copyWith(color: context.palette.danger),
+                style: AppTextStyles.body(
+                  context,
+                ).copyWith(color: context.palette.danger),
               ),
               const SizedBox(height: 12),
               TextButton(
@@ -188,7 +201,8 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
       );
     }
 
-    final data = contacts ??
+    final data =
+        contacts ??
         const SocialMediaContacts(whatsapp: [], instagram: [], facebook: []);
     if (data.isEmpty && _activeQuery.isEmpty) {
       return ListView(
@@ -222,9 +236,24 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _CountChip(label: _count(l10n.line('socialCountWhatsapp'), data.whatsappCount)),
-            _CountChip(label: _count(l10n.line('socialCountInstagram'), data.instagramCount)),
-            _CountChip(label: _count(l10n.line('socialCountFacebook'), data.facebookCount)),
+            _CountChip(
+              label: _count(
+                l10n.line('socialCountWhatsapp'),
+                data.whatsappCount,
+              ),
+            ),
+            _CountChip(
+              label: _count(
+                l10n.line('socialCountInstagram'),
+                data.instagramCount,
+              ),
+            ),
+            _CountChip(
+              label: _count(
+                l10n.line('socialCountFacebook'),
+                data.facebookCount,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -245,8 +274,11 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
           entries: data.instagram,
           copyLabel: l10n.line('socialCopy'),
           openLabel: l10n.line('socialOpenProfile'),
-          openUrl: (value) =>
-              SocialContactLinks.profileUrl(value, SocialContactLinks.instagramHosts),
+          openUrl:
+              (value) => SocialContactLinks.profileUrl(
+                value,
+                SocialContactLinks.instagramHosts,
+              ),
           onCopy: _copy,
           onOpen: _open,
         ),
@@ -256,8 +288,11 @@ class _SocialMediaScreenState extends State<SocialMediaScreen> {
           entries: data.facebook,
           copyLabel: l10n.line('socialCopy'),
           openLabel: l10n.line('socialOpenProfile'),
-          openUrl: (value) =>
-              SocialContactLinks.profileUrl(value, SocialContactLinks.facebookHosts),
+          openUrl:
+              (value) => SocialContactLinks.profileUrl(
+                value,
+                SocialContactLinks.facebookHosts,
+              ),
           onCopy: _copy,
           onOpen: _open,
         ),
@@ -334,7 +369,8 @@ class _Section extends StatelessWidget {
                     formatPersonName(entry.name),
                     style: AppTextStyles.label(context),
                   ),
-                  if (epicLabel != null && (entry.epicNumber ?? '').isNotEmpty) ...[
+                  if (epicLabel != null &&
+                      (entry.epicNumber ?? '').isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       '$epicLabel: ${entry.epicNumber}',
@@ -342,7 +378,10 @@ class _Section extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 6),
-                  SelectableText(entry.value, style: AppTextStyles.body(context)),
+                  SelectableText(
+                    entry.value,
+                    style: AppTextStyles.body(context),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,

@@ -122,8 +122,7 @@ class BundledAssemblyCatalog {
   static const assetPath = 'assets/data/assembly_constituencies.json';
 
   static Map<String, Map<String, List<AssemblyConstituency>>>? _cached;
-  static Future<Map<String, Map<String, List<AssemblyConstituency>>>>?
-  _pending;
+  static Future<Map<String, Map<String, List<AssemblyConstituency>>>>? _pending;
 
   static Future<AssemblyLookup?> lookup({
     required String state,
@@ -139,8 +138,7 @@ class BundledAssemblyCatalog {
     return AssemblyLookup.ready(items);
   }
 
-  static Future<Map<String, Map<String, List<AssemblyConstituency>>>>
-  _load() {
+  static Future<Map<String, Map<String, List<AssemblyConstituency>>>> _load() {
     final cached = _cached;
     if (cached != null) return Future.value(cached);
     return _pending ??= _read();

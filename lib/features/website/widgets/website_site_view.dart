@@ -205,19 +205,41 @@ class _WebsiteRendererState extends State<WebsiteRenderer> {
               if (document.translationPending)
                 Container(
                   color: palette.band,
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 10,
+                  ),
                   child: Text(
                     l10n.line('translationPending'),
-                    style: TextStyle(color: palette.ink, fontSize: 13, height: 1.4),
+                    style: TextStyle(
+                      color: palette.ink,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              _HeroBlock(document: document, hero: hero, palette: palette, wide: wide),
+              _HeroBlock(
+                document: document,
+                hero: hero,
+                palette: palette,
+                wide: wide,
+              ),
               for (final section in document.sections)
                 if (section.type != WebsiteSectionType.hero && section.enabled)
-                  _SectionBlock(document: document, section: section, palette: palette, width: width),
-              if (document.primaryCta.isNotEmpty || document.secondaryCta.isNotEmpty)
+                  _SectionBlock(
+                    document: document,
+                    section: section,
+                    palette: palette,
+                    width: width,
+                  ),
+              if (document.primaryCta.isNotEmpty ||
+                  document.secondaryCta.isNotEmpty)
                 _CallToAction(document: document, palette: palette),
-              _Footer(document: document, palette: palette, madeWith: l10n.line('madeWith')),
+              _Footer(
+                document: document,
+                palette: palette,
+                madeWith: l10n.line('madeWith'),
+              ),
             ],
           );
         },
@@ -253,13 +275,23 @@ class _Navigation extends StatelessWidget {
         if (document.logo != null) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.memory(document.logo!, width: 36, height: 36, fit: BoxFit.cover),
+            child: Image.memory(
+              document.logo!,
+              width: 36,
+              height: 36,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 10),
         ],
         Text(
           document.siteTitle,
-          style: TextStyle(color: palette.ink, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
+          style: TextStyle(
+            color: palette.ink,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+          ),
         ),
       ],
     );
@@ -282,12 +314,25 @@ class _Navigation extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       for (final label in labels)
-                        Text(label, style: TextStyle(color: palette.muted, fontSize: 14, fontWeight: FontWeight.w600)),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            color: palette.muted,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                     ],
                   ),
                 )
               else
-                IconButton(onPressed: onMenu, icon: Icon(open ? Icons.close : Icons.menu, color: palette.ink)),
+                IconButton(
+                  onPressed: onMenu,
+                  icon: Icon(
+                    open ? Icons.close : Icons.menu,
+                    color: palette.ink,
+                  ),
+                ),
             ],
           ),
           if (!wide && open)
@@ -298,7 +343,14 @@ class _Navigation extends StatelessWidget {
                 runSpacing: 10,
                 children: [
                   for (final label in labels)
-                    Text(label, style: TextStyle(color: palette.ink, fontSize: 15, fontWeight: FontWeight.w600)),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: palette.ink,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -323,8 +375,16 @@ class _HeroBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final line = hero?.content.isNotEmpty == true ? hero!.content : document.introduction;
-    final text = _HeroCopy(document: document, line: line, palette: palette, light: _lightHero(document.heroLayout));
+    final line =
+        hero?.content.isNotEmpty == true
+            ? hero!.content
+            : document.introduction;
+    final text = _HeroCopy(
+      document: document,
+      line: line,
+      palette: palette,
+      light: _lightHero(document.heroLayout),
+    );
     final visual = _Visual(
       document: document,
       palette: palette,
@@ -334,11 +394,21 @@ class _HeroBlock extends StatelessWidget {
     );
 
     if (document.heroLayout == 'split' || document.heroLayout == 'editorial') {
-      final children = [Expanded(flex: 6, child: text), const SizedBox(width: 28), Expanded(flex: 5, child: visual)];
+      final children = [
+        Expanded(flex: 6, child: text),
+        const SizedBox(width: 28),
+        Expanded(flex: 5, child: visual),
+      ];
       return Container(
         color: palette.canvas,
         padding: EdgeInsets.fromLTRB(wide ? 56 : 24, 12, wide ? 56 : 24, 48),
-        child: wide ? Row(crossAxisAlignment: CrossAxisAlignment.center, children: children) : Column(children: [text, const SizedBox(height: 24), visual]),
+        child:
+            wide
+                ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: children,
+                )
+                : Column(children: [text, const SizedBox(height: 24), visual]),
       );
     }
 
@@ -346,13 +416,7 @@ class _HeroBlock extends StatelessWidget {
       return Container(
         color: palette.canvas,
         padding: EdgeInsets.fromLTRB(wide ? 72 : 24, 28, wide ? 72 : 24, 48),
-        child: Column(
-          children: [
-            text,
-            const SizedBox(height: 28),
-            visual,
-          ],
-        ),
+        child: Column(children: [text, const SizedBox(height: 28), visual]),
       );
     }
 
@@ -362,11 +426,7 @@ class _HeroBlock extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(wide ? 56 : 24, 8, wide ? 56 : 24, 48),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            visual,
-            const SizedBox(height: 28),
-            text,
-          ],
+          children: [visual, const SizedBox(height: 28), text],
         ),
       ),
     );
@@ -391,9 +451,14 @@ class _HeroCopy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titleColor = light ? Colors.white : palette.ink;
-    final bodyColor = light ? Colors.white.withValues(alpha: 0.9) : palette.muted;
-    final align = document.heroLayout == 'centered' ? TextAlign.center : TextAlign.start;
-    final cross = document.heroLayout == 'centered' ? CrossAxisAlignment.center : CrossAxisAlignment.start;
+    final bodyColor =
+        light ? Colors.white.withValues(alpha: 0.9) : palette.muted;
+    final align =
+        document.heroLayout == 'centered' ? TextAlign.center : TextAlign.start;
+    final cross =
+        document.heroLayout == 'centered'
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start;
 
     return Column(
       crossAxisAlignment: cross,
@@ -404,36 +469,69 @@ class _HeroCopy extends StatelessWidget {
             child: Text(
               document.professionalTitle,
               textAlign: align,
-              style: TextStyle(color: light ? palette.accent : palette.primary, fontSize: 13, letterSpacing: 1.4, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: light ? palette.accent : palette.primary,
+                fontSize: 13,
+                letterSpacing: 1.4,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         Text(
           document.heroTitle,
           textAlign: align,
-          style: TextStyle(color: titleColor, fontSize: palette.display, height: 1.02, fontWeight: FontWeight.w700, letterSpacing: -1.2),
+          style: TextStyle(
+            color: titleColor,
+            fontSize: palette.display,
+            height: 1.02,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -1.2,
+          ),
         ),
         if (document.organization.isNotEmpty) ...[
           const SizedBox(height: 10),
-          Text(document.organization, textAlign: align, style: TextStyle(color: bodyColor, fontSize: 18)),
+          Text(
+            document.organization,
+            textAlign: align,
+            style: TextStyle(color: bodyColor, fontSize: 18),
+          ),
         ],
         if (line.isNotEmpty) ...[
           const SizedBox(height: 16),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
-            child: Text(line, textAlign: align, style: TextStyle(color: bodyColor, fontSize: 18, height: 1.5)),
+            child: Text(
+              line,
+              textAlign: align,
+              style: TextStyle(color: bodyColor, fontSize: 18, height: 1.5),
+            ),
           ),
         ],
-        if (document.primaryCta.isNotEmpty || document.secondaryCta.isNotEmpty) ...[
+        if (document.primaryCta.isNotEmpty ||
+            document.secondaryCta.isNotEmpty) ...[
           const SizedBox(height: 24),
           Wrap(
-            alignment: document.heroLayout == 'centered' ? WrapAlignment.center : WrapAlignment.start,
+            alignment:
+                document.heroLayout == 'centered'
+                    ? WrapAlignment.center
+                    : WrapAlignment.start,
             spacing: 12,
             runSpacing: 12,
             children: [
               if (document.primaryCta.isNotEmpty)
-                _SiteButton(label: document.primaryCta, palette: palette, filled: true, light: light),
+                _SiteButton(
+                  label: document.primaryCta,
+                  palette: palette,
+                  filled: true,
+                  light: light,
+                ),
               if (document.secondaryCta.isNotEmpty)
-                _SiteButton(label: document.secondaryCta, palette: palette, filled: false, light: light),
+                _SiteButton(
+                  label: document.secondaryCta,
+                  palette: palette,
+                  filled: false,
+                  light: light,
+                ),
             ],
           ),
         ],
@@ -443,7 +541,12 @@ class _HeroCopy extends StatelessWidget {
 }
 
 class _SiteButton extends StatelessWidget {
-  const _SiteButton({required this.label, required this.palette, required this.filled, required this.light});
+  const _SiteButton({
+    required this.label,
+    required this.palette,
+    required this.filled,
+    required this.light,
+  });
 
   final String label;
   final _Palette palette;
@@ -452,7 +555,9 @@ class _SiteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(palette.radius.clamp(0, 28)));
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(palette.radius.clamp(0, 28)),
+    );
     if (filled) {
       return FilledButton(
         style: FilledButton.styleFrom(
@@ -595,13 +700,22 @@ class _SectionBlock extends StatelessWidget {
         children: [
           Text(
             section.heading,
-            style: TextStyle(color: palette.ink, fontSize: width >= 760 ? 36 : 28, fontWeight: FontWeight.w700, letterSpacing: -0.6),
+            style: TextStyle(
+              color: palette.ink,
+              fontSize: width >= 760 ? 36 : 28,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.6,
+            ),
           ),
           if (section.subtitle.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
               section.subtitle,
-              style: TextStyle(color: palette.muted, fontSize: 16, height: 1.45),
+              style: TextStyle(
+                color: palette.muted,
+                fontSize: 16,
+                height: 1.45,
+              ),
             ),
           ],
           const SizedBox(height: 8),
@@ -626,7 +740,8 @@ class _SectionBlock extends StatelessWidget {
   }
 
   Widget _body(BuildContext context, double inner) {
-    final cards = section.items.isNotEmpty &&
+    final cards =
+        section.items.isNotEmpty &&
         const {
           WebsiteSectionType.favoriteThings,
           WebsiteSectionType.personality,
@@ -651,9 +766,15 @@ class _SectionBlock extends StatelessWidget {
       );
     }
     if (section.type == WebsiteSectionType.gallery) {
-      return _Gallery(document: document, section: section, palette: palette, width: inner);
+      return _Gallery(
+        document: document,
+        section: section,
+        palette: palette,
+        width: inner,
+      );
     }
-    if (section.type == WebsiteSectionType.achievements && section.items.isNotEmpty) {
+    if (section.type == WebsiteSectionType.achievements &&
+        section.items.isNotEmpty) {
       return document.layoutVariant == 1
           ? _Timeline(items: section.items, palette: palette)
           : _Cards(items: section.items, palette: palette, width: inner);
@@ -661,7 +782,8 @@ class _SectionBlock extends StatelessWidget {
     if (section.type == WebsiteSectionType.events) {
       return _Timeline(items: section.items, palette: palette);
     }
-    if (section.type == WebsiteSectionType.contact || section.type == WebsiteSectionType.social) {
+    if (section.type == WebsiteSectionType.contact ||
+        section.type == WebsiteSectionType.social) {
       return _ContactList(section: section, palette: palette);
     }
     if (section.type == WebsiteSectionType.publicRequests) {
@@ -679,16 +801,26 @@ class _Prose extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = [section.subtitle, section.content].where((part) => part.trim().isNotEmpty).join('\n\n');
+    final text = [
+      section.subtitle,
+      section.content,
+    ].where((part) => part.trim().isNotEmpty).join('\n\n');
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 760),
-      child: Text(text, style: TextStyle(color: palette.ink, fontSize: 18, height: 1.6)),
+      child: Text(
+        text,
+        style: TextStyle(color: palette.ink, fontSize: 18, height: 1.6),
+      ),
     );
   }
 }
 
 class _Cards extends StatelessWidget {
-  const _Cards({required this.items, required this.palette, required this.width});
+  const _Cards({
+    required this.items,
+    required this.palette,
+    required this.width,
+  });
 
   final List<WebsiteItem> items;
   final _Palette palette;
@@ -696,8 +828,14 @@ class _Cards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final columns = width >= 860 ? 3 : width >= 520 ? 2 : 1;
-    final tile = columns == 1 ? width : ((width - 16 * (columns - 1)) / columns) - 1;
+    final columns =
+        width >= 860
+            ? 3
+            : width >= 520
+            ? 2
+            : 1;
+    final tile =
+        columns == 1 ? width : ((width - 16 * (columns - 1)) / columns) - 1;
     return Wrap(
       spacing: 16,
       runSpacing: 16,
@@ -708,9 +846,15 @@ class _Cards extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(palette.radius.clamp(8, 24)),
+                borderRadius: BorderRadius.circular(
+                  palette.radius.clamp(8, 24),
+                ),
                 boxShadow: [
-                  BoxShadow(color: palette.ink.withValues(alpha: 0.06), blurRadius: 24, offset: const Offset(0, 10)),
+                  BoxShadow(
+                    color: palette.ink.withValues(alpha: 0.06),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
                 ],
               ),
               child: Padding(
@@ -721,18 +865,48 @@ class _Cards extends StatelessWidget {
                     Container(
                       width: 42,
                       height: 42,
-                      decoration: BoxDecoration(color: palette.band, borderRadius: BorderRadius.circular(12)),
-                      child: Icon(Icons.auto_awesome, color: palette.primary, size: 20),
+                      decoration: BoxDecoration(
+                        color: palette.band,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.auto_awesome,
+                        color: palette.primary,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(height: 14),
-                    Text(item.title, style: TextStyle(color: palette.ink, fontSize: 20, fontWeight: FontWeight.w700)),
-                    if (item.description.isNotEmpty && item.description.toLowerCase() != item.title.toLowerCase()) ...[
+                    Text(
+                      item.title,
+                      style: TextStyle(
+                        color: palette.ink,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (item.description.isNotEmpty &&
+                        item.description.toLowerCase() !=
+                            item.title.toLowerCase()) ...[
                       const SizedBox(height: 8),
-                      Text(item.description, style: TextStyle(color: palette.muted, fontSize: 15, height: 1.45)),
+                      Text(
+                        item.description,
+                        style: TextStyle(
+                          color: palette.muted,
+                          fontSize: 15,
+                          height: 1.45,
+                        ),
+                      ),
                     ],
                     if (item.meta.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text(item.meta, style: TextStyle(color: palette.primary, fontSize: 13, fontWeight: FontWeight.w600)),
+                      Text(
+                        item.meta,
+                        style: TextStyle(
+                          color: palette.primary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -763,8 +937,14 @@ class _Gallery extends StatelessWidget {
       if (document.portrait != null) document.portrait!,
       ...document.gallery,
     ];
-    final columns = width >= 760 ? 3 : width >= 480 ? 2 : 1;
-    final tile = columns == 1 ? width : ((width - 12 * (columns - 1)) / columns) - 1;
+    final columns =
+        width >= 760
+            ? 3
+            : width >= 480
+            ? 2
+            : 1;
+    final tile =
+        columns == 1 ? width : ((width - 12 * (columns - 1)) / columns) - 1;
     if (photos.isNotEmpty) {
       return Wrap(
         spacing: 12,
@@ -773,12 +953,20 @@ class _Gallery extends StatelessWidget {
           for (final photo in photos)
             ClipRRect(
               borderRadius: BorderRadius.circular(palette.radius.clamp(8, 20)),
-              child: Image.memory(photo, width: tile, height: 200, fit: BoxFit.cover),
+              child: Image.memory(
+                photo,
+                width: tile,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
             ),
         ],
       );
     }
-    final labels = section.items.isEmpty ? [document.siteTitle] : section.items.map((item) => item.title).toList();
+    final labels =
+        section.items.isEmpty
+            ? [document.siteTitle]
+            : section.items.map((item) => item.title).toList();
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -786,7 +974,12 @@ class _Gallery extends StatelessWidget {
         for (final label in labels)
           SizedBox(
             width: tile,
-            child: _Visual(document: document, palette: palette, height: 190, caption: label),
+            child: _Visual(
+              document: document,
+              palette: palette,
+              height: 190,
+              caption: label,
+            ),
           ),
       ],
     );
@@ -809,15 +1002,45 @@ class _Timeline extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(width: 10, height: 10, margin: const EdgeInsets.only(top: 6), decoration: BoxDecoration(color: palette.primary, shape: BoxShape.circle)),
+                Container(
+                  width: 10,
+                  height: 10,
+                  margin: const EdgeInsets.only(top: 6),
+                  decoration: BoxDecoration(
+                    color: palette.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.title, style: TextStyle(color: palette.ink, fontSize: 18, fontWeight: FontWeight.w700)),
-                      if (item.meta.isNotEmpty) Text(item.meta, style: TextStyle(color: palette.primary, fontSize: 13)),
-                      if (item.description.isNotEmpty) Text(item.description, style: TextStyle(color: palette.muted, fontSize: 15, height: 1.4)),
+                      Text(
+                        item.title,
+                        style: TextStyle(
+                          color: palette.ink,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (item.meta.isNotEmpty)
+                        Text(
+                          item.meta,
+                          style: TextStyle(
+                            color: palette.primary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      if (item.description.isNotEmpty)
+                        Text(
+                          item.description,
+                          style: TextStyle(
+                            color: palette.muted,
+                            fontSize: 15,
+                            height: 1.4,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -843,12 +1066,15 @@ class _ContactList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (section.content.isNotEmpty) _Prose(section: section, palette: palette),
+        if (section.content.isNotEmpty)
+          _Prose(section: section, palette: palette),
         for (final item in section.items)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Text(
-              item.description.isEmpty ? item.title : '${item.title} · ${item.description}',
+              item.description.isEmpty
+                  ? item.title
+                  : '${item.title} · ${item.description}',
               style: TextStyle(color: palette.ink, fontSize: 17, height: 1.4),
             ),
           ),
@@ -869,16 +1095,32 @@ class _Requests extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (section.content.isNotEmpty) _Prose(section: section, palette: palette),
+        if (section.content.isNotEmpty)
+          _Prose(section: section, palette: palette),
         const SizedBox(height: 16),
-        Text(l10n.line('requestPrompt'), style: TextStyle(color: palette.ink, fontSize: 20, fontWeight: FontWeight.w700)),
+        Text(
+          l10n.line('requestPrompt'),
+          style: TextStyle(
+            color: palette.ink,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 6),
-        Text(l10n.line('requestBody'), style: TextStyle(color: palette.muted, fontSize: 15)),
+        Text(
+          l10n.line('requestBody'),
+          style: TextStyle(color: palette.muted, fontSize: 15),
+        ),
         const SizedBox(height: 14),
         FilledButton(
-          style: FilledButton.styleFrom(backgroundColor: palette.primary, foregroundColor: palette.onPrimary),
+          style: FilledButton.styleFrom(
+            backgroundColor: palette.primary,
+            foregroundColor: palette.onPrimary,
+          ),
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.line('requestLater'))));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.line('requestLater'))));
           },
           child: Text(l10n.line('submitRequest')),
         ),
@@ -895,7 +1137,10 @@ class _CallToAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headline = document.websiteType == 'pet' ? "Follow ${document.siteTitle}'s adventures" : document.heroTitle;
+    final headline =
+        document.websiteType == 'pet'
+            ? "Follow ${document.siteTitle}'s adventures"
+            : document.heroTitle;
     return Container(
       color: palette.heroA,
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
@@ -904,7 +1149,12 @@ class _CallToAction extends StatelessWidget {
           Text(
             headline,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -0.4),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+            ),
           ),
           const SizedBox(height: 18),
           Wrap(
@@ -912,8 +1162,20 @@ class _CallToAction extends StatelessWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              if (document.primaryCta.isNotEmpty) _SiteButton(label: document.primaryCta, palette: palette, filled: true, light: true),
-              if (document.secondaryCta.isNotEmpty) _SiteButton(label: document.secondaryCta, palette: palette, filled: false, light: true),
+              if (document.primaryCta.isNotEmpty)
+                _SiteButton(
+                  label: document.primaryCta,
+                  palette: palette,
+                  filled: true,
+                  light: true,
+                ),
+              if (document.secondaryCta.isNotEmpty)
+                _SiteButton(
+                  label: document.secondaryCta,
+                  palette: palette,
+                  filled: false,
+                  light: true,
+                ),
             ],
           ),
         ],
@@ -923,7 +1185,11 @@ class _CallToAction extends StatelessWidget {
 }
 
 class _Footer extends StatelessWidget {
-  const _Footer({required this.document, required this.palette, required this.madeWith});
+  const _Footer({
+    required this.document,
+    required this.palette,
+    required this.madeWith,
+  });
 
   final WebsiteDocument document;
   final _Palette palette;
@@ -939,13 +1205,31 @@ class _Footer extends StatelessWidget {
           if (document.logo != null) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.memory(document.logo!, width: 40, height: 40, fit: BoxFit.cover),
+              child: Image.memory(
+                document.logo!,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
             ),
             const SizedBox(height: 10),
           ],
-          Text(document.siteTitle, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+          Text(
+            document.siteTitle,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(madeWith, style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13)),
+          Text(
+            madeWith,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.75),
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );

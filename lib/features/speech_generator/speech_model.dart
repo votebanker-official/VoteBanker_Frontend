@@ -1,8 +1,5 @@
 class SpeechSection {
-  const SpeechSection({
-    required this.heading,
-    required this.content,
-  });
+  const SpeechSection({required this.heading, required this.content});
 
   final String heading;
   final String content;
@@ -74,10 +71,7 @@ class GeneratedSpeech {
 
   bool get isMock => source == 'mock';
 
-  GeneratedSpeech copyWith({
-    String? title,
-    List<SpeechSection>? sections,
-  }) {
+  GeneratedSpeech copyWith({String? title, List<SpeechSection>? sections}) {
     final nextTitle = title ?? this.title;
     final nextSections = sections ?? this.sections;
     return GeneratedSpeech(
@@ -94,12 +88,13 @@ class GeneratedSpeech {
 
   factory GeneratedSpeech.fromJson(Map<String, dynamic> json) {
     final rows = json['sections'];
-    final sections = rows is List
-        ? [
-            for (final row in rows)
-              if (row is Map<String, dynamic>) SpeechSection.fromJson(row),
-          ]
-        : const <SpeechSection>[];
+    final sections =
+        rows is List
+            ? [
+              for (final row in rows)
+                if (row is Map<String, dynamic>) SpeechSection.fromJson(row),
+            ]
+            : const <SpeechSection>[];
     final title = json['title'] as String? ?? '';
     return GeneratedSpeech(
       title: title,
@@ -108,7 +103,8 @@ class GeneratedSpeech {
       duration: json['duration'] as String? ?? '',
       tone: json['tone'] as String? ?? '',
       sections: sections,
-      fullText: json['fullText'] as String? ?? renderSpeechText(title, sections),
+      fullText:
+          json['fullText'] as String? ?? renderSpeechText(title, sections),
       source: json['source'] as String? ?? '',
     );
   }
@@ -129,9 +125,10 @@ String formatSpeechDocument({
   required GeneratedSpeech speech,
   required List<String> metadata,
 }) {
-  final buffer = StringBuffer()
-    ..writeln(speech.title)
-    ..writeln();
+  final buffer =
+      StringBuffer()
+        ..writeln(speech.title)
+        ..writeln();
   for (final line in metadata) {
     buffer.writeln(line);
   }
@@ -185,7 +182,8 @@ const speechToneKeys = <String, String>{
 };
 
 String speechFileName(String title) {
-  final cleaned = title.trim().replaceAll(RegExp(r'[<>:"/\\|?*\n\r]'), '').trim();
+  final cleaned =
+      title.trim().replaceAll(RegExp(r'[<>:"/\\|?*\n\r]'), '').trim();
   final base = cleaned.isEmpty ? 'speech' : cleaned;
   final short = base.length > 60 ? base.substring(0, 60).trim() : base;
   return '$short.txt';

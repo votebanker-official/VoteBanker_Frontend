@@ -81,10 +81,10 @@ class MediaRef {
   bool get hasImage => bytes != null || url.trim().isNotEmpty;
 
   Map<String, dynamic> toJson({bool includeBase64 = true}) => {
-        'url': url,
-        if (includeBase64 && base64 != null) 'base64': base64,
-        'caption': caption,
-      };
+    'url': url,
+    if (includeBase64 && base64 != null) 'base64': base64,
+    'caption': caption,
+  };
 
   static MediaRef fromJson(Map<String, dynamic> json) {
     return MediaRef(
@@ -102,8 +102,8 @@ class AchievementEntry {
     this.description = '',
     this.dateOrYear = '',
     MediaRef? photo,
-  })  : id = id ?? 'a-${DateTime.now().microsecondsSinceEpoch}',
-        photo = photo ?? MediaRef();
+  }) : id = id ?? 'a-${DateTime.now().microsecondsSinceEpoch}',
+       photo = photo ?? MediaRef();
 
   final String id;
   String title;
@@ -118,12 +118,12 @@ class AchievementEntry {
       !photo.hasImage;
 
   Map<String, dynamic> toJson({bool includeBase64 = true}) => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'dateOrYear': dateOrYear,
-        'photo': photo.toJson(includeBase64: includeBase64),
-      };
+    'id': id,
+    'title': title,
+    'description': description,
+    'dateOrYear': dateOrYear,
+    'photo': photo.toJson(includeBase64: includeBase64),
+  };
 
   static AchievementEntry fromJson(Map<String, dynamic> json) {
     final photo = json['photo'];
@@ -132,9 +132,10 @@ class AchievementEntry {
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
       dateOrYear: json['dateOrYear'] as String? ?? '',
-      photo: photo is Map
-          ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
-          : MediaRef(),
+      photo:
+          photo is Map
+              ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
+              : MediaRef(),
     );
   }
 }
@@ -150,8 +151,8 @@ class ProjectEntry {
     this.completionDate = '',
     this.progressUpdates = '',
     MediaRef? photo,
-  })  : id = id ?? 'p-${DateTime.now().microsecondsSinceEpoch}',
-        photo = photo ?? MediaRef();
+  }) : id = id ?? 'p-${DateTime.now().microsecondsSinceEpoch}',
+       photo = photo ?? MediaRef();
 
   final String id;
   String name;
@@ -170,16 +171,16 @@ class ProjectEntry {
       !photo.hasImage;
 
   Map<String, dynamic> toJson({bool includeBase64 = true}) => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'location': location,
-        'status': ProjectStatus.normalize(status),
-        'startDate': startDate,
-        'completionDate': completionDate,
-        'progressUpdates': progressUpdates,
-        'photo': photo.toJson(includeBase64: includeBase64),
-      };
+    'id': id,
+    'name': name,
+    'description': description,
+    'location': location,
+    'status': ProjectStatus.normalize(status),
+    'startDate': startDate,
+    'completionDate': completionDate,
+    'progressUpdates': progressUpdates,
+    'photo': photo.toJson(includeBase64: includeBase64),
+  };
 
   static ProjectEntry fromJson(Map<String, dynamic> json) {
     final photo = json['photo'];
@@ -192,9 +193,10 @@ class ProjectEntry {
       startDate: json['startDate'] as String? ?? '',
       completionDate: json['completionDate'] as String? ?? '',
       progressUpdates: json['progressUpdates'] as String? ?? '',
-      photo: photo is Map
-          ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
-          : MediaRef(),
+      photo:
+          photo is Map
+              ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
+              : MediaRef(),
     );
   }
 }
@@ -207,8 +209,8 @@ class AnnouncementEntry {
     this.publicationDate = '',
     this.externalLink = '',
     MediaRef? photo,
-  })  : id = id ?? 'n-${DateTime.now().microsecondsSinceEpoch}',
-        photo = photo ?? MediaRef();
+  }) : id = id ?? 'n-${DateTime.now().microsecondsSinceEpoch}',
+       photo = photo ?? MediaRef();
 
   final String id;
   String title;
@@ -225,13 +227,13 @@ class AnnouncementEntry {
       !photo.hasImage;
 
   Map<String, dynamic> toJson({bool includeBase64 = true}) => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'publicationDate': publicationDate,
-        'externalLink': externalLink,
-        'photo': photo.toJson(includeBase64: includeBase64),
-      };
+    'id': id,
+    'title': title,
+    'description': description,
+    'publicationDate': publicationDate,
+    'externalLink': externalLink,
+    'photo': photo.toJson(includeBase64: includeBase64),
+  };
 
   static AnnouncementEntry fromJson(Map<String, dynamic> json) {
     final photo = json['photo'];
@@ -241,9 +243,10 @@ class AnnouncementEntry {
       description: json['description'] as String? ?? '',
       publicationDate: json['publicationDate'] as String? ?? '',
       externalLink: json['externalLink'] as String? ?? '',
-      photo: photo is Map
-          ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
-          : MediaRef(),
+      photo:
+          photo is Map
+              ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
+              : MediaRef(),
     );
   }
 }
@@ -257,8 +260,8 @@ class EventEntry {
     this.venue = '',
     this.registrationLink = '',
     MediaRef? photo,
-  })  : id = id ?? 'e-${DateTime.now().microsecondsSinceEpoch}',
-        photo = photo ?? MediaRef();
+  }) : id = id ?? 'e-${DateTime.now().microsecondsSinceEpoch}',
+       photo = photo ?? MediaRef();
 
   final String id;
   String name;
@@ -276,14 +279,14 @@ class EventEntry {
       !photo.hasImage;
 
   Map<String, dynamic> toJson({bool includeBase64 = true}) => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'dateTime': dateTime,
-        'venue': venue,
-        'registrationLink': registrationLink,
-        'photo': photo.toJson(includeBase64: includeBase64),
-      };
+    'id': id,
+    'name': name,
+    'description': description,
+    'dateTime': dateTime,
+    'venue': venue,
+    'registrationLink': registrationLink,
+    'photo': photo.toJson(includeBase64: includeBase64),
+  };
 
   static EventEntry fromJson(Map<String, dynamic> json) {
     final photo = json['photo'];
@@ -294,9 +297,10 @@ class EventEntry {
       dateTime: json['dateTime'] as String? ?? '',
       venue: json['venue'] as String? ?? '',
       registrationLink: json['registrationLink'] as String? ?? '',
-      photo: photo is Map
-          ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
-          : MediaRef(),
+      photo:
+          photo is Map
+              ? MediaRef.fromJson(Map<String, dynamic>.from(photo))
+              : MediaRef(),
     );
   }
 }
@@ -313,18 +317,19 @@ class DesignSettings {
     Map<String, bool>? sectionVisibility,
     List<String>? sectionOrder,
     Map<String, bool>? socialVisibility,
-  })  : logo = logo ?? MediaRef(),
-        heroImage = heroImage ?? MediaRef(),
-        sectionVisibility = sectionVisibility ?? {},
-        sectionOrder = sectionOrder ?? <String>[],
-        socialVisibility = socialVisibility ??
-            {
-              'facebook': true,
-              'instagram': true,
-              'youtube': true,
-              'twitter': true,
-              'linkedin': true,
-            };
+  }) : logo = logo ?? MediaRef(),
+       heroImage = heroImage ?? MediaRef(),
+       sectionVisibility = sectionVisibility ?? {},
+       sectionOrder = sectionOrder ?? <String>[],
+       socialVisibility =
+           socialVisibility ??
+           {
+             'facebook': true,
+             'instagram': true,
+             'youtube': true,
+             'twitter': true,
+             'linkedin': true,
+           };
 
   String websiteName;
   MediaRef logo;
@@ -341,38 +346,38 @@ class DesignSettings {
     final id = WebsiteTemplates.normalize(templateId);
     return switch (id) {
       WebsiteTemplates.official => DesignSettings(
-          primaryColor: 0xFF1E3A5F,
-          secondaryColor: 0xFFC9A227,
-          backgroundColor: 0xFFF7F5F0,
-          fontKey: 'serif',
-        ),
+        primaryColor: 0xFF1E3A5F,
+        secondaryColor: 0xFFC9A227,
+        backgroundColor: 0xFFF7F5F0,
+        fontKey: 'serif',
+      ),
       WebsiteTemplates.community => DesignSettings(
-          primaryColor: 0xFF0F766E,
-          secondaryColor: 0xFF2563EB,
-          backgroundColor: 0xFFF0FDFA,
-          fontKey: 'system',
-        ),
+        primaryColor: 0xFF0F766E,
+        secondaryColor: 0xFF2563EB,
+        backgroundColor: 0xFFF0FDFA,
+        fontKey: 'system',
+      ),
       _ => DesignSettings(
-          primaryColor: 0xFF1D4ED8,
-          secondaryColor: 0xFFF08A24,
-          backgroundColor: 0xFFF8FAFC,
-          fontKey: 'system',
-        ),
+        primaryColor: 0xFF1D4ED8,
+        secondaryColor: 0xFFF08A24,
+        backgroundColor: 0xFFF8FAFC,
+        fontKey: 'system',
+      ),
     };
   }
 
   Map<String, dynamic> toJson({bool includeBase64 = true}) => {
-        'websiteName': websiteName,
-        'logo': logo.toJson(includeBase64: includeBase64),
-        'primaryColor': primaryColor,
-        'secondaryColor': secondaryColor,
-        'backgroundColor': backgroundColor,
-        'fontKey': fontKey,
-        'heroImage': heroImage.toJson(includeBase64: includeBase64),
-        'sectionVisibility': sectionVisibility,
-        'sectionOrder': sectionOrder,
-        'socialVisibility': socialVisibility,
-      };
+    'websiteName': websiteName,
+    'logo': logo.toJson(includeBase64: includeBase64),
+    'primaryColor': primaryColor,
+    'secondaryColor': secondaryColor,
+    'backgroundColor': backgroundColor,
+    'fontKey': fontKey,
+    'heroImage': heroImage.toJson(includeBase64: includeBase64),
+    'sectionVisibility': sectionVisibility,
+    'sectionOrder': sectionOrder,
+    'socialVisibility': socialVisibility,
+  };
 
   static DesignSettings fromJson(Map<String, dynamic> json) {
     final design = DesignSettings();
@@ -423,12 +428,11 @@ class WebsiteBuilderDraft {
     String? templateId,
     String? status,
     DesignSettings? design,
-  })  : templateId = WebsiteTemplates.normalize(templateId),
-        status = WebsiteStatus.normalize(status),
-        design = design ??
-            DesignSettings.defaultsFor(
-              WebsiteTemplates.normalize(templateId),
-            );
+  }) : templateId = WebsiteTemplates.normalize(templateId),
+       status = WebsiteStatus.normalize(status),
+       design =
+           design ??
+           DesignSettings.defaultsFor(WebsiteTemplates.normalize(templateId));
 
   String? id;
   String templateId;
@@ -482,6 +486,7 @@ class WebsiteBuilderDraft {
   String areasServed = '';
   String citizenAssistance = '';
   String serviceInstructions = '';
+
   /// Grievance submission is off until a real backend endpoint exists.
   bool grievanceEnabled = false;
 
@@ -546,81 +551,79 @@ class WebsiteBuilderDraft {
   }
 
   Map<String, dynamic> toJson({bool includeBase64 = true}) => {
-        if (id != null) 'id': id,
-        'templateId': templateId,
-        'status': status,
-        'profileData': {
-          'fullName': fullName,
-          'designation': designation,
-          'profilePhoto': profilePhoto.toJson(includeBase64: includeBase64),
-          'coverPhoto': coverPhoto.toJson(includeBase64: includeBase64),
-          'constituency': constituency,
-          'district': district,
-          'state': state,
-          'party': party,
-          'shortIntro': shortIntro,
-          'biography': biography,
-          'phone': phone,
-          'email': email,
-          'officeAddress': officeAddress,
-          'facebookUrl': facebookUrl,
-          'instagramUrl': instagramUrl,
-          'youtubeUrl': youtubeUrl,
-          'twitterUrl': twitterUrl,
-          'linkedinUrl': linkedinUrl,
-        },
-        'templateContent': {
-          'education': education,
-          'professionalExperience': professionalExperience,
-          'politicalJourney': politicalJourney,
-          'expertise': expertise,
-          'speeches': speeches,
-          'officialDesignation': officialDesignation,
-          'termOfOffice': termOfOffice,
-          'previousPositions': previousPositions,
-          'publicServiceExperience': publicServiceExperience,
-          'officeName': officeName,
-          'visitingHours': visitingHours,
-          'officialPhone': officialPhone,
-          'officialEmail': officialEmail,
-          'pressLinks': pressLinks,
-          'publicDocuments': publicDocuments,
-          'communityIntro': communityIntro,
-          'aboutLeader': aboutLeader,
-          'goalsVision': goalsVision,
-          'localPriorities': localPriorities,
-          'areasServed': areasServed,
-          'citizenAssistance': citizenAssistance,
-          'serviceInstructions': serviceInstructions,
-          'grievanceEnabled': false,
-          'achievements': [
-            for (final item in achievements)
-              item.toJson(includeBase64: includeBase64),
-          ],
-          'projects': [
-            for (final item in projects)
-              item.toJson(includeBase64: includeBase64),
-          ],
-          'announcements': [
-            for (final item in announcements)
-              item.toJson(includeBase64: includeBase64),
-          ],
-          'events': [
-            for (final item in events) item.toJson(includeBase64: includeBase64),
-          ],
-          'gallery': [
-            for (final item in gallery)
-              item.toJson(includeBase64: includeBase64),
-          ],
-          'videoUrls': videoUrls,
-        },
-        'designSettings': design.toJson(includeBase64: includeBase64),
-        'websiteName': design.websiteName,
-        if (publishedUrl != null) 'publishedUrl': publishedUrl,
-        if (publishedAt != null) 'publishedAt': publishedAt,
-        if (updatedAt != null) 'updatedAt': updatedAt,
-        if (createdAt != null) 'createdAt': createdAt,
-      };
+    if (id != null) 'id': id,
+    'templateId': templateId,
+    'status': status,
+    'profileData': {
+      'fullName': fullName,
+      'designation': designation,
+      'profilePhoto': profilePhoto.toJson(includeBase64: includeBase64),
+      'coverPhoto': coverPhoto.toJson(includeBase64: includeBase64),
+      'constituency': constituency,
+      'district': district,
+      'state': state,
+      'party': party,
+      'shortIntro': shortIntro,
+      'biography': biography,
+      'phone': phone,
+      'email': email,
+      'officeAddress': officeAddress,
+      'facebookUrl': facebookUrl,
+      'instagramUrl': instagramUrl,
+      'youtubeUrl': youtubeUrl,
+      'twitterUrl': twitterUrl,
+      'linkedinUrl': linkedinUrl,
+    },
+    'templateContent': {
+      'education': education,
+      'professionalExperience': professionalExperience,
+      'politicalJourney': politicalJourney,
+      'expertise': expertise,
+      'speeches': speeches,
+      'officialDesignation': officialDesignation,
+      'termOfOffice': termOfOffice,
+      'previousPositions': previousPositions,
+      'publicServiceExperience': publicServiceExperience,
+      'officeName': officeName,
+      'visitingHours': visitingHours,
+      'officialPhone': officialPhone,
+      'officialEmail': officialEmail,
+      'pressLinks': pressLinks,
+      'publicDocuments': publicDocuments,
+      'communityIntro': communityIntro,
+      'aboutLeader': aboutLeader,
+      'goalsVision': goalsVision,
+      'localPriorities': localPriorities,
+      'areasServed': areasServed,
+      'citizenAssistance': citizenAssistance,
+      'serviceInstructions': serviceInstructions,
+      'grievanceEnabled': false,
+      'achievements': [
+        for (final item in achievements)
+          item.toJson(includeBase64: includeBase64),
+      ],
+      'projects': [
+        for (final item in projects) item.toJson(includeBase64: includeBase64),
+      ],
+      'announcements': [
+        for (final item in announcements)
+          item.toJson(includeBase64: includeBase64),
+      ],
+      'events': [
+        for (final item in events) item.toJson(includeBase64: includeBase64),
+      ],
+      'gallery': [
+        for (final item in gallery) item.toJson(includeBase64: includeBase64),
+      ],
+      'videoUrls': videoUrls,
+    },
+    'designSettings': design.toJson(includeBase64: includeBase64),
+    'websiteName': design.websiteName,
+    if (publishedUrl != null) 'publishedUrl': publishedUrl,
+    if (publishedAt != null) 'publishedAt': publishedAt,
+    if (updatedAt != null) 'updatedAt': updatedAt,
+    if (createdAt != null) 'createdAt': createdAt,
+  };
 
   static WebsiteBuilderDraft fromJson(Map<String, dynamic> json) {
     final draft = WebsiteBuilderDraft(
@@ -628,10 +631,14 @@ class WebsiteBuilderDraft {
       templateId: WebsiteTemplates.normalize(json['templateId'] as String?),
       status: WebsiteStatus.normalize(json['status'] as String?),
     );
-    draft.publishedUrl = json['publishedUrl'] as String? ?? json['published_url'] as String?;
-    draft.publishedAt = json['publishedAt'] as String? ?? json['published_at'] as String?;
-    draft.updatedAt = json['updatedAt'] as String? ?? json['updated_at'] as String?;
-    draft.createdAt = json['createdAt'] as String? ?? json['created_at'] as String?;
+    draft.publishedUrl =
+        json['publishedUrl'] as String? ?? json['published_url'] as String?;
+    draft.publishedAt =
+        json['publishedAt'] as String? ?? json['published_at'] as String?;
+    draft.updatedAt =
+        json['updatedAt'] as String? ?? json['updated_at'] as String?;
+    draft.createdAt =
+        json['createdAt'] as String? ?? json['created_at'] as String?;
 
     final profile = json['profileData'] ?? json['profile_data'];
     if (profile is Map) {
@@ -654,13 +661,15 @@ class WebsiteBuilderDraft {
       draft.linkedinUrl = p['linkedinUrl'] as String? ?? '';
       final profilePhoto = p['profilePhoto'];
       if (profilePhoto is Map) {
-        draft.profilePhoto =
-            MediaRef.fromJson(Map<String, dynamic>.from(profilePhoto));
+        draft.profilePhoto = MediaRef.fromJson(
+          Map<String, dynamic>.from(profilePhoto),
+        );
       }
       final coverPhoto = p['coverPhoto'];
       if (coverPhoto is Map) {
-        draft.coverPhoto =
-            MediaRef.fromJson(Map<String, dynamic>.from(coverPhoto));
+        draft.coverPhoto = MediaRef.fromJson(
+          Map<String, dynamic>.from(coverPhoto),
+        );
       }
     }
 
@@ -693,10 +702,15 @@ class WebsiteBuilderDraft {
       draft.pressLinks = _stringList(c['pressLinks']);
       draft.publicDocuments = _stringList(c['publicDocuments']);
       draft.videoUrls = _stringList(c['videoUrls']);
-      draft.achievements = _mapList(c['achievements'], AchievementEntry.fromJson);
+      draft.achievements = _mapList(
+        c['achievements'],
+        AchievementEntry.fromJson,
+      );
       draft.projects = _mapList(c['projects'], ProjectEntry.fromJson);
-      draft.announcements =
-          _mapList(c['announcements'], AnnouncementEntry.fromJson);
+      draft.announcements = _mapList(
+        c['announcements'],
+        AnnouncementEntry.fromJson,
+      );
       draft.events = _mapList(c['events'], EventEntry.fromJson);
       draft.gallery = _mapList(c['gallery'], MediaRef.fromJson);
     }

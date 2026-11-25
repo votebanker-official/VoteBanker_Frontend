@@ -29,7 +29,9 @@ class LetterPreviewScreen extends StatefulWidget {
 }
 
 class _LetterPreviewScreenState extends State<LetterPreviewScreen> {
-  late final TextEditingController _text = TextEditingController(text: widget.letter.text);
+  late final TextEditingController _text = TextEditingController(
+    text: widget.letter.text,
+  );
   var _editing = false;
   var _saving = false;
 
@@ -45,7 +47,9 @@ class _LetterPreviewScreenState extends State<LetterPreviewScreen> {
   }
 
   void _note(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _copy(AppLocalizations l10n) async {
@@ -60,7 +64,10 @@ class _LetterPreviewScreenState extends State<LetterPreviewScreen> {
     setState(() => _saving = true);
     try {
       final bytes = await buildLetterPdf(_currentText);
-      final path = await saveLetterPdf(letterFileName(widget.letter.subject), bytes);
+      final path = await saveLetterPdf(
+        letterFileName(widget.letter.subject),
+        bytes,
+      );
       if (!mounted) {
         return;
       }
@@ -128,28 +135,37 @@ class _LetterPreviewScreenState extends State<LetterPreviewScreen> {
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
       children: [
-        Text(l10n.line('letterPreview'), style: AppTextStyles.headline(context)),
-        const SizedBox(height: 8),
         Text(
-          widget.letter.subject,
-          style: AppTextStyles.label(context),
+          l10n.line('letterPreview'),
+          style: AppTextStyles.headline(context),
         ),
+        const SizedBox(height: 8),
+        Text(widget.letter.subject, style: AppTextStyles.label(context)),
         if (widget.letter.isMock) ...[
           const SizedBox(height: 8),
-          Text(l10n.line('letterMockNote'), style: AppTextStyles.muted(context)),
+          Text(
+            l10n.line('letterMockNote'),
+            style: AppTextStyles.muted(context),
+          ),
         ],
         const SizedBox(height: 16),
         AppCard(
-          child: _editing
-              ? TextField(
-                  key: const Key('letter-editor'),
-                  controller: _text,
-                  maxLines: null,
-                  minLines: 8,
-                  style: AppTextStyles.body(context),
-                  decoration: const InputDecoration(border: OutlineInputBorder()),
-                )
-              : SelectableText(_text.text, style: AppTextStyles.body(context)),
+          child:
+              _editing
+                  ? TextField(
+                    key: const Key('letter-editor'),
+                    controller: _text,
+                    maxLines: null,
+                    minLines: 8,
+                    style: AppTextStyles.body(context),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                  )
+                  : SelectableText(
+                    _text.text,
+                    style: AppTextStyles.body(context),
+                  ),
         ),
         const SizedBox(height: 16),
         LayoutBuilder(

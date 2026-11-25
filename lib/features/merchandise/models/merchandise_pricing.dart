@@ -66,7 +66,10 @@ List<MerchandisePriceSlab> configuredMerchandiseSlabs(String slug) {
   ];
 }
 
-String merchandiseQuantityLabel(int quantity, List<MerchandisePriceSlab> slabs) {
+String merchandiseQuantityLabel(
+  int quantity,
+  List<MerchandisePriceSlab> slabs,
+) {
   final quote = quoteMerchandise(slabs, quantity);
   if (!quote.configured) {
     return '$quantity pieces';
@@ -89,7 +92,10 @@ int? parseMerchandiseQuantity(String text) {
   return value;
 }
 
-MerchandiseQuote quoteMerchandise(List<MerchandisePriceSlab> slabs, int quantity) {
+MerchandiseQuote quoteMerchandise(
+  List<MerchandisePriceSlab> slabs,
+  int quantity,
+) {
   if (!isMerchandiseQuantity(quantity)) {
     return MerchandiseQuote(quantity: quantity, error: 'invalid_quantity');
   }

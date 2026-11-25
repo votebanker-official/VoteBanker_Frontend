@@ -89,10 +89,12 @@ Map<String, String> letterFieldErrors(LetterDraft draft) {
   if (draft.message.trim().isEmpty) {
     errors['message'] = 'letterNeedMessage';
   }
-  if (draft.email.trim().isNotEmpty && !_emailPattern.hasMatch(draft.email.trim())) {
+  if (draft.email.trim().isNotEmpty &&
+      !_emailPattern.hasMatch(draft.email.trim())) {
     errors['email'] = 'letterNeedEmail';
   }
-  if (draft.mobile.trim().isNotEmpty && !_mobilePattern.hasMatch(draft.mobile.trim())) {
+  if (draft.mobile.trim().isNotEmpty &&
+      !_mobilePattern.hasMatch(draft.mobile.trim())) {
     errors['mobile'] = 'letterNeedMobile';
   }
   return errors;
@@ -137,10 +139,11 @@ class GeneratedLetter {
 }
 
 String letterFileName(String subject) {
-  final cleaned = subject
-      .replaceAll(RegExp(r'[<>:"/\\|?*\n\r]'), ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
+  final cleaned =
+      subject
+          .replaceAll(RegExp(r'[<>:"/\\|?*\n\r]'), ' ')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
   final base = cleaned.isEmpty ? 'official-letter' : cleaned;
   return '$base.pdf';
 }

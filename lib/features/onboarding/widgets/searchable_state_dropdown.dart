@@ -46,14 +46,16 @@ class SearchableStateField extends StatelessWidget {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options)? prepareOptions;
-  final List<String> Function(List<String> options, String query)? filterOptions;
+  final List<String> Function(List<String> options, String query)?
+  filterOptions;
   final Widget Function(
     BuildContext context,
     List<String> visibleOptions,
     String? selected,
     ValueChanged<String> onSelect,
     AppPalette palette,
-  )? menuContentBuilder;
+  )?
+  menuContentBuilder;
   final Widget Function(BuildContext context, String value)? selectedWidget;
   final Widget? prefix;
   final bool showPrefix;
@@ -160,14 +162,16 @@ class _StateMenuRoute extends PopupRoute<String> {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options) prepareOptions;
-  final List<String> Function(List<String> options, String query)? filterOptions;
+  final List<String> Function(List<String> options, String query)?
+  filterOptions;
   final Widget Function(
     BuildContext context,
     List<String> visibleOptions,
     String? selected,
     ValueChanged<String> onSelect,
     AppPalette palette,
-  )? menuContentBuilder;
+  )?
+  menuContentBuilder;
   final Key searchFieldKey;
   final Key clearButtonKey;
   final Key emptyMessageKey;
@@ -303,14 +307,16 @@ class _StateSearchPanel extends StatefulWidget {
   final String noResultsLabel;
   final String clearSearchLabel;
   final List<String> Function(List<String> options) prepareOptions;
-  final List<String> Function(List<String> options, String query)? filterOptions;
+  final List<String> Function(List<String> options, String query)?
+  filterOptions;
   final Widget Function(
     BuildContext context,
     List<String> visibleOptions,
     String? selected,
     ValueChanged<String> onSelect,
     AppPalette palette,
-  )? menuContentBuilder;
+  )?
+  menuContentBuilder;
   final Key searchFieldKey;
   final Key clearButtonKey;
   final Key emptyMessageKey;
@@ -415,7 +421,8 @@ class _StateSearchPanelState extends State<_StateSearchPanel> {
                                   for (final state in visible)
                                     InkWell(
                                       onTap:
-                                          () => Navigator.of(context).pop(state),
+                                          () =>
+                                              Navigator.of(context).pop(state),
                                       child: Container(
                                         alignment:
                                             AlignmentDirectional.centerStart,

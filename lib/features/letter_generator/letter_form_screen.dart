@@ -74,7 +74,10 @@ class LetterFormScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(l10n.line('letterFrom'), style: AppTextStyles.label(context)),
+              Text(
+                l10n.line('letterFrom'),
+                style: AppTextStyles.label(context),
+              ),
               const SizedBox(height: 12),
               _FieldGrid(
                 children: [
@@ -166,7 +169,10 @@ class LetterFormScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(l10n.line('letterAbout'), style: AppTextStyles.label(context)),
+              Text(
+                l10n.line('letterAbout'),
+                style: AppTextStyles.label(context),
+              ),
               const SizedBox(height: 12),
               AppTextField(
                 key: const Key('letter-subject'),
@@ -200,10 +206,9 @@ class LetterFormScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 l10n.line('letterDate'),
-                style: AppTextStyles.label(context).copyWith(
-                  fontSize: 13,
-                  color: context.palette.textMuted,
-                ),
+                style: AppTextStyles.label(
+                  context,
+                ).copyWith(fontSize: 13, color: context.palette.textMuted),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
@@ -232,7 +237,9 @@ class LetterFormScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             error!,
-            style: AppTextStyles.body(context).copyWith(color: Theme.of(context).colorScheme.error),
+            style: AppTextStyles.body(
+              context,
+            ).copyWith(color: Theme.of(context).colorScheme.error),
           ),
         ],
         const SizedBox(height: 16),
@@ -305,7 +312,10 @@ class _DesignationField extends StatelessWidget {
         for (final entry in letterDesignations.entries)
           DropdownMenuItem(
             value: entry.key,
-            child: Text(l10n.line(entry.value), overflow: TextOverflow.ellipsis),
+            child: Text(
+              l10n.line(entry.value),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
       ],
       onChanged: (selected) {

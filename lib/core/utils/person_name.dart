@@ -8,14 +8,13 @@ String formatPersonName(String value) {
 }
 
 String _capitalizeNamePart(String part) {
-  return part
-      .splitMapJoin(
-        RegExp(r"([-'])"),
-        onMatch: (match) => match.group(0)!,
-        onNonMatch: (segment) {
-          if (segment.isEmpty) return segment;
-          final lower = segment.toLowerCase();
-          return '${lower[0].toUpperCase()}${lower.substring(1)}';
-        },
-      );
+  return part.splitMapJoin(
+    RegExp(r"([-'])"),
+    onMatch: (match) => match.group(0)!,
+    onNonMatch: (segment) {
+      if (segment.isEmpty) return segment;
+      final lower = segment.toLowerCase();
+      return '${lower[0].toUpperCase()}${lower.substring(1)}';
+    },
+  );
 }

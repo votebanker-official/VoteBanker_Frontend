@@ -108,16 +108,25 @@ class PortfolioLivePreview extends StatelessWidget {
                       if (title.isNotEmpty)
                         Text(
                           title,
-                          style: style(22, weight: FontWeight.w800, color: Colors.white),
+                          style: style(
+                            22,
+                            weight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
                         ),
                       if (tagline.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           tagline,
-                          style: style(14, weight: FontWeight.w600, color: Colors.white),
+                          style: style(
+                            14,
+                            weight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ],
-                      if (design.tagline.trim().isEmpty && fallbackSupport.isNotEmpty) ...[
+                      if (design.tagline.trim().isEmpty &&
+                          fallbackSupport.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
                           fallbackSupport,
@@ -144,11 +153,18 @@ class PortfolioLivePreview extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(section.$1, style: style(18, weight: FontWeight.w700)),
+                        Text(
+                          section.$1,
+                          style: style(18, weight: FontWeight.w700),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           section.$2,
-                          style: style(14, weight: FontWeight.w400, color: const Color(0xFF3F3F46)),
+                          style: style(
+                            14,
+                            weight: FontWeight.w400,
+                            color: const Color(0xFF3F3F46),
+                          ),
                         ),
                       ],
                     ),
@@ -159,7 +175,10 @@ class PortfolioLivePreview extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Gallery', style: style(18, weight: FontWeight.w700)),
+                      Text(
+                        'Gallery',
+                        style: style(18, weight: FontWeight.w700),
+                      ),
                       const SizedBox(height: 8),
                       SizedBox(
                         height: 110,
@@ -169,7 +188,8 @@ class PortfolioLivePreview extends StatelessWidget {
                           separatorBuilder: (_, _) => const SizedBox(width: 8),
                           itemBuilder: (_, index) {
                             final item = design.gallery[index];
-                            if (item.image == null) return const SizedBox.shrink();
+                            if (item.image == null)
+                              return const SizedBox.shrink();
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -198,19 +218,30 @@ class PortfolioLivePreview extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Contact and Connect', style: style(18, weight: FontWeight.w700)),
+                      Text(
+                        'Contact and Connect',
+                        style: style(18, weight: FontWeight.w700),
+                      ),
                       if (contact.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           contact,
-                          style: style(14, weight: FontWeight.w400, color: const Color(0xFF3F3F46)),
+                          style: style(
+                            14,
+                            weight: FontWeight.w400,
+                            color: const Color(0xFF3F3F46),
+                          ),
                         ),
                       ],
                       if (design.socialLinks.trim().isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           design.socialLinks,
-                          style: style(14, weight: FontWeight.w400, color: const Color(0xFF3F3F46)),
+                          style: style(
+                            14,
+                            weight: FontWeight.w400,
+                            color: const Color(0xFF3F3F46),
+                          ),
                         ),
                       ],
                       const SizedBox(height: 10),
@@ -220,10 +251,17 @@ class PortfolioLivePreview extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           child: Text(
                             'Get in touch',
-                            style: style(13, weight: FontWeight.w700, color: Colors.white),
+                            style: style(
+                              13,
+                              weight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),

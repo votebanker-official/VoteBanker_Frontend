@@ -43,14 +43,16 @@ class MerchandiseLivePreview extends StatelessWidget {
     final typed = line.trim();
     final shown = typed.isEmpty ? hint : typed;
     final fill = merchandiseFill(color);
-    final ink = fill.computeLuminance() < 0.45 ? Colors.white : const Color(0xFF1C2430);
+    final ink =
+        fill.computeLuminance() < 0.45 ? Colors.white : const Color(0xFF1C2430);
     final colorLabel = color.isEmpty ? standardLabel : color;
     final hasPhoto = photoBytes != null && photoBytes!.isNotEmpty;
     final party = PartyOption.findByName(partyName);
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: palette.isDark ? palette.surfaceSecondary : const Color(0xFFF3F7FB),
+        color:
+            palette.isDark ? palette.surfaceSecondary : const Color(0xFFF3F7FB),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: palette.border.withValues(alpha: 0.7)),
       ),
@@ -71,7 +73,10 @@ class MerchandiseLivePreview extends StatelessWidget {
               aspectRatio: 1.05,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final bounds = _printBounds(product.slug, constraints.biggest);
+                  final bounds = _printBounds(
+                    product.slug,
+                    constraints.biggest,
+                  );
                   final vertical = product.slug == 'pen';
                   final label = Text(
                     shown,
@@ -89,33 +94,37 @@ class MerchandiseLivePreview extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   );
-                  final printContent = vertical
-                      ? RotatedBox(quarterTurns: 3, child: label)
-                      : hasPhoto
+                  final printContent =
+                      vertical
+                          ? RotatedBox(quarterTurns: 3, child: label)
+                          : hasPhoto
                           ? Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Flexible(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.memory(
-                                      photoBytes!,
-                                      key: const Key('merchPreviewPhoto'),
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                    ),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.memory(
+                                    photoBytes!,
+                                    key: const Key('merchPreviewPhoto'),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                label,
-                              ],
-                            )
+                              ),
+                              const SizedBox(height: 4),
+                              label,
+                            ],
+                          )
                           : label;
                   return Stack(
                     children: [
                       CustomPaint(
                         size: Size.infinite,
-                        painter: _ProductArtPainter(slug: product.slug, fill: fill),
+                        painter: _ProductArtPainter(
+                          slug: product.slug,
+                          fill: fill,
+                        ),
                       ),
                       Positioned.fromRect(
                         rect: bounds,
@@ -165,7 +174,10 @@ class _MetaChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: palette.border),
       ),
-      child: Text(label, style: AppTextStyles.muted(context).copyWith(fontSize: 12)),
+      child: Text(
+        label,
+        style: AppTextStyles.muted(context).copyWith(fontSize: 12),
+      ),
     );
   }
 }
@@ -212,9 +224,10 @@ class _ProductArtPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final shadow = Paint()
-      ..color = const Color(0x220B1626)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+    final shadow =
+        Paint()
+          ..color = const Color(0x220B1626)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.5, size.height * 0.9),
@@ -255,20 +268,21 @@ class _ProductArtPainter extends CustomPainter {
   void _shirt(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final path = Path()
-      ..moveTo(w * 0.30, h * 0.24)
-      ..lineTo(w * 0.12, h * 0.38)
-      ..lineTo(w * 0.22, h * 0.48)
-      ..lineTo(w * 0.30, h * 0.40)
-      ..lineTo(w * 0.30, h * 0.82)
-      ..quadraticBezierTo(w * 0.50, h * 0.88, w * 0.70, h * 0.82)
-      ..lineTo(w * 0.70, h * 0.40)
-      ..lineTo(w * 0.78, h * 0.48)
-      ..lineTo(w * 0.88, h * 0.38)
-      ..lineTo(w * 0.70, h * 0.24)
-      ..quadraticBezierTo(w * 0.62, h * 0.32, w * 0.50, h * 0.30)
-      ..quadraticBezierTo(w * 0.38, h * 0.32, w * 0.30, h * 0.24)
-      ..close();
+    final path =
+        Path()
+          ..moveTo(w * 0.30, h * 0.24)
+          ..lineTo(w * 0.12, h * 0.38)
+          ..lineTo(w * 0.22, h * 0.48)
+          ..lineTo(w * 0.30, h * 0.40)
+          ..lineTo(w * 0.30, h * 0.82)
+          ..quadraticBezierTo(w * 0.50, h * 0.88, w * 0.70, h * 0.82)
+          ..lineTo(w * 0.70, h * 0.40)
+          ..lineTo(w * 0.78, h * 0.48)
+          ..lineTo(w * 0.88, h * 0.38)
+          ..lineTo(w * 0.70, h * 0.24)
+          ..quadraticBezierTo(w * 0.62, h * 0.32, w * 0.50, h * 0.30)
+          ..quadraticBezierTo(w * 0.38, h * 0.32, w * 0.30, h * 0.24)
+          ..close();
     canvas.drawPath(path, Paint()..color = fill);
     canvas.drawPath(
       path,
@@ -277,9 +291,10 @@ class _ProductArtPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.4,
     );
-    final collar = Path()
-      ..moveTo(w * 0.42, h * 0.28)
-      ..quadraticBezierTo(w * 0.50, h * 0.36, w * 0.58, h * 0.28);
+    final collar =
+        Path()
+          ..moveTo(w * 0.42, h * 0.28)
+          ..quadraticBezierTo(w * 0.50, h * 0.36, w * 0.58, h * 0.28);
     canvas.drawPath(
       collar,
       Paint()
@@ -295,56 +310,74 @@ class _ProductArtPainter extends CustomPainter {
     final dark = fill.computeLuminance() < 0.45;
     final shade = Color.lerp(fill, Colors.black, dark ? 0.18 : 0.10)!;
     final highlight = Color.lerp(fill, Colors.white, dark ? 0.20 : 0.38)!;
-    final stroke = Paint()
-      ..color = const Color(0x330B1626)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3;
-    Paint fabric(Rect bounds) => Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [highlight, fill, shade],
-        stops: const [0, 0.48, 1],
-      ).createShader(bounds);
+    final stroke =
+        Paint()
+          ..color = const Color(0x330B1626)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.3;
+    Paint fabric(Rect bounds) =>
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [highlight, fill, shade],
+            stops: const [0, 0.48, 1],
+          ).createShader(bounds);
 
     // Back loop behind the knot.
-    final loop = Path()
-      ..moveTo(w * 0.28, h * 0.34)
-      ..quadraticBezierTo(w * 0.50, h * 0.18, w * 0.72, h * 0.34)
-      ..quadraticBezierTo(w * 0.50, h * 0.28, w * 0.28, h * 0.34)
-      ..close();
-    canvas.drawPath(loop, fabric(Rect.fromLTWH(w * 0.28, h * 0.18, w * 0.44, h * 0.18)));
+    final loop =
+        Path()
+          ..moveTo(w * 0.28, h * 0.34)
+          ..quadraticBezierTo(w * 0.50, h * 0.18, w * 0.72, h * 0.34)
+          ..quadraticBezierTo(w * 0.50, h * 0.28, w * 0.28, h * 0.34)
+          ..close();
+    canvas.drawPath(
+      loop,
+      fabric(Rect.fromLTWH(w * 0.28, h * 0.18, w * 0.44, h * 0.18)),
+    );
     canvas.drawPath(loop, stroke);
 
     // Left hanging end.
-    final left = Path()
-      ..moveTo(w * 0.30, h * 0.36)
-      ..quadraticBezierTo(w * 0.24, h * 0.48, w * 0.22, h * 0.68)
-      ..lineTo(w * 0.34, h * 0.72)
-      ..quadraticBezierTo(w * 0.36, h * 0.50, w * 0.40, h * 0.40)
-      ..close();
-    canvas.drawPath(left, fabric(Rect.fromLTWH(w * 0.20, h * 0.34, w * 0.22, h * 0.40)));
+    final left =
+        Path()
+          ..moveTo(w * 0.30, h * 0.36)
+          ..quadraticBezierTo(w * 0.24, h * 0.48, w * 0.22, h * 0.68)
+          ..lineTo(w * 0.34, h * 0.72)
+          ..quadraticBezierTo(w * 0.36, h * 0.50, w * 0.40, h * 0.40)
+          ..close();
+    canvas.drawPath(
+      left,
+      fabric(Rect.fromLTWH(w * 0.20, h * 0.34, w * 0.22, h * 0.40)),
+    );
     canvas.drawPath(left, stroke);
 
     // Right hanging end.
-    final right = Path()
-      ..moveTo(w * 0.70, h * 0.36)
-      ..quadraticBezierTo(w * 0.76, h * 0.48, w * 0.78, h * 0.68)
-      ..lineTo(w * 0.66, h * 0.72)
-      ..quadraticBezierTo(w * 0.64, h * 0.50, w * 0.60, h * 0.40)
-      ..close();
-    canvas.drawPath(right, fabric(Rect.fromLTWH(w * 0.58, h * 0.34, w * 0.22, h * 0.40)));
+    final right =
+        Path()
+          ..moveTo(w * 0.70, h * 0.36)
+          ..quadraticBezierTo(w * 0.76, h * 0.48, w * 0.78, h * 0.68)
+          ..lineTo(w * 0.66, h * 0.72)
+          ..quadraticBezierTo(w * 0.64, h * 0.50, w * 0.60, h * 0.40)
+          ..close();
+    canvas.drawPath(
+      right,
+      fabric(Rect.fromLTWH(w * 0.58, h * 0.34, w * 0.22, h * 0.40)),
+    );
     canvas.drawPath(right, stroke);
 
     // Center folded band where the line is printed.
-    final band = Path()
-      ..moveTo(w * 0.28, h * 0.36)
-      ..quadraticBezierTo(w * 0.50, h * 0.30, w * 0.72, h * 0.36)
-      ..quadraticBezierTo(w * 0.74, h * 0.44, w * 0.70, h * 0.50)
-      ..quadraticBezierTo(w * 0.50, h * 0.56, w * 0.30, h * 0.50)
-      ..quadraticBezierTo(w * 0.26, h * 0.44, w * 0.28, h * 0.36)
-      ..close();
-    canvas.drawPath(band, fabric(Rect.fromLTWH(w * 0.26, h * 0.30, w * 0.48, h * 0.28)));
+    final band =
+        Path()
+          ..moveTo(w * 0.28, h * 0.36)
+          ..quadraticBezierTo(w * 0.50, h * 0.30, w * 0.72, h * 0.36)
+          ..quadraticBezierTo(w * 0.74, h * 0.44, w * 0.70, h * 0.50)
+          ..quadraticBezierTo(w * 0.50, h * 0.56, w * 0.30, h * 0.50)
+          ..quadraticBezierTo(w * 0.26, h * 0.44, w * 0.28, h * 0.36)
+          ..close();
+    canvas.drawPath(
+      band,
+      fabric(Rect.fromLTWH(w * 0.26, h * 0.30, w * 0.48, h * 0.28)),
+    );
     canvas.drawPath(band, stroke);
 
     // Soft fold crease across the band.
@@ -360,10 +393,11 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Fringe on both ends.
-    final fringe = Paint()
-      ..color = dark ? Colors.white54 : const Color(0x998AA0B5)
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round;
+    final fringe =
+        Paint()
+          ..color = dark ? Colors.white54 : const Color(0x998AA0B5)
+          ..strokeWidth = 2.2
+          ..strokeCap = StrokeCap.round;
     for (var i = 0; i < 6; i++) {
       final t = i / 5;
       canvas.drawLine(
@@ -389,12 +423,14 @@ class _ProductArtPainter extends CustomPainter {
     final highlight = Color.lerp(fill, Colors.white, dark ? 0.18 : 0.35)!;
 
     // Handle behind the cup rim attachment points.
-    final handleOuter = Path()
-      ..moveTo(w * 0.58, h * 0.38)
-      ..cubicTo(w * 0.78, h * 0.34, w * 0.82, h * 0.66, w * 0.58, h * 0.68);
-    final handleInner = Path()
-      ..moveTo(w * 0.58, h * 0.44)
-      ..cubicTo(w * 0.70, h * 0.42, w * 0.72, h * 0.60, w * 0.58, h * 0.62);
+    final handleOuter =
+        Path()
+          ..moveTo(w * 0.58, h * 0.38)
+          ..cubicTo(w * 0.78, h * 0.34, w * 0.82, h * 0.66, w * 0.58, h * 0.68);
+    final handleInner =
+        Path()
+          ..moveTo(w * 0.58, h * 0.44)
+          ..cubicTo(w * 0.70, h * 0.42, w * 0.72, h * 0.60, w * 0.58, h * 0.62);
     canvas.drawPath(
       handleOuter,
       Paint()
@@ -428,13 +464,14 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Cup body: tapered cylinder.
-    final body = Path()
-      ..moveTo(w * 0.28, h * 0.32)
-      ..lineTo(w * 0.60, h * 0.32)
-      ..quadraticBezierTo(w * 0.64, h * 0.54, w * 0.60, h * 0.74)
-      ..lineTo(w * 0.28, h * 0.74)
-      ..quadraticBezierTo(w * 0.24, h * 0.54, w * 0.28, h * 0.32)
-      ..close();
+    final body =
+        Path()
+          ..moveTo(w * 0.28, h * 0.32)
+          ..lineTo(w * 0.60, h * 0.32)
+          ..quadraticBezierTo(w * 0.64, h * 0.54, w * 0.60, h * 0.74)
+          ..lineTo(w * 0.28, h * 0.74)
+          ..quadraticBezierTo(w * 0.24, h * 0.54, w * 0.28, h * 0.32)
+          ..close();
     canvas.drawPath(
       body,
       Paint()
@@ -448,11 +485,19 @@ class _ProductArtPainter extends CustomPainter {
 
     // Bottom ellipse for the base.
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 0.44, h * 0.74), width: w * 0.34, height: h * 0.07),
+      Rect.fromCenter(
+        center: Offset(w * 0.44, h * 0.74),
+        width: w * 0.34,
+        height: h * 0.07,
+      ),
       Paint()..color = shade,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 0.44, h * 0.74), width: w * 0.34, height: h * 0.07),
+      Rect.fromCenter(
+        center: Offset(w * 0.44, h * 0.74),
+        width: w * 0.34,
+        height: h * 0.07,
+      ),
       Paint()
         ..color = rimEdge.withValues(alpha: 0.45)
         ..style = PaintingStyle.stroke
@@ -460,7 +505,11 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Top rim: outer lip + inner opening.
-    final top = Rect.fromCenter(center: Offset(w * 0.44, h * 0.31), width: w * 0.36, height: h * 0.10);
+    final top = Rect.fromCenter(
+      center: Offset(w * 0.44, h * 0.31),
+      width: w * 0.36,
+      height: h * 0.10,
+    );
     canvas.drawOval(top, Paint()..color = fill);
     canvas.drawOval(
       top,
@@ -470,11 +519,19 @@ class _ProductArtPainter extends CustomPainter {
         ..strokeWidth = 2,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 0.44, h * 0.315), width: w * 0.28, height: h * 0.07),
+      Rect.fromCenter(
+        center: Offset(w * 0.44, h * 0.315),
+        width: w * 0.28,
+        height: h * 0.07,
+      ),
       Paint()..color = rimInner,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 0.44, h * 0.315), width: w * 0.28, height: h * 0.07),
+      Rect.fromCenter(
+        center: Offset(w * 0.44, h * 0.315),
+        width: w * 0.28,
+        height: h * 0.07,
+      ),
       Paint()
         ..color = rimEdge.withValues(alpha: 0.35)
         ..style = PaintingStyle.stroke
@@ -506,13 +563,26 @@ class _ProductArtPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.4,
     );
-    final handles = Paint()
-      ..color = const Color(0xFF8AA0B5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(Rect.fromLTWH(w * 0.34, h * 0.22, w * 0.14, h * 0.22), 3.4, 2.5, false, handles);
-    canvas.drawArc(Rect.fromLTWH(w * 0.52, h * 0.22, w * 0.14, h * 0.22), 3.4, 2.5, false, handles);
+    final handles =
+        Paint()
+          ..color = const Color(0xFF8AA0B5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 5
+          ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromLTWH(w * 0.34, h * 0.22, w * 0.14, h * 0.22),
+      3.4,
+      2.5,
+      false,
+      handles,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(w * 0.52, h * 0.22, w * 0.14, h * 0.22),
+      3.4,
+      2.5,
+      false,
+      handles,
+    );
   }
 
   void _cap(Canvas canvas, Size size) {
@@ -525,11 +595,12 @@ class _ProductArtPainter extends CustomPainter {
     final cx = w * 0.50;
 
     // Brim / visor first so crown sits over it.
-    final brim = Path()
-      ..moveTo(w * 0.22, h * 0.54)
-      ..quadraticBezierTo(cx, h * 0.62, w * 0.78, h * 0.54)
-      ..quadraticBezierTo(cx, h * 0.72, w * 0.22, h * 0.54)
-      ..close();
+    final brim =
+        Path()
+          ..moveTo(w * 0.22, h * 0.54)
+          ..quadraticBezierTo(cx, h * 0.62, w * 0.78, h * 0.54)
+          ..quadraticBezierTo(cx, h * 0.72, w * 0.22, h * 0.54)
+          ..close();
     canvas.drawPath(
       brim,
       Paint()
@@ -559,12 +630,13 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Domed crown.
-    final crown = Path()
-      ..moveTo(w * 0.26, h * 0.54)
-      ..quadraticBezierTo(w * 0.28, h * 0.28, cx, h * 0.24)
-      ..quadraticBezierTo(w * 0.72, h * 0.28, w * 0.74, h * 0.54)
-      ..quadraticBezierTo(cx, h * 0.58, w * 0.26, h * 0.54)
-      ..close();
+    final crown =
+        Path()
+          ..moveTo(w * 0.26, h * 0.54)
+          ..quadraticBezierTo(w * 0.28, h * 0.28, cx, h * 0.24)
+          ..quadraticBezierTo(w * 0.72, h * 0.28, w * 0.74, h * 0.54)
+          ..quadraticBezierTo(cx, h * 0.58, w * 0.26, h * 0.54)
+          ..close();
     canvas.drawPath(
       crown,
       Paint()
@@ -584,10 +656,11 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Panel seams.
-    final seams = Paint()
-      ..color = seam
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
+    final seams =
+        Paint()
+          ..color = seam
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2;
     canvas.drawPath(
       Path()
         ..moveTo(cx, h * 0.25)
@@ -609,12 +682,20 @@ class _ProductArtPainter extends CustomPainter {
 
     // Top button.
     canvas.drawCircle(Offset(cx, h * 0.255), w * 0.018, Paint()..color = shade);
-    canvas.drawCircle(Offset(cx, h * 0.25), w * 0.014, Paint()..color = highlight);
+    canvas.drawCircle(
+      Offset(cx, h * 0.25),
+      w * 0.014,
+      Paint()..color = highlight,
+    );
 
     // Soft front print area.
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, h * 0.42), width: w * 0.24, height: h * 0.10),
+        Rect.fromCenter(
+          center: Offset(cx, h * 0.42),
+          width: w * 0.24,
+          height: h * 0.10,
+        ),
         const Radius.circular(8),
       ),
       Paint()..color = highlight.withValues(alpha: 0.16),
@@ -623,19 +704,30 @@ class _ProductArtPainter extends CustomPainter {
 
   void _gift(Canvas canvas, Size size) {
     final front = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.26, size.height * 0.42, size.width * 0.48, size.height * 0.36),
+      Rect.fromLTWH(
+        size.width * 0.26,
+        size.height * 0.42,
+        size.width * 0.48,
+        size.height * 0.36,
+      ),
       const Radius.circular(8),
     );
     final lid = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.22, size.height * 0.32, size.width * 0.56, size.height * 0.12),
+      Rect.fromLTWH(
+        size.width * 0.22,
+        size.height * 0.32,
+        size.width * 0.56,
+        size.height * 0.12,
+      ),
       const Radius.circular(6),
     );
     canvas.drawRRect(front, Paint()..color = fill);
     canvas.drawRRect(lid, Paint()..color = fill);
-    final ribbon = Paint()
-      ..color = const Color(0xFF1A6F82)
-      ..strokeWidth = 8
-      ..style = PaintingStyle.stroke;
+    final ribbon =
+        Paint()
+          ..color = const Color(0xFF1A6F82)
+          ..strokeWidth = 8
+          ..style = PaintingStyle.stroke;
     canvas.drawLine(
       Offset(size.width * 0.50, size.height * 0.32),
       Offset(size.width * 0.50, size.height * 0.78),
@@ -660,12 +752,20 @@ class _ProductArtPainter extends CustomPainter {
 
     // Ground base.
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(px, h * 0.86), width: w * 0.16, height: h * 0.04),
+      Rect.fromCenter(
+        center: Offset(px, h * 0.86),
+        width: w * 0.16,
+        height: h * 0.04,
+      ),
       Paint()..color = pole.withValues(alpha: 0.45),
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(px, h * 0.84), width: w * 0.10, height: h * 0.04),
+        Rect.fromCenter(
+          center: Offset(px, h * 0.84),
+          width: w * 0.10,
+          height: h * 0.04,
+        ),
         const Radius.circular(4),
       ),
       Paint()..color = pole,
@@ -690,19 +790,28 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Ball finial.
-    canvas.drawCircle(Offset(px, h * 0.15), w * 0.022, Paint()..color = poleLite);
-    canvas.drawCircle(Offset(px, h * 0.15), w * 0.022, Paint()
-      ..color = const Color(0x330B1626)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1);
+    canvas.drawCircle(
+      Offset(px, h * 0.15),
+      w * 0.022,
+      Paint()..color = poleLite,
+    );
+    canvas.drawCircle(
+      Offset(px, h * 0.15),
+      w * 0.022,
+      Paint()
+        ..color = const Color(0x330B1626)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
 
     // Waving cloth with folds.
-    final cloth = Path()
-      ..moveTo(px + 3, h * 0.20)
-      ..cubicTo(w * 0.46, h * 0.16, w * 0.58, h * 0.28, w * 0.74, h * 0.22)
-      ..cubicTo(w * 0.70, h * 0.34, w * 0.78, h * 0.42, w * 0.72, h * 0.52)
-      ..cubicTo(w * 0.58, h * 0.58, w * 0.46, h * 0.46, px + 3, h * 0.54)
-      ..close();
+    final cloth =
+        Path()
+          ..moveTo(px + 3, h * 0.20)
+          ..cubicTo(w * 0.46, h * 0.16, w * 0.58, h * 0.28, w * 0.74, h * 0.22)
+          ..cubicTo(w * 0.70, h * 0.34, w * 0.78, h * 0.42, w * 0.72, h * 0.52)
+          ..cubicTo(w * 0.58, h * 0.58, w * 0.46, h * 0.46, px + 3, h * 0.54)
+          ..close();
     canvas.drawPath(
       cloth,
       Paint()
@@ -722,11 +831,12 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Wave fold lines.
-    final folds = Paint()
-      ..color = dark ? Colors.white24 : const Color(0x448AA0B5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round;
+    final folds =
+        Paint()
+          ..color = dark ? Colors.white24 : const Color(0x448AA0B5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.4
+          ..strokeCap = StrokeCap.round;
     canvas.drawPath(
       Path()
         ..moveTo(w * 0.42, h * 0.24)
@@ -743,7 +853,11 @@ class _ProductArtPainter extends CustomPainter {
     // Soft print plate.
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(w * 0.52, h * 0.36), width: w * 0.24, height: h * 0.12),
+        Rect.fromCenter(
+          center: Offset(w * 0.52, h * 0.36),
+          width: w * 0.24,
+          height: h * 0.12,
+        ),
         const Radius.circular(8),
       ),
       Paint()..color = highlight.withValues(alpha: 0.16),
@@ -752,7 +866,11 @@ class _ProductArtPainter extends CustomPainter {
 
   void _badge(Canvas canvas, Size size) {
     final center = Offset(size.width * 0.5, size.height * 0.46);
-    canvas.drawCircle(center, size.width * 0.22, Paint()..color = const Color(0xFFE4C56A));
+    canvas.drawCircle(
+      center,
+      size.width * 0.22,
+      Paint()..color = const Color(0xFFE4C56A),
+    );
     canvas.drawCircle(center, size.width * 0.16, Paint()..color = fill);
   }
 
@@ -769,19 +887,28 @@ class _ProductArtPainter extends CustomPainter {
     final barrelWidth = w * 0.09;
 
     // Pocket clip.
-    final clip = Path()
-      ..moveTo(w * 0.545, h * 0.18)
-      ..lineTo(w * 0.60, h * 0.18)
-      ..quadraticBezierTo(w * 0.63, h * 0.28, w * 0.60, h * 0.40)
-      ..lineTo(w * 0.545, h * 0.40)
-      ..close();
+    final clip =
+        Path()
+          ..moveTo(w * 0.545, h * 0.18)
+          ..lineTo(w * 0.60, h * 0.18)
+          ..quadraticBezierTo(w * 0.63, h * 0.28, w * 0.60, h * 0.40)
+          ..lineTo(w * 0.545, h * 0.40)
+          ..close();
     canvas.drawPath(clip, Paint()..color = metal);
-    canvas.drawCircle(Offset(w * 0.575, h * 0.18), w * 0.018, Paint()..color = metalLite);
+    canvas.drawCircle(
+      Offset(w * 0.575, h * 0.18),
+      w * 0.018,
+      Paint()..color = metalLite,
+    );
 
     // Cap / top button.
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, h * 0.16), width: barrelWidth * 0.85, height: h * 0.06),
+        Rect.fromCenter(
+          center: Offset(cx, h * 0.16),
+          width: barrelWidth * 0.85,
+          height: h * 0.06,
+        ),
         const Radius.circular(8),
       ),
       Paint()..color = metal,
@@ -800,7 +927,9 @@ class _ProductArtPainter extends CustomPainter {
           end: Alignment.centerRight,
           colors: [shade, fill, highlight, fill, shade],
           stops: const [0, 0.25, 0.5, 0.75, 1],
-        ).createShader(Rect.fromLTWH(barrelLeft, h * 0.20, barrelWidth, h * 0.42)),
+        ).createShader(
+          Rect.fromLTWH(barrelLeft, h * 0.20, barrelWidth, h * 0.42),
+        ),
     );
 
     // Print band area edge.
@@ -818,12 +947,17 @@ class _ProductArtPainter extends CustomPainter {
       const Radius.circular(6),
     );
     canvas.drawRRect(grip, Paint()..color = shade);
-    final gripLines = Paint()
-      ..color = dark ? Colors.white24 : const Color(0x668AA0B5)
-      ..strokeWidth = 1.2;
+    final gripLines =
+        Paint()
+          ..color = dark ? Colors.white24 : const Color(0x668AA0B5)
+          ..strokeWidth = 1.2;
     for (var i = 0; i < 4; i++) {
       final y = h * (0.64 + i * 0.018);
-      canvas.drawLine(Offset(barrelLeft + 4, y), Offset(barrelLeft + barrelWidth - 4, y), gripLines);
+      canvas.drawLine(
+        Offset(barrelLeft + 4, y),
+        Offset(barrelLeft + barrelWidth - 4, y),
+        gripLines,
+      );
     }
 
     // Metal collar.
@@ -836,12 +970,13 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Tip cone + writing point.
-    final tip = Path()
-      ..moveTo(barrelLeft + 2, h * 0.72)
-      ..lineTo(barrelLeft + barrelWidth - 2, h * 0.72)
-      ..lineTo(cx + w * 0.012, h * 0.84)
-      ..lineTo(cx - w * 0.012, h * 0.84)
-      ..close();
+    final tip =
+        Path()
+          ..moveTo(barrelLeft + 2, h * 0.72)
+          ..lineTo(barrelLeft + barrelWidth - 2, h * 0.72)
+          ..lineTo(cx + w * 0.012, h * 0.84)
+          ..lineTo(cx - w * 0.012, h * 0.84)
+          ..close();
     canvas.drawPath(tip, Paint()..color = metal);
     canvas.drawPath(
       tip,
@@ -850,7 +985,11 @@ class _ProductArtPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
-    canvas.drawCircle(Offset(cx, h * 0.855), w * 0.012, Paint()..color = const Color(0xFF2C3138));
+    canvas.drawCircle(
+      Offset(cx, h * 0.855),
+      w * 0.012,
+      Paint()..color = const Color(0xFF2C3138),
+    );
   }
 
   void _keychain(Canvas canvas, Size size) {
@@ -905,15 +1044,16 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Fob body with rounded top for the hole.
-    final fob = Path()
-      ..moveTo(w * 0.34, h * 0.46)
-      ..quadraticBezierTo(w * 0.34, h * 0.40, w * 0.42, h * 0.40)
-      ..lineTo(w * 0.58, h * 0.40)
-      ..quadraticBezierTo(w * 0.66, h * 0.40, w * 0.66, h * 0.46)
-      ..lineTo(w * 0.66, h * 0.70)
-      ..quadraticBezierTo(w * 0.66, h * 0.78, w * 0.50, h * 0.78)
-      ..quadraticBezierTo(w * 0.34, h * 0.78, w * 0.34, h * 0.70)
-      ..close();
+    final fob =
+        Path()
+          ..moveTo(w * 0.34, h * 0.46)
+          ..quadraticBezierTo(w * 0.34, h * 0.40, w * 0.42, h * 0.40)
+          ..lineTo(w * 0.58, h * 0.40)
+          ..quadraticBezierTo(w * 0.66, h * 0.40, w * 0.66, h * 0.46)
+          ..lineTo(w * 0.66, h * 0.70)
+          ..quadraticBezierTo(w * 0.66, h * 0.78, w * 0.50, h * 0.78)
+          ..quadraticBezierTo(w * 0.34, h * 0.78, w * 0.34, h * 0.70)
+          ..close();
     canvas.drawPath(
       fob,
       Paint()
@@ -933,7 +1073,11 @@ class _ProductArtPainter extends CustomPainter {
     );
 
     // Attachment hole through the fob.
-    canvas.drawCircle(Offset(cx, h * 0.42), w * 0.022, Paint()..color = metalLite);
+    canvas.drawCircle(
+      Offset(cx, h * 0.42),
+      w * 0.022,
+      Paint()..color = metalLite,
+    );
     canvas.drawCircle(
       Offset(cx, h * 0.42),
       w * 0.014,
@@ -943,7 +1087,11 @@ class _ProductArtPainter extends CustomPainter {
     // Soft print plate on the face.
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset(cx, h * 0.58), width: w * 0.22, height: h * 0.14),
+        Rect.fromCenter(
+          center: Offset(cx, h * 0.58),
+          width: w * 0.22,
+          height: h * 0.14,
+        ),
         const Radius.circular(8),
       ),
       Paint()..color = highlight.withValues(alpha: 0.16),
@@ -952,7 +1100,12 @@ class _ProductArtPainter extends CustomPainter {
 
   void _sticker(Canvas canvas, Size size) {
     final sheet = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.24, size.height * 0.28, size.width * 0.52, size.height * 0.40),
+      Rect.fromLTWH(
+        size.width * 0.24,
+        size.height * 0.28,
+        size.width * 0.52,
+        size.height * 0.40,
+      ),
       const Radius.circular(18),
     );
     canvas.drawRRect(sheet, Paint()..color = fill);
@@ -967,19 +1120,30 @@ class _ProductArtPainter extends CustomPainter {
 
   void _poster(Canvas canvas, Size size) {
     final frame = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.22, size.height * 0.12, size.width * 0.56, size.height * 0.58),
+      Rect.fromLTWH(
+        size.width * 0.22,
+        size.height * 0.12,
+        size.width * 0.56,
+        size.height * 0.58,
+      ),
       const Radius.circular(6),
     );
     canvas.drawRRect(frame, Paint()..color = const Color(0xFFD5DDE6));
     final page = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.26, size.height * 0.16, size.width * 0.48, size.height * 0.50),
+      Rect.fromLTWH(
+        size.width * 0.26,
+        size.height * 0.16,
+        size.width * 0.48,
+        size.height * 0.50,
+      ),
       const Radius.circular(2),
     );
     canvas.drawRRect(page, Paint()..color = fill);
-    final leg = Paint()
-      ..color = const Color(0xFFC5CED8)
-      ..strokeWidth = 8
-      ..strokeCap = StrokeCap.round;
+    final leg =
+        Paint()
+          ..color = const Color(0xFFC5CED8)
+          ..strokeWidth = 8
+          ..strokeCap = StrokeCap.round;
     canvas.drawLine(
       Offset(size.width * 0.38, size.height * 0.70),
       Offset(size.width * 0.28, size.height * 0.90),

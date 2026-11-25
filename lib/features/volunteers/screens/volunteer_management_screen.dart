@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
@@ -198,24 +195,9 @@ class _VolunteerManagementScreenState extends State<VolunteerManagementScreen> {
           existing: existing,
         ),
       );
-      // #region agent log
-      _agentLog('H3', 'save succeeded', {
-        'runId': 'post-fix',
-        'created': existing == null,
-        'hasEmail': (saved.email ?? '').isNotEmpty,
-      });
-      // #endregion
+
       return null;
     } catch (error) {
-      // #region agent log
-      _agentLog('H3', 'save failed', {
-        'runId': 'post-fix',
-        'code':
-            error is VolunteerException
-                ? error.code
-                : error.runtimeType.toString(),
-      });
-      // #endregion
       return _errorText(error, removing: false);
     }
   }
@@ -1509,20 +1491,6 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
     _notes = TextEditingController(text: existing?.notes ?? '');
     _status = existing?.status ?? 'Active';
     _availability = existing?.availability ?? '';
-    WidgetsBinding.instance.addPostFrameCallback((_) => _logEmailField());
-  }
-
-  void _logEmailField() {
-    final render = _emailFieldKey.currentContext?.findRenderObject();
-    final size = render is RenderBox && render.hasSize ? render.size : null;
-    // #region agent log
-    _agentLog('H1', 'email field layout', {
-      'runId': 'post-fix',
-      'width': size?.width ?? -1,
-      'height': size?.height ?? -1,
-      'hasBox': size != null,
-    });
-    // #endregion
   }
 
   @override
@@ -1817,30 +1785,6 @@ class _VolunteerFormDialogState extends State<_VolunteerFormDialog> {
       errorMaxLines: 2,
     );
   }
-}
-
-void _agentLog(String hypothesisId, String message, Map<String, Object?> data) {
-  // #region agent log
-  http
-      .post(
-        Uri.parse(
-          'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-        ),
-        headers: const {
-          'Content-Type': 'application/json',
-          'X-Debug-Session-Id': '89cc1e',
-        },
-        body: jsonEncode({
-          'sessionId': '89cc1e',
-          'hypothesisId': hypothesisId,
-          'location': 'volunteer_management_screen.dart',
-          'message': message,
-          'data': data,
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        }),
-      )
-      .catchError((_) => http.Response('', 500));
-  // #endregion
 }
 
 class _VolunteerDetailsDialog extends StatelessWidget {
