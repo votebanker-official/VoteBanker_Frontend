@@ -46,11 +46,6 @@ List<DashboardNavEntry> dashboardSidebarItems(AppLocalizations l10n) {
       route: AppRoutes.merchandise,
     ),
     DashboardNavEntry(
-      icon: Icons.view_carousel_outlined,
-      label: l10n.line('campaignTemplatesNav'),
-      route: AppRoutes.campaignTemplates,
-    ),
-    DashboardNavEntry(
       icon: Icons.account_balance_outlined,
       label: l10n.line('cardAdministrations'),
       route: AppRoutes.administrations,

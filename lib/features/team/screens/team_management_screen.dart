@@ -388,11 +388,6 @@ List<_NavItem> _navItems(AppLocalizations l10n) {
       AppRoutes.merchandise,
     ),
     _NavItem(
-      Icons.view_carousel_outlined,
-      l10n.line('campaignTemplatesNav'),
-      AppRoutes.campaignTemplates,
-    ),
-    _NavItem(
       Icons.account_balance_outlined,
       l10n.line('cardAdministrations'),
       AppRoutes.administrations,
