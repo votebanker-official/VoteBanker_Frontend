@@ -377,13 +377,14 @@ class LeaderPortfolioSite extends StatelessWidget {
                     }
                   },
                 ),
-              _QuickInfo(
-                columns: columns,
-                vision: sample.vision,
-                mission: sample.mission,
-                schemes: sample.schemesLine,
-                join: sample.joinLine,
-              ),
+              if (desktop)
+                _QuickInfo(
+                  columns: columns,
+                  vision: sample.vision,
+                  mission: sample.mission,
+                  schemes: sample.schemesLine,
+                  join: sample.joinLine,
+                ),
               _StoryRow(
                 key: aboutKey,
                 about: sample.about,
@@ -393,7 +394,13 @@ class LeaderPortfolioSite extends StatelessWidget {
               ),
               _SchemeCards(key: schemeKey, items: sample.schemes, columns: mobile ? 1 : 3),
               _GalleryNews(key: newsKey, news: sample.news, wide: desktop),
-              _SiteFooter(key: footerKey, partyName: partyName, slogan: sample.slogan, nav: nav),
+              if (desktop)
+                _SiteFooter(
+                  key: footerKey,
+                  partyName: partyName,
+                  slogan: sample.slogan,
+                  nav: nav,
+                ),
           ];
           final header = Material(
             elevation: 1,
@@ -1641,7 +1648,7 @@ class _StoryRow extends StatelessWidget {
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [aboutCard, visionCard, const SizedBox(height: 12), statCard],
+                  children: [aboutCard],
                 ),
         ),
       ),
