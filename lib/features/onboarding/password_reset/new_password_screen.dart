@@ -70,8 +70,10 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             suffix: IconButton(
               onPressed: () => setState(() => _hidePassword = !_hidePassword),
               icon: Icon(
-                _hidePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: resetMuted,
+                _hidePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: resetMutedFor(context),
                 size: 20,
               ),
             ),
@@ -89,8 +91,10 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             suffix: IconButton(
               onPressed: () => setState(() => _hideConfirm = !_hideConfirm),
               icon: Icon(
-                _hideConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: resetMuted,
+                _hideConfirm
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: resetMutedFor(context),
                 size: 20,
               ),
             ),
@@ -102,7 +106,8 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           const SizedBox(height: 18),
           ResetPrimaryButton(
             label: 'Reset Password',
-            onPressed: _valid && _password.text == _confirm.text ? _submit : null,
+            onPressed:
+                _valid && _password.text == _confirm.text ? _submit : null,
           ),
         ],
       ),
@@ -125,13 +130,13 @@ class _Rule extends StatelessWidget {
           Icon(
             met ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
             size: 18,
-            color: met ? resetSuccess : resetMuted,
+            color: met ? resetSuccess : resetMutedFor(context),
           ),
           const SizedBox(width: 8),
           Text(
             label,
             style: TextStyle(
-              color: met ? resetNavy : resetMuted,
+              color: met ? resetNavyFor(context) : resetMutedFor(context),
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),

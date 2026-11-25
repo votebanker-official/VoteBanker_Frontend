@@ -7,7 +7,13 @@ class ThemeController extends ValueNotifier<ThemeMode> {
 
   static const _prefsKey = 'theme_mode';
 
-  bool get isDark => value == ThemeMode.dark;
+  bool get isDark => switch (value) {
+    ThemeMode.dark => true,
+    ThemeMode.light => false,
+    ThemeMode.system =>
+      WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+          Brightness.dark,
+  };
 
   /// Reads the saved choice. Never throws: if storage is unavailable the
   /// default (light) stays.
@@ -19,6 +25,8 @@ class ThemeController extends ValueNotifier<ThemeMode> {
         value = ThemeMode.dark;
       } else if (saved == 'light') {
         value = ThemeMode.light;
+      } else if (saved == 'system') {
+        value = ThemeMode.system;
       }
     } catch (_) {
       // Keep the default.
@@ -26,10 +34,18 @@ class ThemeController extends ValueNotifier<ThemeMode> {
   }
 
   Future<void> toggle() async {
-    value = isDark ? ThemeMode.light : ThemeMode.dark;
+    await setMode(isDark ? ThemeMode.light : ThemeMode.dark);
+  }
+
+  Future<void> setMode(ThemeMode mode) async {
+    value = mode;
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefsKey, isDark ? 'dark' : 'light');
+      await prefs.setString(_prefsKey, switch (mode) {
+        ThemeMode.system => 'system',
+        ThemeMode.light => 'light',
+        ThemeMode.dark => 'dark',
+      });
     } catch (_) {
       // The choice still applies for this session.
     }

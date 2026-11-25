@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/app_colors.dart';
 import '../models/merchandise_pricing.dart';
 
 class MerchandiseQuantitySelector extends StatelessWidget {
@@ -18,9 +19,11 @@ class MerchandiseQuantitySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selected = merchandisePresetQuantities.contains(quantity)
-        ? quantity
-        : merchandiseMinimumQuantity;
+    final palette = context.palette;
+    final selected =
+        merchandisePresetQuantities.contains(quantity)
+            ? quantity
+            : merchandiseMinimumQuantity;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -28,7 +31,7 @@ class MerchandiseQuantitySelector extends StatelessWidget {
         Text(
           'Quantity',
           style: TextStyle(
-            color: const Color(0xFF64748B),
+            color: palette.isDark ? palette.textMuted : const Color(0xFF64748B),
             fontSize: compact ? 12 : 13,
             fontWeight: FontWeight.w700,
           ),
@@ -38,17 +41,35 @@ class MerchandiseQuantitySelector extends StatelessWidget {
           key: ValueKey('merchQuantity-$selected'),
           value: selected,
           isExpanded: true,
+          style: TextStyle(color: palette.text),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
-            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: compact ? 8 : 12),
+            fillColor: palette.isDark ? palette.surface : Colors.white,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: compact ? 8 : 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: BorderSide(
+                color:
+                    palette.isDark ? palette.border : const Color(0xFFE2E8F0),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: BorderSide(
+                color:
+                    palette.isDark ? palette.border : const Color(0xFFE2E8F0),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color:
+                    palette.isDark ? palette.accent : const Color(0xFFE2E8F0),
+                width: palette.isDark ? 1.4 : 1,
+              ),
             ),
           ),
           items: [
@@ -58,6 +79,7 @@ class MerchandiseQuantitySelector extends StatelessWidget {
                 child: Text(
                   merchandiseQuantityLabel(option, priceSlabs),
                   overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: palette.text),
                 ),
               ),
           ],

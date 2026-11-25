@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/app.dart';
+import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/localization/translations/hi.dart';
 import 'package:votebanker/app/localization/translations/kn.dart';
 import 'package:votebanker/app/routing/app_routes.dart';
+import 'package:votebanker/app/theme/app_colors.dart';
 import 'package:votebanker/core/services/auth_service.dart';
+import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/admin/admin_access.dart';
 import 'package:votebanker/features/onboarding/data/assembly_constituency.dart';
 import 'package:votebanker/features/onboarding/data/location_catalog.dart';
@@ -18,6 +21,97 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
     TestWidgetsFlutterBinding.ensureInitialized();
     await LocationCatalog.load();
+  });
+
+  for (final size in const [Size(1280, 900), Size(390, 844)]) {
+    testWidgets('profile dark theme stays readable at ${size.width}px', (
+      tester,
+    ) async {
+      final themeController = ThemeController(ThemeMode.dark);
+      addTearDown(themeController.dispose);
+      await _openProfile(tester, size: size, themeController: themeController);
+
+      final palette = AppPalette.dark;
+      final quote =
+          '“${AppLocalizations.of(tester.element(find.text('Leader Profile'))).line('profileQuote')}”';
+      final quoteFinder = find.text(quote);
+      expect(quoteFinder, findsOneWidget);
+      final quoteText = tester.widget<Text>(quoteFinder);
+      expect(quoteText.style?.color, palette.text);
+      final quoteCard = tester.widget<Container>(
+        find.ancestor(of: quoteFinder, matching: find.byType(Container)).first,
+      );
+      final quoteDecoration = quoteCard.decoration as BoxDecoration;
+      expect(quoteDecoration.gradient?.colors, [
+        palette.surfaceSecondary,
+        palette.surface,
+        palette.backgroundRaised,
+      ]);
+
+      expect(
+        tester.widget<Icon>(find.byIcon(Icons.arrow_back)).color,
+        palette.text,
+      );
+      expect(
+        tester.widget<Text>(find.text('VOTE BANKER')).style?.color,
+        palette.text,
+      );
+      final photoCard = tester.widget<DecoratedBox>(
+        find
+            .ancestor(
+              of: find.text('Profile Photo'),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect((photoCard.decoration as BoxDecoration).color, palette.surface);
+      final deleteButton = tester.widget<OutlinedButton>(
+        find.byWidgetPredicate((widget) => widget is OutlinedButton),
+      );
+      expect(deleteButton.style?.foregroundColor?.resolve({}), palette.text);
+
+      final nameField = find.byKey(const ValueKey('profileLeaderName'));
+      final fieldTheme = Theme.of(tester.element(nameField));
+      expect(
+        fieldTheme.inputDecorationTheme.fillColor,
+        palette.surfaceSecondary,
+      );
+      expect(
+        (fieldTheme.inputDecorationTheme.enabledBorder as OutlineInputBorder)
+            .borderSide
+            .color,
+        palette.border,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('profile light theme colors remain unchanged', (tester) async {
+    final themeController = ThemeController(ThemeMode.light);
+    addTearDown(themeController.dispose);
+    await _openProfile(tester, themeController: themeController);
+
+    final quote =
+        '“${AppLocalizations.of(tester.element(find.text('Leader Profile'))).line('profileQuote')}”';
+    final quoteCard = tester.widget<Container>(
+      find
+          .ancestor(of: find.text(quote), matching: find.byType(Container))
+          .first,
+    );
+    expect((quoteCard.decoration as BoxDecoration).gradient?.colors, const [
+      Color(0xFFF3FFF8),
+      Color(0xFFE7F8EF),
+      Color(0xFFF4FBFF),
+    ]);
+    final nameField = find.byKey(const ValueKey('profileLeaderName'));
+    final fieldTheme = Theme.of(tester.element(nameField));
+    expect(
+      (fieldTheme.inputDecorationTheme.enabledBorder as OutlineInputBorder)
+          .borderSide
+          .color,
+      const Color(0xFFE3EDF6),
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('profile labels, language default, and locked location fields', (
@@ -865,9 +959,13 @@ void main() {
   });
 }
 
-Future<void> _openProfile(WidgetTester tester) async {
-  await _setSurface(tester, const Size(1280, 900));
-  await tester.pumpWidget(const VoteBankerApp());
+Future<void> _openProfile(
+  WidgetTester tester, {
+  Size size = const Size(1280, 900),
+  ThemeController? themeController,
+}) async {
+  await _setSurface(tester, size);
+  await tester.pumpWidget(VoteBankerApp(themeController: themeController));
   await tester.pumpAndSettle();
   await _tapLabel(tester, 'Skip for now');
   expect(find.text('Leader Profile'), findsOneWidget);

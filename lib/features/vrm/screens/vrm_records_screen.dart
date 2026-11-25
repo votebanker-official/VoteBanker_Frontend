@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/person_name.dart';
 import '../models/vrm_voter_record.dart';
@@ -11,7 +12,6 @@ import '../../social_media/social_contact_links.dart';
 
 enum _VoterFilter { all, complete, incomplete, review }
 
-const _pageBg = Color(0xFFF4F7FB);
 const _ink = Color(0xFF0F172A);
 const _muted = Color(0xFF64748B);
 const _line = Color(0xFFE2E8F0);
@@ -19,6 +19,29 @@ const _complete = Color(0xFF16A34A);
 const _completeDeep = Color(0xFF15803D);
 const _incomplete = Color(0xFFE11D48);
 const _review = Color(0xFFD97706);
+
+AppPalette _vrmPalette(BuildContext context) {
+  return Theme.of(context).extension<AppPalette>() ??
+      (Theme.of(context).brightness == Brightness.dark
+          ? AppPalette.dark
+          : AppPalette.light);
+}
+
+Color _primaryTextColor(BuildContext context) {
+  final palette = _vrmPalette(context);
+  return palette.isDark ? palette.text : _ink;
+}
+
+Color _secondaryTextColor(BuildContext context) {
+  final palette = _vrmPalette(context);
+  return palette.isDark ? palette.textMuted : _muted;
+}
+
+Color _recordStatusColor(BuildContext context, bool complete) {
+  final palette = _vrmPalette(context);
+  if (!palette.isDark) return complete ? _complete : _incomplete;
+  return complete ? palette.success : palette.danger;
+}
 
 class VrmRecordsScreen extends StatefulWidget {
   const VrmRecordsScreen({super.key, this.service});
@@ -175,7 +198,7 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
     final wide = MediaQuery.sizeOf(context).width >= 768;
 
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: _vrmPalette(context).background,
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
@@ -351,15 +374,20 @@ class _PayToGetMoreButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = _vrmPalette(context);
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF1D4ED8),
-          backgroundColor: Colors.white,
-          side: const BorderSide(color: Color(0xFFBFDBFE)),
+          foregroundColor:
+              palette.isDark ? palette.accent : const Color(0xFF1D4ED8),
+          backgroundColor:
+              palette.isDark ? palette.surfaceSecondary : Colors.white,
+          side: BorderSide(
+            color: palette.isDark ? palette.border : const Color(0xFFBFDBFE),
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -548,21 +576,22 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
     }
   }
 
-  InputDecoration _fieldDecoration(String hint) {
+  InputDecoration _fieldDecoration(BuildContext context, String hint) {
+    final palette = _vrmPalette(context);
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+      hintStyle: TextStyle(color: palette.textMuted, fontSize: 14),
       isDense: true,
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
+      fillColor: palette.surfaceSecondary,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _line),
+        borderSide: BorderSide(color: palette.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _line),
+        borderSide: BorderSide(color: palette.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -574,20 +603,21 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = _vrmPalette(context);
     final item = widget.record;
     final wide = widget.wide;
     final complete = _detailsComplete;
-    final statusColor = complete ? _complete : _incomplete;
+    final statusColor = _recordStatusColor(context, complete);
     final statusLabel = complete ? 'Complete details' : 'Incomplete details';
     final feedback = _status;
     final feedbackColor =
         feedback == null
-            ? _completeDeep
+            ? (palette.isDark ? palette.success : _completeDeep)
             : feedback == l10n.line('vrmContactSaved')
-            ? _completeDeep
+            ? (palette.isDark ? palette.success : _completeDeep)
             : feedback == l10n.line('vrmContactSaving')
-            ? _muted
-            : _incomplete;
+            ? _secondaryTextColor(context)
+            : (palette.isDark ? palette.danger : _incomplete);
     final note =
         feedback ?? (complete ? l10n.line('vrmContactVerified') : null);
 
@@ -598,9 +628,10 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
         iconColor: const Color(0xFF16A34A),
         child: TextField(
           controller: _whatsapp,
+          style: palette.isDark ? TextStyle(color: palette.text) : null,
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
-          decoration: _fieldDecoration(l10n.line('vrmWhatsappHint')),
+          decoration: _fieldDecoration(context, l10n.line('vrmWhatsappHint')),
         ),
       ),
       _ContactField(
@@ -609,8 +640,9 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
         iconColor: const Color(0xFFDB2777),
         child: TextField(
           controller: _instagram,
+          style: palette.isDark ? TextStyle(color: palette.text) : null,
           textInputAction: TextInputAction.next,
-          decoration: _fieldDecoration(l10n.line('vrmInstagramHint')),
+          decoration: _fieldDecoration(context, l10n.line('vrmInstagramHint')),
         ),
       ),
       _ContactField(
@@ -619,9 +651,10 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
         iconColor: const Color(0xFF2563EB),
         child: TextField(
           controller: _facebook,
+          style: palette.isDark ? TextStyle(color: palette.text) : null,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _saving ? null : _save(),
-          decoration: _fieldDecoration(l10n.line('vrmFacebookHint')),
+          decoration: _fieldDecoration(context, l10n.line('vrmFacebookHint')),
         ),
       ),
     ];
@@ -632,9 +665,15 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
       child: OutlinedButton(
         onPressed: _saving ? null : _save,
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF2563EB),
-          backgroundColor: const Color(0xFFEFF6FF),
-          side: const BorderSide(color: Color(0xFFBFDBFE)),
+          foregroundColor:
+              palette.isDark ? palette.accent : const Color(0xFF2563EB),
+          backgroundColor:
+              palette.isDark
+                  ? palette.surfaceSecondary
+                  : const Color(0xFFEFF6FF),
+          side: BorderSide(
+            color: palette.isDark ? palette.border : const Color(0xFFBFDBFE),
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -649,7 +688,7 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: statusColor, width: 1.4),
         boxShadow: const [
@@ -677,7 +716,7 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                   child: Text(
                     formatPersonName(item.name),
                     style: TextStyle(
-                      color: _ink,
+                      color: _primaryTextColor(context),
                       fontSize: wide ? 20 : 18,
                       fontWeight: FontWeight.w800,
                       height: 1.2,
@@ -700,8 +739,8 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                     children: [
                       Text(
                         '${l10n.line('vrmEpic')}: ${item.epicNumber ?? '—'}',
-                        style: const TextStyle(
-                          color: _ink,
+                        style: TextStyle(
+                          color: _primaryTextColor(context),
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -720,10 +759,10 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                               ClipboardData(text: item.epicNumber!.trim()),
                             );
                           },
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.copy_rounded,
                             size: 14,
-                            color: _muted,
+                            color: _secondaryTextColor(context),
                           ),
                         ),
                     ],
@@ -731,12 +770,26 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                 ),
                 Text(
                   '${l10n.line('vrmAge')}: ${item.age?.toString() ?? '—'}',
-                  style: const TextStyle(color: _muted, fontSize: 13),
+                  style: TextStyle(
+                    color: _secondaryTextColor(context),
+                    fontSize: 13,
+                  ),
                 ),
-                const Text('·', style: TextStyle(color: Color(0xFFCBD5E1))),
+                Text(
+                  '·',
+                  style: TextStyle(
+                    color:
+                        palette.isDark
+                            ? palette.textMuted
+                            : const Color(0xFFCBD5E1),
+                  ),
+                ),
                 Text(
                   '${l10n.line('vrmGender')}: ${item.gender ?? '—'}',
-                  style: const TextStyle(color: _muted, fontSize: 13),
+                  style: TextStyle(
+                    color: _secondaryTextColor(context),
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -745,15 +798,15 @@ class _VoterRecordCardState extends State<_VoterRecordCard> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   l10n.line('vrmNeedsReview'),
-                  style: const TextStyle(
-                    color: _review,
+                  style: TextStyle(
+                    color: palette.isDark ? palette.campaign : _review,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
                 ),
               ),
             const SizedBox(height: 14),
-            const Divider(height: 1, color: _line),
+            Divider(height: 1, color: palette.isDark ? palette.border : _line),
             const SizedBox(height: 14),
             if (wide)
               Row(
@@ -840,8 +893,8 @@ class _ContactField extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: _muted,
+                style: TextStyle(
+                  color: _secondaryTextColor(context),
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
@@ -902,11 +955,13 @@ class _MetaChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _vrmPalette(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color:
+            palette.isDark ? palette.surfaceSecondary : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: _line),
+        border: Border.all(color: palette.isDark ? palette.border : _line),
       ),
       child: Padding(
         padding: const EdgeInsets.only(left: 10, right: 4),
@@ -941,6 +996,7 @@ class _RecordsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _vrmPalette(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -957,8 +1013,8 @@ class _RecordsHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: _ink,
+                style: TextStyle(
+                  color: _primaryTextColor(context),
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                 ),
@@ -967,7 +1023,10 @@ class _RecordsHeader extends StatelessWidget {
             const SizedBox(width: 8),
             DecoratedBox(
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color:
+                    palette.isDark
+                        ? palette.surfaceSecondary
+                        : const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Padding(
@@ -977,8 +1036,11 @@ class _RecordsHeader extends StatelessWidget {
                 ),
                 child: Text(
                   countLabel,
-                  style: const TextStyle(
-                    color: Color(0xFF2563EB),
+                  style: TextStyle(
+                    color:
+                        palette.isDark
+                            ? palette.accent
+                            : const Color(0xFF2563EB),
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -998,7 +1060,7 @@ class _RecordsHeader extends StatelessWidget {
           padding: const EdgeInsets.only(left: 48),
           child: Text(
             subtitle,
-            style: const TextStyle(color: _muted, fontSize: 14),
+            style: TextStyle(color: _secondaryTextColor(context), fontSize: 14),
           ),
         ),
         Align(
@@ -1028,13 +1090,15 @@ class _RoundIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _vrmPalette(context);
     return IconButton(
       tooltip: tooltip,
       onPressed: onPressed,
-      icon: Icon(icon, color: _ink),
+      icon: Icon(icon, color: _primaryTextColor(context)),
       style: IconButton.styleFrom(
-        backgroundColor: Colors.white,
-        side: const BorderSide(color: _line),
+        backgroundColor:
+            palette.isDark ? palette.surfaceSecondary : Colors.white,
+        side: BorderSide(color: palette.isDark ? palette.border : _line),
         fixedSize: const Size(40, 40),
       ),
     );
@@ -1058,16 +1122,23 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _vrmPalette(context);
     return TextField(
       controller: controller,
+      style: palette.isDark ? TextStyle(color: palette.text) : null,
       textInputAction: TextInputAction.search,
       onSubmitted: (_) => onSubmit(),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+        hintStyle: TextStyle(
+          color: palette.isDark ? palette.textMuted : const Color(0xFF94A3B8),
+        ),
         filled: true,
-        fillColor: Colors.white,
-        prefixIcon: const Icon(Icons.search, color: _muted),
+        fillColor: palette.surface,
+        prefixIcon: Icon(
+          Icons.search,
+          color: palette.isDark ? palette.textMuted : _muted,
+        ),
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1075,12 +1146,18 @@ class _SearchBar extends StatelessWidget {
               IconButton(
                 tooltip: hint,
                 onPressed: onClear,
-                icon: const Icon(Icons.close_rounded, color: _muted),
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: palette.isDark ? palette.textMuted : _muted,
+                ),
               ),
             IconButton(
               tooltip: hint,
               onPressed: onSubmit,
-              icon: const Icon(Icons.arrow_forward, color: _ink),
+              icon: Icon(
+                Icons.arrow_forward,
+                color: _primaryTextColor(context),
+              ),
             ),
           ],
         ),
@@ -1091,15 +1168,22 @@ class _SearchBar extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(28),
-          borderSide: const BorderSide(color: _line),
+          borderSide: BorderSide(
+            color: palette.isDark ? palette.border : _line,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(28),
-          borderSide: const BorderSide(color: _line),
+          borderSide: BorderSide(
+            color: palette.isDark ? palette.border : _line,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(28),
-          borderSide: const BorderSide(color: Color(0xFF93C5FD), width: 1.4),
+          borderSide: BorderSide(
+            color: palette.isDark ? palette.accent : const Color(0xFF93C5FD),
+            width: 1.4,
+          ),
         ),
       ),
     );
@@ -1127,6 +1211,7 @@ class _FilterPills extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _vrmPalette(context);
     final complete = records.where(_savedComplete).length;
     final incomplete = records.length - complete;
     final review = records.where((row) => row.needsReview).length;
@@ -1144,7 +1229,7 @@ class _FilterPills extends StatelessWidget {
           _FilterPill(
             label: completeLabel,
             count: complete,
-            dot: _complete,
+            dot: palette.isDark ? palette.success : _complete,
             selected: selected == _VoterFilter.complete,
             onTap: () => onSelected(_VoterFilter.complete),
           ),
@@ -1152,7 +1237,7 @@ class _FilterPills extends StatelessWidget {
           _FilterPill(
             label: incompleteLabel,
             count: incomplete,
-            dot: _incomplete,
+            dot: palette.isDark ? palette.danger : _incomplete,
             selected: selected == _VoterFilter.incomplete,
             onTap: () => onSelected(_VoterFilter.incomplete),
           ),
@@ -1160,7 +1245,7 @@ class _FilterPills extends StatelessWidget {
           _FilterPill(
             label: reviewLabel,
             count: review,
-            dot: _review,
+            dot: palette.isDark ? palette.campaign : _review,
             selected: selected == _VoterFilter.review,
             onTap: () => onSelected(_VoterFilter.review),
           ),
@@ -1187,8 +1272,16 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = selected ? _ink : Colors.white;
-    final fg = selected ? Colors.white : _ink;
+    final palette = _vrmPalette(context);
+    final bg =
+        selected
+            ? (palette.isDark ? palette.accent : _ink)
+            : (palette.isDark ? palette.surfaceSecondary : Colors.white);
+    final fg = selected ? Colors.white : _primaryTextColor(context);
+    final borderColor =
+        selected
+            ? (palette.isDark ? palette.accent : _ink)
+            : (palette.isDark ? palette.border : _line);
     return Material(
       color: bg,
       borderRadius: BorderRadius.circular(999),
@@ -1200,7 +1293,7 @@ class _FilterPill extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: selected ? _ink : _line),
+            border: Border.all(color: borderColor),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1225,7 +1318,7 @@ class _FilterPill extends StatelessWidget {
               Text(
                 '$count',
                 style: TextStyle(
-                  color: selected ? Colors.white : _muted,
+                  color: selected ? Colors.white : _secondaryTextColor(context),
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),

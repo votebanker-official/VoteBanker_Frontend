@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/app_colors.dart';
+
 import '../../../app/routing/app_router.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
@@ -241,13 +243,15 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final draft = OnboardingScope.maybeOf(context)?.draft;
     final signedIn = AuthService.instance.isSignedIn;
     final party = signedIn ? PartyOption.findByName(draft?.party ?? '') : null;
     final photo = signedIn ? draft?.photoBytes : null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FB),
+      backgroundColor:
+          palette.isDark ? palette.background : const Color(0xFFF4F7FB),
       body: Stack(
         children: [
           SafeArea(
@@ -351,6 +355,7 @@ class _ProductShowcase extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final palette = context.palette;
         final wide = constraints.maxWidth >= 800;
         final stacked = constraints.maxWidth < 720;
         final tagline = _taglineFor(product);
@@ -373,7 +378,10 @@ class _ProductShowcase extends StatelessWidget {
                         fontSize: wide ? 30 : 22,
                         height: 1.1,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1E3A8A),
+                        color:
+                            palette.isDark
+                                ? palette.text
+                                : const Color(0xFF1E3A8A),
                       ),
                       children: const [
                         TextSpan(text: 'Create Your '),
@@ -389,8 +397,11 @@ class _ProductShowcase extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '${index + 1} of $total',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
+                    style: TextStyle(
+                      color:
+                          palette.isDark
+                              ? palette.textMuted
+                              : const Color(0xFF64748B),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -414,7 +425,10 @@ class _ProductShowcase extends StatelessWidget {
                     style: TextStyle(
                       fontSize: wide ? 30 : 24,
                       fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0F172A),
+                      color:
+                          palette.isDark
+                              ? palette.text
+                              : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -422,7 +436,10 @@ class _ProductShowcase extends StatelessWidget {
                     tagline,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: const Color(0xFF64748B),
+                      color:
+                          palette.isDark
+                              ? palette.textMuted
+                              : const Color(0xFF64748B),
                       fontSize: wide ? 16 : 14,
                     ),
                   ),
@@ -472,7 +489,10 @@ class _ProductShowcase extends StatelessWidget {
                       ),
                   TextButton(
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B),
+                      foregroundColor:
+                          palette.isDark
+                              ? palette.textMuted
+                              : const Color(0xFF64748B),
                       textStyle: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -515,6 +535,7 @@ class _PurchaseRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final quantitySide = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -532,7 +553,11 @@ class _PurchaseRow extends StatelessWidget {
           style: TextStyle(
             color:
                 quote.configured
-                    ? const Color(0xFF1E3A8A)
+                    ? palette.isDark
+                        ? palette.secondary
+                        : const Color(0xFF1E3A8A)
+                    : palette.isDark
+                    ? const Color(0xFFFFB46A)
                     : const Color(0xFF9A3412),
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -544,10 +569,10 @@ class _PurchaseRow extends StatelessWidget {
       crossAxisAlignment:
           stacked ? CrossAxisAlignment.start : CrossAxisAlignment.end,
       children: [
-        const Text(
+        Text(
           'Total Price',
           style: TextStyle(
-            color: Color(0xFF64748B),
+            color: palette.isDark ? palette.textMuted : const Color(0xFF64748B),
             fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
@@ -559,7 +584,7 @@ class _PurchaseRow extends StatelessWidget {
               : '—',
           key: const ValueKey('merchPriceTotal'),
           style: TextStyle(
-            color: const Color(0xFF1E3A8A),
+            color: palette.isDark ? palette.accent : const Color(0xFF1E3A8A),
             fontSize: stacked ? 26 : 32,
             fontWeight: FontWeight.w800,
             height: 1,
@@ -602,13 +627,14 @@ class _ProductStage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Stack(
       alignment: Alignment.center,
       children: [
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: palette.isDark ? palette.surfaceSecondary : Colors.white,
               borderRadius: BorderRadius.circular(28),
               boxShadow: const [
                 BoxShadow(

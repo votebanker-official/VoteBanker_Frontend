@@ -15,6 +15,7 @@ import 'package:votebanker/app/localization/translations/ml.dart';
 import 'package:votebanker/app/localization/translations/ta.dart';
 import 'package:votebanker/app/localization/translations/te.dart';
 import 'package:votebanker/core/services/auth_service.dart';
+import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/onboarding/services/domain_service.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 import 'package:votebanker/features/onboarding/widgets/domain_result_card.dart';
@@ -222,6 +223,24 @@ void main() {
     BuildContext appContext() => tester.element(find.byType(Scaffold).first);
     expect(Theme.of(appContext()).brightness, Brightness.light);
     expect(appContext().palette.isDark, isFalse);
+    final loginScaffold = find.byType(Scaffold).first;
+    final loginField = find.byType(TextFormField).first;
+    expect(
+      tester.widget<Scaffold>(loginScaffold).backgroundColor,
+      const Color(0xFFEDF6FF),
+    );
+    expect(
+      tester
+          .widget<InputDecorator>(
+            find.descendant(
+              of: loginField,
+              matching: find.byType(InputDecorator),
+            ),
+          )
+          .decoration
+          .fillColor,
+      Colors.white,
+    );
 
     // The toggle sits to the left of the language selector.
     final toggle = find.byIcon(Icons.dark_mode_outlined);
@@ -236,10 +255,101 @@ void main() {
     await tester.pumpAndSettle();
     expect(Theme.of(appContext()).brightness, Brightness.dark);
     expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+    expect(
+      tester.widget<Scaffold>(loginScaffold).backgroundColor,
+      AppPalette.dark.background,
+    );
+    expect(
+      tester
+          .widget<InputDecorator>(
+            find.descendant(
+              of: loginField,
+              matching: find.byType(InputDecorator),
+            ),
+          )
+          .decoration
+          .fillColor,
+      AppPalette.dark.surface,
+    );
+    expect(
+      tester
+          .widget<EditableText>(
+            find.descendant(
+              of: loginField,
+              matching: find.byType(EditableText),
+            ),
+          )
+          .style
+          .color,
+      AppPalette.dark.text,
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    final restoredTheme = ThemeController();
+    addTearDown(restoredTheme.dispose);
+    await restoredTheme.load();
+    await tester.pumpWidget(VoteBankerApp(themeController: restoredTheme));
+    await tester.pumpAndSettle();
+    expect(Theme.of(appContext()).brightness, Brightness.dark);
 
     await tester.tap(find.byIcon(Icons.light_mode_outlined));
     await tester.pumpAndSettle();
     expect(Theme.of(appContext()).brightness, Brightness.light);
+
+    await ThemeScope.of(appContext()).setMode(ThemeMode.system);
+    await tester.pumpAndSettle();
+    expect(
+      Theme.of(appContext()).brightness,
+      tester.binding.platformDispatcher.platformBrightness,
+    );
+    expect(
+      (await SharedPreferences.getInstance()).getString('theme_mode'),
+      'system',
+    );
+  });
+
+  testWidgets('mobile login switches all form surfaces to dark mode', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await _setSurface(tester, const Size(390, 844));
+    await tester.pumpWidget(const VoteBankerApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.dark_mode_outlined));
+    await tester.pumpAndSettle();
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+    final field = find.byType(TextFormField).first;
+    final input = tester.widget<InputDecorator>(
+      find.descendant(of: field, matching: find.byType(InputDecorator)),
+    );
+    expect(scaffold.backgroundColor, AppPalette.dark.background);
+    expect(input.decoration.fillColor, AppPalette.dark.surface);
+  });
+
+  testWidgets('sign-up keeps the selected dark theme after navigation', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await _setSurface(tester, const Size(390, 844));
+    await tester.pumpWidget(const VoteBankerApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.dark_mode_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(enTranslations['loginSignUp']!));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor,
+      AppPalette.dark.background,
+    );
+    final field = find.byType(TextFormField).first;
+    final input = tester.widget<InputDecorator>(
+      find.descendant(of: field, matching: find.byType(InputDecorator)),
+    );
+    expect(input.decoration.fillColor, AppPalette.dark.surface);
   });
 
   testWidgets('profile, domain selection, and back keep temporary state', (

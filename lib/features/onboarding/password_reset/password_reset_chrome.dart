@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 
 const resetNavy = Color(0xFF102B50);
@@ -12,6 +13,18 @@ const resetMuted = Color(0xFF8AA0B8);
 const resetDanger = Color(0xFFD92D3F);
 const resetSuccess = Color(0xFF12B76A);
 
+Color resetNavyFor(BuildContext context) =>
+    context.palette.isDark ? context.palette.text : resetNavy;
+
+Color resetBlueFor(BuildContext context) =>
+    context.palette.isDark ? context.palette.accent : resetBlue;
+
+Color resetMutedFor(BuildContext context) =>
+    context.palette.isDark ? context.palette.textMuted : resetMuted;
+
+Color resetBorderFor(BuildContext context) =>
+    context.palette.isDark ? context.palette.border : resetField;
+
 /// Visual shell shared by the password-reset screens. Matches the login page
 /// card, wave, and button treatment without changing the login screen itself.
 class PasswordResetScaffold extends StatelessWidget {
@@ -21,8 +34,9 @@ class PasswordResetScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Scaffold(
-      backgroundColor: resetPage,
+      backgroundColor: palette.isDark ? palette.background : resetPage,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -32,7 +46,7 @@ class PasswordResetScaffold extends StatelessWidget {
             final tablet = constraints.maxWidth >= 601;
             return Stack(
               children: [
-                const Positioned.fill(child: _WaveBackground()),
+                Positioned.fill(child: _WaveBackground(palette: palette)),
                 Center(
                   child: SingleChildScrollView(
                     keyboardDismissBehavior:
@@ -47,7 +61,7 @@ class PasswordResetScaffold extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 420),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: palette.surface,
                           borderRadius: BorderRadius.circular(28),
                           boxShadow: const [
                             BoxShadow(
@@ -81,17 +95,12 @@ class ResetBrand extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Image.asset(
-          AppAssets.logo,
-          width: 56,
-          height: 56,
-          fit: BoxFit.contain,
-        ),
+        Image.asset(AppAssets.logo, width: 56, height: 56, fit: BoxFit.contain),
         const SizedBox(height: 8),
         Text(
           AppLocalizations.of(context).appName,
-          style: const TextStyle(
-            color: resetNavy,
+          style: TextStyle(
+            color: resetNavyFor(context),
             fontSize: 16,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.4,
@@ -115,8 +124,8 @@ class ResetHeading extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: resetBlue,
+          style: TextStyle(
+            color: resetBlueFor(context),
             fontSize: 22,
             fontWeight: FontWeight.w800,
             height: 1.2,
@@ -126,8 +135,8 @@ class ResetHeading extends StatelessWidget {
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: resetNavy,
+          style: TextStyle(
+            color: resetNavyFor(context),
             fontSize: 13.5,
             fontWeight: FontWeight.w500,
             height: 1.35,
@@ -166,6 +175,7 @@ class ResetField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return TextField(
       controller: controller,
       obscureText: obscure,
@@ -173,23 +183,23 @@ class ResetField extends StatelessWidget {
       textInputAction: textInputAction,
       onSubmitted: onSubmitted,
       onChanged: onChanged,
-      style: const TextStyle(color: resetNavy, fontSize: 15),
+      style: TextStyle(color: resetNavyFor(context), fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: resetMuted),
+        hintStyle: TextStyle(color: resetMutedFor(context)),
         errorText: errorText,
         filled: true,
-        fillColor: Colors.white,
-        prefixIcon: Icon(icon, color: resetMuted, size: 20),
+        fillColor: palette.surface,
+        prefixIcon: Icon(icon, color: resetMutedFor(context), size: 20),
         suffixIcon: suffix,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
-          borderSide: const BorderSide(color: resetField),
+          borderSide: BorderSide(color: resetBorderFor(context)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
-          borderSide: const BorderSide(color: resetBlue, width: 1.4),
+          borderSide: BorderSide(color: resetBlueFor(context), width: 1.4),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
@@ -223,9 +233,10 @@ class ResetPrimaryButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           gradient: LinearGradient(
-            colors: onPressed == null
-                ? const [Color(0xFFB9D4F5), Color(0xFF9EC3F0)]
-                : const [Color(0xFF3B8BFF), Color(0xFF1677F2)],
+            colors:
+                onPressed == null
+                    ? const [Color(0xFFB9D4F5), Color(0xFF9EC3F0)]
+                    : const [Color(0xFF3B8BFF), Color(0xFF1677F2)],
           ),
         ),
         child: FilledButton(
@@ -260,7 +271,11 @@ class ResetPrimaryButton extends StatelessWidget {
 }
 
 class ResetTextLink extends StatelessWidget {
-  const ResetTextLink({required this.label, required this.onPressed, super.key});
+  const ResetTextLink({
+    required this.label,
+    required this.onPressed,
+    super.key,
+  });
 
   final String label;
   final VoidCallback onPressed;
@@ -271,8 +286,8 @@ class ResetTextLink extends StatelessWidget {
       onPressed: onPressed,
       child: Text(
         label,
-        style: const TextStyle(
-          color: resetBlue,
+        style: TextStyle(
+          color: resetBlueFor(context),
           fontWeight: FontWeight.w700,
           fontSize: 14,
         ),
@@ -282,63 +297,82 @@ class ResetTextLink extends StatelessWidget {
 }
 
 void goToLogin(BuildContext context) {
-  Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+  Navigator.of(
+    context,
+  ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
 }
 
 class _WaveBackground extends StatelessWidget {
-  const _WaveBackground();
+  const _WaveBackground({required this.palette});
+
+  final AppPalette palette;
 
   @override
   Widget build(BuildContext context) {
-    return const CustomPaint(painter: _WavePainter());
+    return CustomPaint(painter: _WavePainter(palette));
   }
 }
 
 class _WavePainter extends CustomPainter {
-  const _WavePainter();
+  const _WavePainter(this.palette);
+
+  final AppPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final soft = Paint()..color = const Color(0xFFD7ECFF);
-    final top = Path()
-      ..moveTo(0, size.height * 0.16)
-      ..quadraticBezierTo(
-        size.width * 0.22,
-        size.height * 0.02,
-        size.width * 0.48,
-        size.height * 0.1,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.78,
-        size.height * 0.2,
-        size.width,
-        size.height * 0.04,
-      )
-      ..lineTo(size.width, 0)
-      ..lineTo(0, 0)
-      ..close();
+    final soft =
+        Paint()
+          ..color =
+              palette.isDark
+                  ? palette.backgroundRaised
+                  : const Color(0xFFD7ECFF);
+    final top =
+        Path()
+          ..moveTo(0, size.height * 0.16)
+          ..quadraticBezierTo(
+            size.width * 0.22,
+            size.height * 0.02,
+            size.width * 0.48,
+            size.height * 0.1,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.78,
+            size.height * 0.2,
+            size.width,
+            size.height * 0.04,
+          )
+          ..lineTo(size.width, 0)
+          ..lineTo(0, 0)
+          ..close();
     canvas.drawPath(top, soft);
 
-    final bottom = Path()
-      ..moveTo(0, size.height * 0.72)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.58,
-        size.width * 0.55,
-        size.height * 0.78,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.82,
-        size.height * 0.98,
-        size.width,
-        size.height * 0.82,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(bottom, soft..color = const Color(0xFFD4EAFF));
+    final bottom =
+        Path()
+          ..moveTo(0, size.height * 0.72)
+          ..quadraticBezierTo(
+            size.width * 0.28,
+            size.height * 0.58,
+            size.width * 0.55,
+            size.height * 0.78,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.82,
+            size.height * 0.98,
+            size.width,
+            size.height * 0.82,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
+    canvas.drawPath(
+      bottom,
+      soft
+        ..color =
+            palette.isDark ? palette.surfaceHighlight : const Color(0xFFD4EAFF),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _WavePainter oldDelegate) =>
+      palette.isDark != oldDelegate.palette.isDark;
 }

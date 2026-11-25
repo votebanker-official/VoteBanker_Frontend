@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
@@ -24,6 +25,15 @@ const _navy = Color(0xFF102B50);
 const _blue = Color(0xFF1677F2);
 const _page = Color(0xFFEDF6FF);
 const _field = Color(0xFFDCEEFF);
+
+Color _loginNavy(BuildContext context) =>
+    context.palette.isDark ? context.palette.text : _navy;
+
+Color _loginBlue(BuildContext context) =>
+    context.palette.isDark ? context.palette.accent : _blue;
+
+Color _loginBorder(BuildContext context) =>
+    context.palette.isDark ? context.palette.border : _field;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -170,10 +180,9 @@ class _LoginScreenState extends State<LoginScreen> {
     unawaited(WebsiteBuilderStore.instance.clearLocal());
     unawaited(PortfolioStore.instance.clear());
     if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.profile,
-      (route) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.profile, (route) => false);
   }
 
   void _openOtp({String? phone}) {
@@ -202,10 +211,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = context.palette;
     final mobileShell = MediaQuery.sizeOf(context).width < 601;
 
     return Scaffold(
-      backgroundColor: mobileShell ? const Color(0xFFF4F9FE) : _page,
+      backgroundColor:
+          palette.isDark
+              ? palette.background
+              : mobileShell
+              ? const Color(0xFFF4F9FE)
+              : _page,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -216,10 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
             final desktop = width > 1024;
             final tablet = width >= 601 && width <= 1024;
             if (!desktop && !tablet) {
-              return _MobileLoginBody(
-                busy: _busy,
-                child: _mobileForm(l10n),
-              );
+              return _MobileLoginBody(busy: _busy, child: _mobileForm(l10n));
             }
             return Stack(
               children: [
@@ -241,27 +253,36 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     Expanded(
-                      child: desktop
-                          ? _DesktopLogin(
-                              form: _form(l10n, compact: false, showBrand: false),
-                              l10n: l10n,
-                            )
-                          : _TabletLogin(
-                              form: _form(l10n, compact: false, showBrand: false),
-                              l10n: l10n,
-                            ),
+                      child:
+                          desktop
+                              ? _DesktopLogin(
+                                form: _form(
+                                  l10n,
+                                  compact: false,
+                                  showBrand: false,
+                                ),
+                                l10n: l10n,
+                              )
+                              : _TabletLogin(
+                                form: _form(
+                                  l10n,
+                                  compact: false,
+                                  showBrand: false,
+                                ),
+                                l10n: l10n,
+                              ),
                     ),
                   ],
                 ),
                 if (_busy)
-                  const Positioned(
+                  Positioned(
                     left: 0,
                     right: 0,
                     top: 0,
                     child: LinearProgressIndicator(
                       minHeight: 3,
-                      color: _blue,
-                      backgroundColor: _field,
+                      color: palette.accent,
+                      backgroundColor: palette.surfaceHighlight,
                     ),
                   ),
               ],
@@ -277,6 +298,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required bool compact,
     bool showBrand = true,
   }) {
+    final palette = context.palette;
     return Form(
       key: _formKey,
       child: Column(
@@ -290,7 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
             l10n.loginWelcome,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: _blue,
+              color: _loginBlue(context),
               fontSize: compact ? 22 : 26,
               fontWeight: FontWeight.w800,
               height: 1.2,
@@ -300,8 +322,8 @@ class _LoginScreenState extends State<LoginScreen> {
           Text(
             l10n.loginJourney,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: _navy,
+            style: TextStyle(
+              color: _loginNavy(context),
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
             ),
@@ -334,7 +356,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _obscure
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: const Color(0xFF7E93AD),
+                color: palette.textMuted,
                 size: 20,
               ),
             ),
@@ -348,13 +370,14 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => AppRouter.open(context, AppRoutes.forgotPassword),
+              onPressed:
+                  _busy
+                      ? null
+                      : () => AppRouter.open(context, AppRoutes.forgotPassword),
               child: Text(
                 l10n.loginForgot,
-                style: const TextStyle(
-                  color: _blue,
+                style: TextStyle(
+                  color: _loginBlue(context),
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
@@ -407,22 +430,22 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          const Row(
+          Row(
             children: [
-              Expanded(child: Divider(color: Color(0xFFD5E4F4))),
+              Expanded(child: Divider(color: palette.border)),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   'OR',
                   style: TextStyle(
-                    color: Color(0xFF8AA0B8),
+                    color: palette.textMuted,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.6,
                   ),
                 ),
               ),
-              Expanded(child: Divider(color: Color(0xFFD5E4F4))),
+              Expanded(child: Divider(color: palette.border)),
             ],
           ),
           const SizedBox(height: 12),
@@ -450,14 +473,17 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Text(
                 l10n.loginSignUpPrompt,
-                style: const TextStyle(color: _navy, fontSize: 13.5),
+                style: TextStyle(color: _loginNavy(context), fontSize: 13.5),
               ),
               TextButton(
-                onPressed: _busy ? null : () => AppRouter.open(context, AppRoutes.signUp),
+                onPressed:
+                    _busy
+                        ? null
+                        : () => AppRouter.open(context, AppRoutes.signUp),
                 child: Text(
                   l10n.loginSignUp,
-                  style: const TextStyle(
-                    color: _blue,
+                  style: TextStyle(
+                    color: _loginBlue(context),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -476,19 +502,20 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _mobileForm(AppLocalizations l10n) {
+    final palette = context.palette;
     return Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const FittedBox(
+          FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               'Welcome to Vote Banker!',
               textAlign: TextAlign.center,
               maxLines: 1,
               style: TextStyle(
-                color: Color(0xFF16325C),
+                color: _loginNavy(context),
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 height: 1.15,
@@ -496,11 +523,11 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Login to continue your journey',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Color(0xFF1A3A66),
+              color: _loginNavy(context),
               fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
@@ -512,7 +539,7 @@ class _LoginScreenState extends State<LoginScreen> {
             controller: _identifier,
             hint: 'Username',
             icon: Icons.person_outline_rounded,
-            iconColor: _blue,
+            iconColor: _loginBlue(context),
             divided: true,
             textInputAction: TextInputAction.next,
             keyboardType: TextInputType.emailAddress,
@@ -528,7 +555,7 @@ class _LoginScreenState extends State<LoginScreen> {
             controller: _password,
             hint: 'Password',
             icon: Icons.lock_outline_rounded,
-            iconColor: _blue,
+            iconColor: _loginBlue(context),
             divided: true,
             obscure: _obscure,
             textInputAction: TextInputAction.done,
@@ -539,7 +566,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _obscure
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: const Color(0xFF9AADC2),
+                color: palette.textMuted,
                 size: 22,
               ),
             ),
@@ -553,9 +580,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => AppRouter.open(context, AppRoutes.forgotPassword),
+              onPressed:
+                  _busy
+                      ? null
+                      : () => AppRouter.open(context, AppRoutes.forgotPassword),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.only(top: 6, bottom: 4),
                 minimumSize: Size.zero,
@@ -563,8 +591,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               child: Text(
                 l10n.loginForgot,
-                style: const TextStyle(
-                  color: _blue,
+                style: TextStyle(
+                  color: _loginBlue(context),
                   fontWeight: FontWeight.w600,
                   fontSize: 13.5,
                 ),
@@ -625,21 +653,21 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          const Row(
+          Row(
             children: [
-              Expanded(child: Divider(color: Color(0xFFE3EDF6), thickness: 1)),
+              Expanded(child: Divider(color: palette.border, thickness: 1)),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   'Or',
                   style: TextStyle(
-                    color: Color(0xFF8AA0B8),
+                    color: palette.textMuted,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-              Expanded(child: Divider(color: Color(0xFFE3EDF6), thickness: 1)),
+              Expanded(child: Divider(color: palette.border, thickness: 1)),
             ],
           ),
           const SizedBox(height: 16),
@@ -669,18 +697,21 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Text(
                 '${l10n.loginSignUpPrompt} ',
-                style: const TextStyle(
-                  color: Color(0xFF1A3A66),
+                style: TextStyle(
+                  color: _loginNavy(context),
                   fontSize: 14.5,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               GestureDetector(
-                onTap: _busy ? null : () => AppRouter.open(context, AppRoutes.signUp),
+                onTap:
+                    _busy
+                        ? null
+                        : () => AppRouter.open(context, AppRoutes.signUp),
                 child: Text(
                   l10n.loginSignUp,
-                  style: const TextStyle(
-                    color: _blue,
+                  style: TextStyle(
+                    color: _loginBlue(context),
                     fontWeight: FontWeight.w800,
                     fontSize: 14.5,
                   ),
@@ -692,8 +723,8 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: _busy ? null : _skipForNow,
             child: Text(
               l10n.skipForNow,
-              style: const TextStyle(
-                color: _blue,
+              style: TextStyle(
+                color: _loginBlue(context),
                 fontWeight: FontWeight.w800,
                 fontSize: 15,
               ),
@@ -722,7 +753,10 @@ class _DesktopLogin extends StatelessWidget {
             child: Align(
               alignment: const Alignment(0, -0.72),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 child: _BrandHero(l10n: l10n, large: true),
               ),
             ),
@@ -762,7 +796,10 @@ class _TabletLogin extends StatelessWidget {
             child: Align(
               alignment: const Alignment(0, -0.72),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: _BrandHero(l10n: l10n, large: true),
               ),
             ),
@@ -804,8 +841,14 @@ class _BrandHero extends StatelessWidget {
         Text.rich(
           TextSpan(
             children: [
-              TextSpan(text: '$first\n', style: const TextStyle(color: _navy)),
-              TextSpan(text: second, style: const TextStyle(color: _blue)),
+              TextSpan(
+                text: '$first\n',
+                style: TextStyle(color: _loginNavy(context)),
+              ),
+              TextSpan(
+                text: second,
+                style: TextStyle(color: _loginBlue(context)),
+              ),
             ],
           ),
           textAlign: TextAlign.center,
@@ -832,9 +875,10 @@ class _LoginCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(28),
         boxShadow: const [
           BoxShadow(
@@ -870,19 +914,21 @@ class _UnderlinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF2F7CFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2
-      ..strokeCap = StrokeCap.round;
-    final path = Path()
-      ..moveTo(size.width * 0.06, size.height * 0.35)
-      ..quadraticBezierTo(
-        size.width * 0.5,
-        size.height * 1.05,
-        size.width * 0.94,
-        size.height * 0.28,
-      );
+    final paint =
+        Paint()
+          ..color = const Color(0xFF2F7CFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.2
+          ..strokeCap = StrokeCap.round;
+    final path =
+        Path()
+          ..moveTo(size.width * 0.06, size.height * 0.35)
+          ..quadraticBezierTo(
+            size.width * 0.5,
+            size.height * 1.05,
+            size.width * 0.94,
+            size.height * 0.28,
+          );
     canvas.drawPath(path, paint);
   }
 
@@ -897,11 +943,12 @@ class _CompanyPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 520),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFFD9ECFF),
+          color: palette.surfaceSecondary,
           borderRadius: BorderRadius.circular(28),
         ),
         child: Padding(
@@ -909,19 +956,19 @@ class _CompanyPill extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.groups_rounded, color: _blue, size: 22),
+              Icon(Icons.groups_rounded, color: _loginBlue(context), size: 22),
               Container(
                 width: 1.2,
                 height: 18,
                 margin: const EdgeInsets.symmetric(horizontal: 10),
-                color: const Color(0xFF7EB6F5),
+                color: palette.border,
               ),
               Flexible(
                 child: Text(
                   _name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: _navy,
+                  style: TextStyle(
+                    color: _loginNavy(context),
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
                     height: 1.2,
@@ -956,7 +1003,7 @@ class _BrandLockup extends StatelessWidget {
         Text(
           AppLocalizations.of(context).appName,
           style: TextStyle(
-            color: _navy,
+            color: _loginNavy(context),
             fontSize: large ? 22 : 18,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.2,
@@ -978,7 +1025,7 @@ class _LoginField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.onSubmitted,
-    this.iconColor = const Color(0xFF8AA0B8),
+    this.iconColor,
     this.divided = false,
   });
 
@@ -991,11 +1038,13 @@ class _LoginField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
-  final Color iconColor;
+  final Color? iconColor;
   final bool divided;
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final resolvedIconColor = iconColor ?? palette.textMuted;
     return TextFormField(
       controller: controller,
       obscureText: obscure,
@@ -1003,39 +1052,39 @@ class _LoginField extends StatelessWidget {
       textInputAction: textInputAction,
       onFieldSubmitted: onSubmitted,
       validator: validator,
-      style: const TextStyle(color: _navy, fontSize: 15),
+      style: TextStyle(color: _loginNavy(context), fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF8AA0B8)),
+        hintStyle: TextStyle(color: palette.textMuted),
         filled: true,
-        fillColor: Colors.white,
-        prefixIcon: divided
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(width: 14),
-                  Icon(icon, color: iconColor, size: 22),
-                  Container(
-                    width: 1,
-                    height: 22,
-                    margin: const EdgeInsets.only(left: 10),
-                    color: const Color(0xFFD7E6F5),
-                  ),
-                ],
-              )
-            : Icon(icon, color: iconColor, size: 20),
-        prefixIconConstraints: divided
-            ? const BoxConstraints(minWidth: 58, minHeight: 48)
-            : null,
+        fillColor: palette.surface,
+        prefixIcon:
+            divided
+                ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 14),
+                    Icon(icon, color: resolvedIconColor, size: 22),
+                    Container(
+                      width: 1,
+                      height: 22,
+                      margin: const EdgeInsets.only(left: 10),
+                      color: palette.border,
+                    ),
+                  ],
+                )
+                : Icon(icon, color: resolvedIconColor, size: 20),
+        prefixIconConstraints:
+            divided ? const BoxConstraints(minWidth: 58, minHeight: 48) : null,
         suffixIcon: suffix,
         contentPadding: EdgeInsets.symmetric(vertical: divided ? 16 : 14),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
-          borderSide: const BorderSide(color: _field),
+          borderSide: BorderSide(color: _loginBorder(context)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
-          borderSide: const BorderSide(color: _blue, width: 1.4),
+          borderSide: BorderSide(color: _loginBlue(context), width: 1.4),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
@@ -1063,17 +1112,18 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return SizedBox(
       width: double.infinity,
       height: 46,
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
-          foregroundColor: _navy,
-          side: const BorderSide(color: Color(0xFFD7E8F8)),
+          foregroundColor: _loginNavy(context),
+          side: BorderSide(color: palette.border),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: palette.surface,
           padding: const EdgeInsets.symmetric(horizontal: 14),
         ),
         onPressed: onPressed,
@@ -1159,11 +1209,7 @@ class _RoundSocial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkResponse(
-      onTap: onPressed,
-      radius: 28,
-      child: child,
-    );
+    return InkResponse(onTap: onPressed, radius: 28, child: child);
   }
 }
 
@@ -1175,9 +1221,12 @@ class _MobileLoginBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Stack(
       children: [
-        const Positioned.fill(child: CustomPaint(painter: _MobileWavePainter())),
+        Positioned.fill(
+          child: CustomPaint(painter: _MobileWavePainter(palette)),
+        ),
         Column(
           children: [
             const Align(
@@ -1207,7 +1256,7 @@ class _MobileLoginBody extends StatelessWidget {
                     const SizedBox(height: 16),
                     DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: palette.surface,
                         borderRadius: BorderRadius.circular(28),
                         boxShadow: const [
                           BoxShadow(
@@ -1229,14 +1278,14 @@ class _MobileLoginBody extends StatelessWidget {
           ],
         ),
         if (busy)
-          const Positioned(
+          Positioned(
             left: 0,
             right: 0,
             top: 0,
             child: LinearProgressIndicator(
               minHeight: 3,
-              color: _blue,
-              backgroundColor: _field,
+              color: palette.accent,
+              backgroundColor: palette.surfaceHighlight,
             ),
           ),
       ],
@@ -1249,22 +1298,23 @@ class _MobileCompanyBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFE7F3FF),
+        color: palette.surfaceSecondary,
         borderRadius: BorderRadius.circular(28),
       ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-            Icon(Icons.groups_rounded, color: _blue, size: 26),
+            Icon(Icons.groups_rounded, color: palette.accent, size: 26),
             Padding(
               padding: EdgeInsets.only(left: 12),
               child: SizedBox(
                 width: 1.2,
                 height: 26,
-                child: ColoredBox(color: Color(0xFF8EC0F6)),
+                child: ColoredBox(color: palette.border),
               ),
             ),
             SizedBox(width: 12),
@@ -1273,7 +1323,7 @@ class _MobileCompanyBanner extends StatelessWidget {
                 'Voter Relationship Management Private Limited',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _navy,
+                  color: palette.text,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
                   height: 1.25,
@@ -1288,50 +1338,66 @@ class _MobileCompanyBanner extends StatelessWidget {
 }
 
 class _MobileWavePainter extends CustomPainter {
-  const _MobileWavePainter();
+  const _MobileWavePainter(this.palette);
+
+  final AppPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(
       Offset.zero & size,
-      Paint()..color = const Color(0xFFF5FAFE),
+      Paint()
+        ..color = palette.isDark ? palette.background : const Color(0xFFF5FAFE),
     );
-    final sky = Paint()..color = const Color(0xFFD7EEFF);
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(0, size.height * 0.20)
-      ..quadraticBezierTo(
-        size.width * 0.62,
-        size.height * 0.34,
-        size.width,
-        size.height * 0.12,
-      )
-      ..lineTo(size.width, 0)
-      ..close();
+    final sky =
+        Paint()
+          ..color =
+              palette.isDark
+                  ? palette.backgroundRaised
+                  : const Color(0xFFD7EEFF);
+    final path =
+        Path()
+          ..moveTo(0, 0)
+          ..lineTo(0, size.height * 0.20)
+          ..quadraticBezierTo(
+            size.width * 0.62,
+            size.height * 0.34,
+            size.width,
+            size.height * 0.12,
+          )
+          ..lineTo(size.width, 0)
+          ..close();
     canvas.drawPath(path, sky);
 
-    final bottom = Path()
-      ..moveTo(0, size.height * 0.78)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.64,
-        size.width * 0.55,
-        size.height * 0.84,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.82,
-        size.height,
-        size.width,
-        size.height * 0.86,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(bottom, Paint()..color = const Color(0xFFD4EAFF));
+    final bottom =
+        Path()
+          ..moveTo(0, size.height * 0.78)
+          ..quadraticBezierTo(
+            size.width * 0.28,
+            size.height * 0.64,
+            size.width * 0.55,
+            size.height * 0.84,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.82,
+            size.height,
+            size.width,
+            size.height * 0.86,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
+    canvas.drawPath(
+      bottom,
+      Paint()
+        ..color =
+            palette.isDark ? palette.surfaceHighlight : const Color(0xFFD4EAFF),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _MobileWavePainter oldDelegate) =>
+      palette.isDark != oldDelegate.palette.isDark;
 }
 
 class _WaveBackground extends StatelessWidget {
@@ -1339,56 +1405,70 @@ class _WaveBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CustomPaint(painter: _WavePainter());
+    return CustomPaint(painter: _WavePainter(context.palette));
   }
 }
 
 class _WavePainter extends CustomPainter {
-  const _WavePainter();
+  const _WavePainter(this.palette);
+
+  final AppPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final soft = Paint()..color = const Color(0xFFD7ECFF);
-    final top = Path()
-      ..moveTo(0, size.height * 0.16)
-      ..quadraticBezierTo(
-        size.width * 0.22,
-        size.height * 0.02,
-        size.width * 0.48,
-        size.height * 0.1,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.78,
-        size.height * 0.2,
-        size.width,
-        size.height * 0.04,
-      )
-      ..lineTo(size.width, 0)
-      ..lineTo(0, 0)
-      ..close();
+    final soft =
+        Paint()
+          ..color =
+              palette.isDark
+                  ? palette.backgroundRaised
+                  : const Color(0xFFD7ECFF);
+    final top =
+        Path()
+          ..moveTo(0, size.height * 0.16)
+          ..quadraticBezierTo(
+            size.width * 0.22,
+            size.height * 0.02,
+            size.width * 0.48,
+            size.height * 0.1,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.78,
+            size.height * 0.2,
+            size.width,
+            size.height * 0.04,
+          )
+          ..lineTo(size.width, 0)
+          ..lineTo(0, 0)
+          ..close();
     canvas.drawPath(top, soft);
 
-    final bottom = Path()
-      ..moveTo(0, size.height * 0.72)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.58,
-        size.width * 0.55,
-        size.height * 0.78,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.82,
-        size.height * 0.98,
-        size.width,
-        size.height * 0.82,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(bottom, soft..color = const Color(0xFFD4EAFF));
+    final bottom =
+        Path()
+          ..moveTo(0, size.height * 0.72)
+          ..quadraticBezierTo(
+            size.width * 0.28,
+            size.height * 0.58,
+            size.width * 0.55,
+            size.height * 0.78,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.82,
+            size.height * 0.98,
+            size.width,
+            size.height * 0.82,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
+    canvas.drawPath(
+      bottom,
+      soft
+        ..color =
+            palette.isDark ? palette.surfaceHighlight : const Color(0xFFD4EAFF),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _WavePainter oldDelegate) =>
+      palette.isDark != oldDelegate.palette.isDark;
 }
-

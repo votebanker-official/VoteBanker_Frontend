@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/routing/app_router.dart';
+import 'package:votebanker/app/theme/app_colors.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
@@ -29,7 +30,11 @@ void main() {
       expect(draft, contains('Janata Vikas Party'), reason: language.code);
       expect(draft.contains('{name}'), isFalse, reason: language.code);
       expect(draft.contains('{party}'), isFalse, reason: language.code);
-      expect(draft.split('\n\n').length, greaterThanOrEqualTo(4), reason: language.code);
+      expect(
+        draft.split('\n\n').length,
+        greaterThanOrEqualTo(4),
+        reason: language.code,
+      );
     }
     final english = speechPreviewDraft(
       languageCode: 'en',
@@ -64,7 +69,9 @@ void main() {
     expect(kannada.pitch, greaterThanOrEqualTo(0.85));
   });
 
-  testWidgets('a guest sees the sample leader in the selected language', (tester) async {
+  testWidgets('a guest sees the sample leader in the selected language', (
+    tester,
+  ) async {
     final controller = OnboardingController();
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -75,11 +82,18 @@ void main() {
     expect(find.text('Janata Vikas Party'), findsOneWidget);
     expect(find.text('Speech Generator'), findsOneWidget);
     expect(find.text('Sign In'), findsNothing);
-    expect(find.byKey(const Key('speech-preview-avatar-fallback')), findsOneWidget);
+    expect(
+      find.byKey(const Key('speech-preview-avatar-fallback')),
+      findsOneWidget,
+    );
     expect(find.textContaining('I am Rajesh Sharma'), findsOneWidget);
-    final nameTop = tester.getTopLeft(find.byKey(const Key('speech-preview-name'))).dy;
-    final draftTop = tester.getTopLeft(find.byKey(const Key('speech-preview-draft'))).dy;
-    final button = tester.getRect(find.byKey(const Key('speech-preview-generate')));
+    final nameTop =
+        tester.getTopLeft(find.byKey(const Key('speech-preview-name'))).dy;
+    final draftTop =
+        tester.getTopLeft(find.byKey(const Key('speech-preview-draft'))).dy;
+    final button = tester.getRect(
+      find.byKey(const Key('speech-preview-generate')),
+    );
     expect(draftTop, greaterThan(nameTop));
     expect(button.top, greaterThan(draftTop));
     expect(button.bottom, lessThanOrEqualTo(844));
@@ -91,6 +105,28 @@ void main() {
     expect(find.textContaining('I am Rajesh Sharma'), findsNothing);
   });
 
+  testWidgets('speech preview surfaces and text follow dark mode', (
+    tester,
+  ) async {
+    final controller = OnboardingController();
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_app(controller, dark: true));
+    await tester.pumpAndSettle();
+
+    final palette = AppPalette.dark;
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+    final draft = tester.widget<Text>(
+      find.byKey(const Key('speech-preview-draft')),
+    );
+    final name = tester.widget<Text>(
+      find.byKey(const Key('speech-preview-name')),
+    );
+    expect(scaffold.backgroundColor, palette.background);
+    expect(draft.style?.color, palette.text);
+    expect(name.style?.color, palette.text);
+  });
+
   testWidgets('a signed-in leader replaces the sample profile', (tester) async {
     AuthService.instance.session = const AuthSession(
       accessToken: 'token',
@@ -99,7 +135,10 @@ void main() {
       phone: '+919800000000',
       fullName: 'Meera Rao',
     );
-    final controller = OnboardingController()..draft.leaderName = 'Meera Rao'..draft.party = 'River Ward';
+    final controller =
+        OnboardingController()
+          ..draft.leaderName = 'Meera Rao'
+          ..draft.party = 'River Ward';
     await tester.binding.setSurfaceSize(const Size(1200, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_app(controller));
@@ -110,12 +149,15 @@ void main() {
     expect(find.text('River Ward'), findsOneWidget);
     expect(find.text('Rajesh Sharma'), findsNothing);
     expect(find.text('Speech Generator'), findsWidgets);
-    final cardLeft = tester.getTopLeft(find.byKey(const Key('speech-preview-name'))).dx;
+    final cardLeft =
+        tester.getTopLeft(find.byKey(const Key('speech-preview-name'))).dx;
     expect(cardLeft, greaterThan(200));
     expect(find.text('Sign In'), findsNothing);
   });
 
-  testWidgets('Generate your speech for free opens the speech page', (tester) async {
+  testWidgets('Generate your speech for free opens the speech page', (
+    tester,
+  ) async {
     final controller = OnboardingController();
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -128,7 +170,9 @@ void main() {
     expect(find.text('speech-destination'), findsOneWidget);
   });
 
-  testWidgets('the microphone starts and stops male read-aloud', (tester) async {
+  testWidgets('the microphone starts and stops male read-aloud', (
+    tester,
+  ) async {
     final speaker = _FakeSpeaker();
     final controller = OnboardingController();
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -166,7 +210,10 @@ void main() {
 
     final skip = find.byKey(const Key('speech-preview-skip'));
     final language = find.byIcon(Icons.language);
-    expect(tester.getTopLeft(skip).dx, lessThan(tester.getTopLeft(language).dx));
+    expect(
+      tester.getTopLeft(skip).dx,
+      lessThan(tester.getTopLeft(language).dx),
+    );
     expect(tester.getSize(skip).height, greaterThanOrEqualTo(48));
 
     await tester.tap(find.byKey(const Key('speech-preview-listen')));
@@ -203,7 +250,11 @@ class _FakeSpeaker implements SpeechPreviewSpeaker {
   }
 }
 
-Widget _app(OnboardingController controller, {SpeechPreviewSpeaker? speaker}) {
+Widget _app(
+  OnboardingController controller, {
+  SpeechPreviewSpeaker? speaker,
+  bool dark = false,
+}) {
   return ThemeScope(
     controller: ThemeController(),
     child: OnboardingScope(
@@ -212,7 +263,7 @@ Widget _app(OnboardingController controller, {SpeechPreviewSpeaker? speaker}) {
         valueListenable: controller.locale,
         builder: (context, locale, _) {
           return MaterialApp(
-            theme: AppTheme.light(),
+            theme: dark ? AppTheme.dark() : AppTheme.light(),
             locale: locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: const [
@@ -226,13 +277,15 @@ Widget _app(OnboardingController controller, {SpeechPreviewSpeaker? speaker}) {
               if (settings.name == AppRoutes.social) {
                 return MaterialPageRoute<void>(
                   settings: settings,
-                  builder: (_) => const Scaffold(body: Text('social-destination')),
+                  builder:
+                      (_) => const Scaffold(body: Text('social-destination')),
                 );
               }
               if (settings.name == AppRoutes.speech) {
                 return MaterialPageRoute<void>(
                   settings: settings,
-                  builder: (_) => const Scaffold(body: Text('speech-destination')),
+                  builder:
+                      (_) => const Scaffold(body: Text('speech-destination')),
                 );
               }
               return MaterialPageRoute<void>(

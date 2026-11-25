@@ -125,8 +125,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     focusNode: _nodes[i],
                     textAlign: TextAlign.center,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(
-                      color: resetNavy,
+                    style: TextStyle(
+                      color: resetNavyFor(context),
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                     ),
@@ -134,15 +134,18 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     decoration: InputDecoration(
                       counterText: '',
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       contentPadding: EdgeInsets.zero,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: resetField),
+                        borderSide: BorderSide(color: resetBorderFor(context)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: resetBlue, width: 1.4),
+                        borderSide: BorderSide(
+                          color: resetBlueFor(context),
+                          width: 1.4,
+                        ),
                       ),
                     ),
                     onChanged: (value) => _onChanged(i, value),
@@ -152,27 +155,33 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 10),
-            Text(_error!, style: const TextStyle(color: resetDanger, fontSize: 13)),
+            Text(
+              _error!,
+              style: const TextStyle(color: resetDanger, fontSize: 13),
+            ),
           ],
           const SizedBox(height: 12),
           _remaining > 0
               ? Text(
-                  'Resend OTP in $clock',
-                  style: const TextStyle(color: resetMuted, fontSize: 13),
-                )
+                'Resend OTP in $clock',
+                style: TextStyle(color: resetMutedFor(context), fontSize: 13),
+              )
               : TextButton(
-                  onPressed: () {
-                    for (final box in _boxes) {
-                      box.clear();
-                    }
-                    _nodes.first.requestFocus();
-                    _startTimer();
-                  },
-                  child: const Text(
-                    'Resend OTP',
-                    style: TextStyle(color: resetBlue, fontWeight: FontWeight.w700),
+                onPressed: () {
+                  for (final box in _boxes) {
+                    box.clear();
+                  }
+                  _nodes.first.requestFocus();
+                  _startTimer();
+                },
+                child: Text(
+                  'Resend OTP',
+                  style: TextStyle(
+                    color: resetBlueFor(context),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
           const SizedBox(height: 8),
           ResetPrimaryButton(label: 'Verify', onPressed: _verify),
           ResetTextLink(
@@ -181,9 +190,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           ),
           TextButton(
             onPressed: () => goToLogin(context),
-            child: const Text(
+            child: Text(
               'Back to Login',
-              style: TextStyle(color: resetNavy, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: resetNavyFor(context),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

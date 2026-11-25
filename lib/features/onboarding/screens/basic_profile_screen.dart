@@ -973,6 +973,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         final palette = context.palette;
         final page =
             palette.isDark ? palette.background : const Color(0xFFF5F8FC);
+        final fieldBorder =
+            palette.isDark ? palette.border : const Color(0xFFE3EDF6);
         final gap = wide ? 16.0 : 14.0;
         Widget pair(Widget left, Widget right) {
           if (!wide) {
@@ -1031,15 +1033,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                           isDense: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE3EDF6),
-                            ),
+                            borderSide: BorderSide(color: fieldBorder),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE3EDF6),
-                            ),
+                            borderSide: BorderSide(color: fieldBorder),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -1420,6 +1418,7 @@ class _ProfileTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 6, 16, 4),
       child: Row(
@@ -1427,7 +1426,10 @@ class _ProfileTopBar extends StatelessWidget {
           IconButton(
             tooltip: l10n.back,
             onPressed: onBack,
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF0F2744)),
+            icon: Icon(
+              Icons.arrow_back,
+              color: palette.isDark ? palette.text : const Color(0xFF0F2744),
+            ),
           ),
           ClipOval(
             child: Image.asset(
@@ -1443,8 +1445,8 @@ class _ProfileTopBar extends StatelessWidget {
               l10n.appName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF0F2744),
+              style: TextStyle(
+                color: palette.isDark ? palette.text : const Color(0xFF0F2744),
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
                 letterSpacing: 0.4,
@@ -1457,13 +1459,19 @@ class _ProfileTopBar extends StatelessWidget {
           const SizedBox(width: 10),
           CircleAvatar(
             radius: 18,
-            backgroundColor: const Color(0xFFD7E6F5),
+            backgroundColor:
+                palette.isDark
+                    ? palette.surfaceSecondary
+                    : const Color(0xFFD7E6F5),
             backgroundImage: photo == null ? null : MemoryImage(photo!),
             child:
                 photo == null
-                    ? const Icon(
+                    ? Icon(
                       Icons.person,
-                      color: Color(0xFF0F2744),
+                      color:
+                          palette.isDark
+                              ? palette.textMuted
+                              : const Color(0xFF0F2744),
                       size: 18,
                     )
                     : null,
@@ -1513,16 +1521,32 @@ class _QuoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Container(
       constraints: const BoxConstraints(minHeight: 112),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFF3FFF8), Color(0xFFE7F8EF), Color(0xFFF4FBFF)],
+          colors:
+              palette.isDark
+                  ? [
+                    palette.surfaceSecondary,
+                    palette.surface,
+                    palette.backgroundRaised,
+                  ]
+                  : const [
+                    Color(0xFFF3FFF8),
+                    Color(0xFFE7F8EF),
+                    Color(0xFFF4FBFF),
+                  ],
         ),
+        border:
+            palette.isDark
+                ? Border.all(color: palette.border.withValues(alpha: 0.65))
+                : null,
         boxShadow: const [
           BoxShadow(
             color: Color(0x120F2744),
@@ -1698,8 +1722,14 @@ class _PhotoCard extends StatelessWidget {
                   DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFE8F1FF),
-                      border: Border.all(color: Colors.white, width: 3),
+                      color:
+                          palette.isDark
+                              ? palette.surfaceHighlight
+                              : const Color(0xFFE8F1FF),
+                      border: Border.all(
+                        color: palette.isDark ? palette.border : Colors.white,
+                        width: 3,
+                      ),
                       boxShadow: const [
                         BoxShadow(color: Color(0x332563EB), blurRadius: 12),
                       ],
@@ -1719,7 +1749,10 @@ class _PhotoCard extends StatelessWidget {
                               ? Icon(
                                 Icons.person,
                                 size: diameter * 0.44,
-                                color: const Color(0xFF64748B),
+                                color:
+                                    palette.isDark
+                                        ? palette.textMuted
+                                        : const Color(0xFF64748B),
                               )
                               : null,
                     ),
@@ -1786,9 +1819,17 @@ class _PhotoCard extends StatelessWidget {
                       ),
                       OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0F2744),
+                          foregroundColor:
+                              palette.isDark
+                                  ? palette.text
+                                  : const Color(0xFF0F2744),
                           visualDensity: VisualDensity.compact,
-                          side: const BorderSide(color: Color(0xFFD5E2EF)),
+                          side: BorderSide(
+                            color:
+                                palette.isDark
+                                    ? palette.border
+                                    : const Color(0xFFD5E2EF),
+                          ),
                           shape: const StadiumBorder(),
                         ),
                         onPressed: onDelete,
