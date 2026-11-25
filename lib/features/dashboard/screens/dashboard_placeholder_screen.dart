@@ -70,20 +70,21 @@ class _DashboardPlaceholderScreenState
       return DashboardSidebar(
         colors: colors,
         items: [
-          for (final module in modules) ...[
-            if (module.icon == Icons.settings_outlined &&
-                AdminAccess.instance.showInSidebar)
+          for (final module in modules)
+            if (module.route != AppRoutes.campaignTemplates) ...[
+              if (module.icon == Icons.settings_outlined &&
+                  AdminAccess.instance.showInSidebar)
+                DashboardNavEntry(
+                  icon: Icons.shield_outlined,
+                  label: l10n.line('adminPanel'),
+                  route: AppRoutes.admin,
+                ),
               DashboardNavEntry(
-                icon: Icons.shield_outlined,
-                label: l10n.line('adminPanel'),
-                route: AppRoutes.admin,
+                icon: module.icon,
+                label: module.title,
+                route: module.route,
               ),
-            DashboardNavEntry(
-              icon: module.icon,
-              label: module.title,
-              route: module.route,
-            ),
-          ],
+            ],
         ],
         selectedRoute: AppRoutes.dashboard,
         onNavigate: onNavigate,

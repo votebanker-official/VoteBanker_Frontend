@@ -73,7 +73,11 @@ class GlobalFooter extends StatelessWidget {
 
   static const _supportLinks = <_FooterDest>[
     _FooterDest('Help Center / FAQs', AppRoutes.helpCenter, 'footer-link-help'),
-    _FooterDest('Contact Support', AppRoutes.contactSupport, 'footer-link-contact'),
+    _FooterDest(
+      'Contact Support',
+      AppRoutes.contactSupport,
+      'footer-link-contact',
+    ),
   ];
 
   static const _companyLinks = <_FooterDest>[
@@ -123,7 +127,12 @@ class GlobalFooter extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          final pad = width >= 1200 ? 32.0 : width >= 720 ? 22.0 : 16.0;
+          final pad =
+              width >= 1200
+                  ? 32.0
+                  : width >= 720
+                  ? 22.0
+                  : 16.0;
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -132,10 +141,7 @@ class GlobalFooter extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(pad, 22, pad, 18),
                 child: _FooterBody(width: width),
               ),
-              const ColoredBox(
-                color: teal,
-                child: SizedBox(height: 1),
-              ),
+              const ColoredBox(color: teal, child: SizedBox(height: 1)),
               Padding(
                 padding: EdgeInsets.fromLTRB(pad, 14, pad, 14 + bottom),
                 child: _BottomBar(wide: width >= 1100),
@@ -658,9 +664,8 @@ class _FollowColumn extends StatelessWidget {
         const SizedBox(height: 14),
         LayoutBuilder(
           builder: (context, constraints) {
-            final available = constraints.maxWidth.isFinite
-                ? constraints.maxWidth
-                : 320.0;
+            final available =
+                constraints.maxWidth.isFinite ? constraints.maxWidth : 320.0;
             final size = math.min(65.0, math.max(44.0, (available - 36) / 4));
             final icons = Wrap(
               alignment: center ? WrapAlignment.center : WrapAlignment.start,
@@ -673,7 +678,11 @@ class _FollowColumn extends StatelessWidget {
                   buttonKey: const Key('footer-social-facebook'),
                   background: const Color(0xFF1877F2),
                   size: size,
-                  child: Icon(Icons.facebook, color: Colors.white, size: size * 0.46),
+                  child: Icon(
+                    Icons.facebook,
+                    color: Colors.white,
+                    size: size * 0.46,
+                  ),
                 ),
                 _SocialButton(
                   name: 'X',
@@ -732,9 +741,7 @@ class _SectionHeading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        ExcludeSemantics(
-          child: Icon(icon, size: 18, color: GlobalFooter.teal),
-        ),
+        ExcludeSemantics(child: Icon(icon, size: 18, color: GlobalFooter.teal)),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
@@ -854,9 +861,10 @@ class _FooterLinkState extends State<_FooterLink> {
   @override
   Widget build(BuildContext context) {
     final linked = widget.dest.route != null;
-    final color = widget.pill
-        ? (_hover || _focus ? const Color(0xFF0B2454) : GlobalFooter.navy)
-        : (_hover || _focus ? GlobalFooter.teal : GlobalFooter.navy);
+    final color =
+        widget.pill
+            ? (_hover || _focus ? const Color(0xFF0B2454) : GlobalFooter.navy)
+            : (_hover || _focus ? GlobalFooter.teal : GlobalFooter.navy);
     final iconColor = widget.pill ? color : GlobalFooter.teal;
     final label = AnimatedDefaultTextStyle(
       duration: const Duration(milliseconds: 200),
@@ -922,9 +930,13 @@ class _FooterLinkState extends State<_FooterLink> {
           focusColor: Colors.transparent,
           overlayColor: const WidgetStatePropertyAll(Colors.transparent),
           child: Padding(
-            padding: widget.pill
-                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 7)
-                : EdgeInsets.symmetric(vertical: widget.touch ? 8 : 4, horizontal: 4),
+            padding:
+                widget.pill
+                    ? const EdgeInsets.symmetric(horizontal: 12, vertical: 7)
+                    : EdgeInsets.symmetric(
+                      vertical: widget.touch ? 8 : 4,
+                      horizontal: 4,
+                    ),
             child: row,
           ),
         ),
@@ -978,21 +990,21 @@ class _SocialButton extends StatelessWidget {
           color: gradient == null ? background : Colors.transparent,
           shape: const CircleBorder(),
           clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              key: buttonKey,
-              onTap: url.isEmpty ? null : () => _launch(url),
-              customBorder: const CircleBorder(),
-              child: Ink(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: gradient == null ? background : null,
-                  gradient: gradient,
-                ),
-                child: Center(child: child),
+          child: InkWell(
+            key: buttonKey,
+            onTap: url.isEmpty ? null : () => _launch(url),
+            customBorder: const CircleBorder(),
+            child: Ink(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: gradient == null ? background : null,
+                gradient: gradient,
               ),
+              child: Center(child: child),
             ),
+          ),
         ),
       ),
     );
@@ -1022,39 +1034,38 @@ class _FooterWavePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = GlobalFooter.canvas,
-    );
-    final wash = Path()
-      ..moveTo(0, size.height * 0.62)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.46,
-        size.width * 0.58,
-        size.height * 0.68,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.84,
-        size.height * 0.86,
-        size.width,
-        size.height * 0.6,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    canvas.drawRect(Offset.zero & size, Paint()..color = GlobalFooter.canvas);
+    final wash =
+        Path()
+          ..moveTo(0, size.height * 0.62)
+          ..quadraticBezierTo(
+            size.width * 0.28,
+            size.height * 0.46,
+            size.width * 0.58,
+            size.height * 0.68,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.84,
+            size.height * 0.86,
+            size.width,
+            size.height * 0.6,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
     canvas.drawPath(wash, Paint()..color = const Color(0xFFE4F3FB));
-    final crest = Path()
-      ..moveTo(0, size.height * 0.78)
-      ..quadraticBezierTo(
-        size.width * 0.4,
-        size.height * 0.58,
-        size.width,
-        size.height * 0.74,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final crest =
+        Path()
+          ..moveTo(0, size.height * 0.78)
+          ..quadraticBezierTo(
+            size.width * 0.4,
+            size.height * 0.58,
+            size.width,
+            size.height * 0.74,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
     canvas.drawPath(crest, Paint()..color = const Color(0xFFF7FBFF));
   }
 
@@ -1149,4 +1160,5 @@ void _logFooterPlacement(
         .then((_) {}, onError: (_) {});
   } catch (_) {}
 }
+
 // #endregion

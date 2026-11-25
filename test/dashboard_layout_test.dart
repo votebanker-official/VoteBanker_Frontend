@@ -11,7 +11,7 @@ import 'package:votebanker/features/onboarding/state/onboarding_controller.dart'
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  for (final size in const [Size(390, 844), Size(1280, 800)]) {
+  for (final size in const [Size(390, 844), Size(768, 1024), Size(1280, 800)]) {
     for (final dark in const [false, true]) {
       testWidgets(
         'dashboard lays out at ${size.width.toInt()} ${dark ? 'dark' : 'light'}',
@@ -51,47 +51,19 @@ void main() {
           expect(find.text('Saved Voters'), findsNothing);
           expect(find.text('My Voters'), findsWidgets);
           expect(find.text('Social Media'), findsWidgets);
-          expect(find.text('Campaign Templates'), findsWidgets);
+          if (size.width < 960) {
+            await tester.tap(find.byIcon(Icons.menu));
+            await tester.pumpAndSettle();
+            expect(
+              find.descendant(
+                of: find.byType(Drawer),
+                matching: find.text('Campaign Templates'),
+              ),
+              findsNothing,
+            );
+          }
         },
       );
     }
   }
-
-  testWidgets('dashboard campaign templates entry opens its named page', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(1280, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(
-      ThemeScope(
-        controller: ThemeController(),
-        child: OnboardingScope(
-          controller: OnboardingController(),
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            routes: {
-              AppRoutes.campaignTemplates:
-                  (_) => const Scaffold(
-                    body: Text('campaign-templates-destination'),
-                  ),
-            },
-            home: const DashboardPlaceholderScreen(),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Campaign Templates').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('campaign-templates-destination'), findsOneWidget);
-  });
 }
