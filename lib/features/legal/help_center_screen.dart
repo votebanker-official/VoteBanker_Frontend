@@ -28,14 +28,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     final sections = <PublicSection>[
       for (final category in _categories)
         if (query.isEmpty || category.matches(query))
-          PublicSection(
-            category.title,
-            [
-              for (final item in category.items)
-                if (query.isEmpty || item.matches(query))
-              '${item.question}\n${item.answer}',
-            ],
-          ),
+          PublicSection(category.title, [
+            for (final item in category.items)
+              if (query.isEmpty || item.matches(query))
+                '${item.question}\n${item.answer}',
+          ]),
     ];
     return PublicDocument(
       title: 'Help Center',
@@ -55,13 +52,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           const _HelpLinks(),
         ],
       ),
-      sections: sections.isEmpty
-          ? [
-              PublicSection('No matching answers', [
-                'Nothing in the help topics matches that search. Try a shorter word, or write to $supportEmail.',
-              ], child: const _HelpLinks()),
-            ]
-          : sections,
+      sections:
+          sections.isEmpty
+              ? [
+                PublicSection('No matching answers', [
+                  'Nothing in the help topics matches that search. Try a shorter word, or write to $supportEmail.',
+                ], child: const _HelpLinks()),
+              ]
+              : sections,
     );
   }
 }
@@ -73,8 +71,14 @@ class _HelpLinks extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       children: const [
-        PublicRouteLink(label: 'Contact Support', route: AppRoutes.contactSupport),
-        PublicRouteLink(label: 'Election Disclaimer', route: AppRoutes.electionDisclaimer),
+        PublicRouteLink(
+          label: 'Contact Support',
+          route: AppRoutes.contactSupport,
+        ),
+        PublicRouteLink(
+          label: 'Election Disclaimer',
+          route: AppRoutes.electionDisclaimer,
+        ),
         PublicRouteLink(label: 'Data Deletion', route: AppRoutes.dataDeletion),
         PublicRouteLink(label: 'Terms & Conditions', route: AppRoutes.terms),
       ],
@@ -89,7 +93,8 @@ class _Faq {
   final String answer;
 
   bool matches(String query) =>
-      question.toLowerCase().contains(query) || answer.toLowerCase().contains(query);
+      question.toLowerCase().contains(query) ||
+      answer.toLowerCase().contains(query);
 }
 
 class _Category {
@@ -99,7 +104,8 @@ class _Category {
   final List<_Faq> items;
 
   bool matches(String query) =>
-      title.toLowerCase().contains(query) || items.any((item) => item.matches(query));
+      title.toLowerCase().contains(query) ||
+      items.any((item) => item.matches(query));
 }
 
 const _categories = <_Category>[

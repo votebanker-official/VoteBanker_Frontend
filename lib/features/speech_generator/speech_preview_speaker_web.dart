@@ -52,12 +52,14 @@ class WebSpeechPreviewSpeaker implements SpeechPreviewSpeaker {
         utterance.pitch = choice.pitch;
         utterance.rate = 0.92;
         if (selected != null) utterance.voice = selected;
-        utterance.onend = ((web.Event _) {
-          if (generation == _generation) onDone();
-        }).toJS;
-        utterance.onerror = ((web.Event _) {
-          if (generation == _generation) onDone();
-        }).toJS;
+        utterance.onend =
+            ((web.Event _) {
+              if (generation == _generation) onDone();
+            }).toJS;
+        utterance.onerror =
+            ((web.Event _) {
+              if (generation == _generation) onDone();
+            }).toJS;
         synth.cancel();
         Timer(const Duration(milliseconds: 40), () {
           if (generation != _generation) return;

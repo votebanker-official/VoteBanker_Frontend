@@ -21,7 +21,9 @@ class WebsitePublishScreen extends StatelessWidget {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).line('publishNotConnected'))),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).line('publishNotConnected')),
+      ),
     );
   }
 

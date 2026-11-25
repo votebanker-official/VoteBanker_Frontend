@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/services/auth_browser.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/onboarding_progress_service.dart';
 import '../core/services/theme_controller.dart';
 import '../features/merchandise/merchandise_intent.dart';
 import '../features/onboarding/blue_tik/blue_tik_models.dart';
@@ -37,10 +38,12 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
     if (basePath == AppRoutes.profile || basePath == AppRoutes.authCallback) {
       return basePath;
     }
-    final path = WidgetsBinding.instance.platformDispatcher.defaultRouteName
-        .split('?')
-        .first;
-    if (path == AppRoutes.profile || path == AppRoutes.authCallback) return path;
+    final path =
+        WidgetsBinding.instance.platformDispatcher.defaultRouteName
+            .split('?')
+            .first;
+    if (path == AppRoutes.profile || path == AppRoutes.authCallback)
+      return path;
     return AppRoutes.login;
   }
 
@@ -56,17 +59,15 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
         if (!AuthService.instance.isSignedIn) return;
         final pendingMerch = await MerchandiseIntent.peek();
         final pendingBlue = await BlueTikIntent.peek();
-        final returning =
-            pendingMerch != null ||
-            pendingBlue != null ||
-            AuthService.instance.openProfileAfterLogin ||
-            _initialRoute == AppRoutes.profile;
-        if (!returning || !mounted) return;
-        final destination = pendingMerch != null
-            ? AppRoutes.campaignTemplates
-            : pendingBlue != null
+        final resume =
+            await OnboardingProgressService.instance.resolveResumeRoute();
+        if (!mounted) return;
+        final destination =
+            pendingMerch != null
+                ? AppRoutes.campaignTemplates
+                : pendingBlue != null
                 ? AppRoutes.blueTik
-                : AppRoutes.profile;
+                : resume;
         replaceBrowserPath(destination);
         final navigator = _navigatorKey.currentState;
         if (navigator == null) return;
@@ -76,10 +77,7 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
           return true;
         });
         if (alreadyThere) return;
-        navigator.pushNamedAndRemoveUntil(
-          destination,
-          (route) => false,
-        );
+        navigator.pushNamedAndRemoveUntil(destination, (route) => false);
       });
     }
   }

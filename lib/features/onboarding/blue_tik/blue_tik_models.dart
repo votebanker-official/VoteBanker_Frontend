@@ -87,7 +87,8 @@ class BlueTikIntent {
 
 /// Where to go after a successful sign-in. A pending Blue Tik plan wins.
 Future<String> routeAfterBlueTikSignIn(String fallback) async {
-  if (await MerchandiseIntent.peek() != null) return AppRoutes.campaignTemplates;
+  if (await MerchandiseIntent.peek() != null)
+    return AppRoutes.campaignTemplates;
   if (await BlueTikIntent.peek() != null) return AppRoutes.blueTik;
   return fallback;
 }

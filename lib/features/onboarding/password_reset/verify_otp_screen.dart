@@ -142,7 +142,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: resetBlue, width: 1.4),
+                        borderSide: const BorderSide(
+                          color: resetBlue,
+                          width: 1.4,
+                        ),
                       ),
                     ),
                     onChanged: (value) => _onChanged(i, value),
@@ -152,27 +155,33 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 10),
-            Text(_error!, style: const TextStyle(color: resetDanger, fontSize: 13)),
+            Text(
+              _error!,
+              style: const TextStyle(color: resetDanger, fontSize: 13),
+            ),
           ],
           const SizedBox(height: 12),
           _remaining > 0
               ? Text(
-                  'Resend OTP in $clock',
-                  style: const TextStyle(color: resetMuted, fontSize: 13),
-                )
+                'Resend OTP in $clock',
+                style: const TextStyle(color: resetMuted, fontSize: 13),
+              )
               : TextButton(
-                  onPressed: () {
-                    for (final box in _boxes) {
-                      box.clear();
-                    }
-                    _nodes.first.requestFocus();
-                    _startTimer();
-                  },
-                  child: const Text(
-                    'Resend OTP',
-                    style: TextStyle(color: resetBlue, fontWeight: FontWeight.w700),
+                onPressed: () {
+                  for (final box in _boxes) {
+                    box.clear();
+                  }
+                  _nodes.first.requestFocus();
+                  _startTimer();
+                },
+                child: const Text(
+                  'Resend OTP',
+                  style: TextStyle(
+                    color: resetBlue,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
           const SizedBox(height: 8),
           ResetPrimaryButton(label: 'Verify', onPressed: _verify),
           ResetTextLink(

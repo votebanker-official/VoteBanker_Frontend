@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_languages.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/primary_button.dart';
@@ -49,7 +52,9 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
         'unreachable' => l10n.line('websiteGenerateUnreachable'),
         _ => l10n.line('websiteGenerateFailed'),
       };
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) {
         return;
@@ -184,9 +189,10 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
           Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: _device == 2
-                    ? 390
-                    : _device == 1
+                maxWidth:
+                    _device == 2
+                        ? 390
+                        : _device == 1
                         ? 768
                         : double.infinity,
               ),
@@ -203,14 +209,22 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
           children: [
             _Action(
               label: l10n.line('editWebsite'),
-              onPressed: _rebuilding
-                  ? null
-                  : () async {
-                      await Navigator.of(context).pushNamed(AppRoutes.websiteEdit);
-                      if (mounted) {
-                        setState(() {});
-                      }
-                    },
+              onPressed:
+                  _rebuilding
+                      ? null
+                      : () async {
+                        unawaited(
+                          OnboardingProgressService.instance.saveProgress(
+                            currentStep: AppRoutes.websiteEdit,
+                          ),
+                        );
+                        await Navigator.of(
+                          context,
+                        ).pushNamed(AppRoutes.websiteEdit);
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      },
             ),
             _Action(
               label: l10n.line('regenerate'),
@@ -229,9 +243,10 @@ class _WebsitePreviewScreenState extends State<WebsitePreviewScreen> {
         const SizedBox(height: 12),
         PrimaryButton(
           label: l10n.line('continueAction'),
-          onPressed: _rebuilding
-              ? null
-              : () => AppRouter.open(context, AppRoutes.websitePurchase),
+          onPressed:
+              _rebuilding
+                  ? null
+                  : () => AppRouter.open(context, AppRoutes.websitePurchase),
         ),
       ],
     );
@@ -249,9 +264,8 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        backgroundColor: selected
-            ? context.palette.accent.withValues(alpha: 0.12)
-            : null,
+        backgroundColor:
+            selected ? context.palette.accent.withValues(alpha: 0.12) : null,
       ),
       onPressed: onPressed,
       child: Text(label),

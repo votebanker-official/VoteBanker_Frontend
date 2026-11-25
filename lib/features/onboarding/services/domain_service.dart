@@ -54,6 +54,7 @@ class DomainService {
 
   Future<List<DomainSuggestion>> search(
     String name, {
+
     /// Standard TLDs first, then other popular ones. Pass `allTlds: true` via
     /// a custom extensions list only when intentionally running a full catalog check.
     List<String> extensions = defaultDomainExtensions,
@@ -63,10 +64,7 @@ class DomainService {
       throw const DomainException('invalid_name');
     }
 
-    final response = await _send({
-      'name': slug,
-      'extensions': extensions,
-    });
+    final response = await _send({'name': slug, 'extensions': extensions});
     if (response == null) {
       throw const DomainException('unreachable');
     }
@@ -88,9 +86,10 @@ class DomainService {
     final serverIp = body['serverIp'] as String?;
     throw DomainException(
       body['error'] as String? ?? 'search_failed',
-      serverIp: serverIp != null && serverIp.trim().isNotEmpty
-          ? serverIp.trim()
-          : null,
+      serverIp:
+          serverIp != null && serverIp.trim().isNotEmpty
+              ? serverIp.trim()
+              : null,
     );
   }
 

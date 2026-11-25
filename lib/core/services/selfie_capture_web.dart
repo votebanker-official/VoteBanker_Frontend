@@ -41,10 +41,11 @@ class _WebSelfieDialogState extends State<_WebSelfieDialog> {
   void initState() {
     super.initState();
     _viewType = 'votebanker-selfie-${identityHashCode(this)}';
-    _video = html.VideoElement()
-      ..autoplay = true
-      ..muted = true
-      ..controls = false;
+    _video =
+        html.VideoElement()
+          ..autoplay = true
+          ..muted = true
+          ..controls = false;
     _video.setAttribute('playsinline', 'true');
     _video.style
       ..width = '100%'
@@ -76,10 +77,7 @@ class _WebSelfieDialogState extends State<_WebSelfieDialog> {
           },
         });
       } catch (_) {
-        stream = await devices.getUserMedia({
-          'audio': false,
-          'video': true,
-        });
+        stream = await devices.getUserMedia({'audio': false, 'video': true});
       }
       if (!mounted) {
         stream.getTracks().forEach((track) => track.stop());
@@ -109,9 +107,10 @@ class _WebSelfieDialogState extends State<_WebSelfieDialog> {
       final width = _video.videoWidth == 0 ? 1280 : _video.videoWidth;
       final height = _video.videoHeight == 0 ? 720 : _video.videoHeight;
       final canvas = html.CanvasElement(width: width, height: height);
-      final ctx = canvas.context2D
-        ..translate(width, 0)
-        ..scale(-1, 1);
+      final ctx =
+          canvas.context2D
+            ..translate(width, 0)
+            ..scale(-1, 1);
       ctx.drawImageScaled(_video, 0, 0, width, height);
       final dataUrl = canvas.toDataUrl('image/jpeg', 0.85);
       final comma = dataUrl.indexOf(',');
@@ -184,7 +183,9 @@ class _WebSelfieDialogState extends State<_WebSelfieDialog> {
                           )
                         else if (!_ready)
                           const Center(
-                            child: CircularProgressIndicator(color: Colors.white),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
                           ),
                       ],
                     ),

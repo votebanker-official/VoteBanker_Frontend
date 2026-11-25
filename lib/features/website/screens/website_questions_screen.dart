@@ -49,7 +49,8 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
     _pages = _questionPages(website);
     _controllers = [
       for (final page in _pages)
-        for (final field in page.fields) TextEditingController(text: field.read()),
+        for (final field in page.fields)
+          TextEditingController(text: field.read()),
     ];
     _errors = List<String?>.filled(_controllers.length, null);
     _ready = true;
@@ -148,7 +149,10 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.line('questionProgress').replaceAll('{step}', '${_page + 1}').replaceAll('{total}', '${_pages.length}'),
+              l10n
+                  .line('questionProgress')
+                  .replaceAll('{step}', '${_page + 1}')
+                  .replaceAll('{total}', '${_pages.length}'),
               style: AppTextStyles.principle(context),
             ),
             const SizedBox(height: 16),
@@ -157,11 +161,12 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
                 website: website,
                 optional: l10n.optionalLabel,
                 onLogo: () => _pick((bytes) => website.logo = bytes),
-                onPhoto: () => _pick((bytes) {
-                  if (website.photos.length < _maxPhotos) {
-                    website.photos.add(bytes);
-                  }
-                }),
+                onPhoto:
+                    () => _pick((bytes) {
+                      if (website.photos.length < _maxPhotos) {
+                        website.photos.add(bytes);
+                      }
+                    }),
               )
             else
               for (var i = 0; i < page.fields.length; i++) ...[
@@ -196,11 +201,12 @@ class _WebsiteQuestionsScreenState extends State<WebsiteQuestionsScreen> {
                 _advance(last: last);
               },
               skipLabel: page.media ? l10n.line('skipThisField') : null,
-              onSkip: page.media
-                  ? () {
-                      _advance(last: true);
-                    }
-                  : null,
+              onSkip:
+                  page.media
+                      ? () {
+                        _advance(last: true);
+                      }
+                      : null,
             ),
           ],
         ),
@@ -229,28 +235,95 @@ class _Field {
 List<_QuestionPage> _questionPages(WebsiteDraft website) {
   return [
     _QuestionPage('qPageIdentity', [
-      _Field('qFullName', () => website.fullName, (value) => website.fullName = value),
-      _Field('qTitle', () => website.publicTitle, (value) => website.publicTitle = value),
-      _Field('qOrganization', () => website.organization, (value) => website.organization = value),
+      _Field(
+        'qFullName',
+        () => website.fullName,
+        (value) => website.fullName = value,
+      ),
+      _Field(
+        'qTitle',
+        () => website.publicTitle,
+        (value) => website.publicTitle = value,
+      ),
+      _Field(
+        'qOrganization',
+        () => website.organization,
+        (value) => website.organization = value,
+      ),
     ]),
     _QuestionPage('qPageStory', [
-      _Field('qIntro', () => website.introduction, (value) => website.introduction = value, maxLines: 3),
-      _Field('qAbout', () => website.about, (value) => website.about = value, maxLines: 4),
-      _Field('qVision', () => website.vision, (value) => website.vision = value, maxLines: 3),
-      _Field('qMission', () => website.mission, (value) => website.mission = value, maxLines: 3),
+      _Field(
+        'qIntro',
+        () => website.introduction,
+        (value) => website.introduction = value,
+        maxLines: 3,
+      ),
+      _Field(
+        'qAbout',
+        () => website.about,
+        (value) => website.about = value,
+        maxLines: 4,
+      ),
+      _Field(
+        'qVision',
+        () => website.vision,
+        (value) => website.vision = value,
+        maxLines: 3,
+      ),
+      _Field(
+        'qMission',
+        () => website.mission,
+        (value) => website.mission = value,
+        maxLines: 3,
+      ),
     ]),
     _QuestionPage('qPageWork', [
-      _Field('qWork', () => website.achievements, (value) => website.achievements = value, maxLines: 4),
-      _Field('qPriorities', () => website.priorities, (value) => website.priorities = value, maxLines: 3),
-      _Field('qCta', () => website.callToAction, (value) => website.callToAction = value, maxLines: 2),
+      _Field(
+        'qWork',
+        () => website.achievements,
+        (value) => website.achievements = value,
+        maxLines: 4,
+      ),
+      _Field(
+        'qPriorities',
+        () => website.priorities,
+        (value) => website.priorities = value,
+        maxLines: 3,
+      ),
+      _Field(
+        'qCta',
+        () => website.callToAction,
+        (value) => website.callToAction = value,
+        maxLines: 2,
+      ),
     ]),
     _QuestionPage('qPageContact', [
-      _Field('qContact', () => website.publicContact, (value) => website.publicContact = value, maxLines: 2),
-      _Field('qAddress', () => website.address, (value) => website.address = value, maxLines: 2),
+      _Field(
+        'qContact',
+        () => website.publicContact,
+        (value) => website.publicContact = value,
+        maxLines: 2,
+      ),
+      _Field(
+        'qAddress',
+        () => website.address,
+        (value) => website.address = value,
+        maxLines: 2,
+      ),
       _Field('qPhone', () => website.phone, (value) => website.phone = value),
       _Field('qEmail', () => website.email, (value) => website.email = value),
-      _Field('qSocial', () => website.socialLinks, (value) => website.socialLinks = value, maxLines: 2),
-      _Field('qLinks', () => website.publicLinks, (value) => website.publicLinks = value, maxLines: 2),
+      _Field(
+        'qSocial',
+        () => website.socialLinks,
+        (value) => website.socialLinks = value,
+        maxLines: 2,
+      ),
+      _Field(
+        'qLinks',
+        () => website.publicLinks,
+        (value) => website.publicLinks = value,
+        maxLines: 2,
+      ),
     ]),
     const _QuestionPage('qPageMedia', [], media: true),
   ];
@@ -277,7 +350,10 @@ class _MediaFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('${l10n.line('qLogo')} ($optional)', style: AppTextStyles.label(context)),
+        Text(
+          '${l10n.line('qLogo')} ($optional)',
+          style: AppTextStyles.label(context),
+        ),
         const SizedBox(height: 8),
         _ImageButton(
           bytes: website.logo,
@@ -285,7 +361,10 @@ class _MediaFields extends StatelessWidget {
           onPressed: onLogo,
         ),
         const SizedBox(height: 16),
-        Text('${l10n.line('qPhotos')} ($optional)', style: AppTextStyles.label(context)),
+        Text(
+          '${l10n.line('qPhotos')} ($optional)',
+          style: AppTextStyles.label(context),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -294,7 +373,12 @@ class _MediaFields extends StatelessWidget {
             for (final photo in website.photos)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.memory(photo, width: 72, height: 72, fit: BoxFit.cover),
+                child: Image.memory(
+                  photo,
+                  width: 72,
+                  height: 72,
+                  fit: BoxFit.cover,
+                ),
               ),
             if (website.photos.length < _maxPhotos)
               _ImageButton(label: l10n.addPhoto, onPressed: onPhoto),
@@ -321,7 +405,10 @@ class _ImageButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
       onPressed: onPressed,
-      icon: Icon(bytes == null ? Icons.add_a_photo_outlined : Icons.check, color: context.palette.accent),
+      icon: Icon(
+        bytes == null ? Icons.add_a_photo_outlined : Icons.check,
+        color: context.palette.accent,
+      ),
       label: Text(label),
     );
   }

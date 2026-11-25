@@ -21,10 +21,7 @@ class BuilderProgressBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Step $step of $total',
-          style: AppTextStyles.muted(context),
-        ),
+        Text('Step $step of $total', style: AppTextStyles.muted(context)),
         const SizedBox(height: 8),
         Row(
           children: [

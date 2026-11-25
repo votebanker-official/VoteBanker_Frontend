@@ -186,7 +186,9 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
 
   String _availabilityLabel(AppLocalizations l10n, DomainSuggestion item) {
     if (item.available) {
-      return item.isPremium ? '${l10n.available} · ${l10n.premiumDomain}' : l10n.available;
+      return item.isPremium
+          ? '${l10n.available} · ${l10n.premiumDomain}'
+          : l10n.available;
     }
     if (!item.checkFailed) {
       return l10n.unavailable;
@@ -235,7 +237,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                   showBrand: compact,
                   onBack: () {
                     _commit();
-                    AppRouter.back(context, AppRoutes.profile);
+                    AppRouter.back(context, AppRoutes.website);
                   },
                 ),
                 Expanded(
@@ -272,14 +274,17 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                             _DomainSearchBar(
                               controller: _query,
                               hint: l10n.searchPlaceholder,
-                              label: _searching
-                                  ? l10n.domainSearching
-                                  : l10n.domainSearch,
+                              label:
+                                  _searching
+                                      ? l10n.domainSearching
+                                      : l10n.domainSearch,
                               enabled: !_searching,
                               onChanged: _onQueryChanged,
                               onSearch: _search,
                             ),
-                            if (!typed && !_searching && _errorCode == null) ...[
+                            if (!typed &&
+                                !_searching &&
+                                _errorCode == null) ...[
                               const SizedBox(height: 12),
                               Text(
                                 l10n.domainEmpty,
@@ -302,9 +307,9 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                             else if (_errorCode != null) ...[
                               Text(
                                 _errorMessage(l10n, _errorCode!),
-                                style: AppTextStyles.muted(context).copyWith(
-                                  color: palette.danger,
-                                ),
+                                style: AppTextStyles.muted(
+                                  context,
+                                ).copyWith(color: palette.danger),
                               ),
                               const SizedBox(height: 8),
                               Align(
@@ -343,7 +348,8 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                                       availabilityColor: _availabilityColor(
                                         item,
                                       ),
-                                      registrationLabel: l10n.domainRegistration,
+                                      registrationLabel:
+                                          l10n.domainRegistration,
                                       registrationPrice:
                                           _priced(
                                             l10n,
@@ -359,16 +365,18 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                                             item.renewalPriceCurrency,
                                           ) ??
                                           '',
-                                      premiumLabel: item.isPremium
-                                          ? l10n.premiumDomain
-                                          : null,
+                                      premiumLabel:
+                                          item.isPremium
+                                              ? l10n.premiumDomain
+                                              : null,
                                       actionLabel: l10n.selectDomain,
                                       selected:
                                           draft.selectedDomain == item.name,
                                       canSelect: item.available,
-                                      onAdd: item.available
-                                          ? () => _select(item.name)
-                                          : null,
+                                      onAdd:
+                                          item.available
+                                              ? () => _select(item.name)
+                                              : null,
                                     ),
                                 ],
                               ),
@@ -386,7 +394,7 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                   skipLabel: l10n.skipForNow,
                   onBack: () {
                     _commit();
-                    AppRouter.back(context, AppRoutes.profile);
+                    AppRouter.back(context, AppRoutes.website);
                   },
                   onContinue: _continueToPurchase,
                   onSkip: _skipDomain,
@@ -461,51 +469,50 @@ class _DomainTopBar extends StatelessWidget {
     );
     const controls = Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        ThemeToggle(),
-        SizedBox(width: 8),
-        LanguageSelector(),
-      ],
+      children: [ThemeToggle(), SizedBox(width: 8), LanguageSelector()],
     );
 
     return Material(
       color: Colors.white,
       child: DecoratedBox(
         decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: DomainPickerColors.cardBorder)),
+          border: Border(
+            bottom: BorderSide(color: DomainPickerColors.cardBorder),
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: showBrand
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        backButton,
-                        logo,
-                        const SizedBox(width: 8),
-                        Expanded(child: name),
-                      ],
-                    ),
-                    const Align(
-                      alignment: Alignment.centerRight,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: controls,
+          child:
+              showBrand
+                  ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          backButton,
+                          logo,
+                          const SizedBox(width: 8),
+                          Expanded(child: name),
+                        ],
                       ),
-                    ),
-                  ],
-                )
-              : const Align(
-                  alignment: Alignment.centerRight,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
+                      const Align(
+                        alignment: Alignment.centerRight,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: controls,
+                        ),
+                      ),
+                    ],
+                  )
+                  : const Align(
                     alignment: Alignment.centerRight,
-                    child: controls,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: controls,
+                    ),
                   ),
-                ),
         ),
       ),
     );
@@ -548,10 +555,16 @@ class _DomainSearchBar extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         hintText: hint,
-        hintStyle: const TextStyle(color: DomainPickerColors.muted, fontSize: 15),
+        hintStyle: const TextStyle(
+          color: DomainPickerColors.muted,
+          fontSize: 15,
+        ),
         prefixIcon: const Icon(Icons.search, color: DomainPickerColors.muted),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
         border: _border(DomainPickerColors.cardBorder, 1),
         enabledBorder: _border(DomainPickerColors.cardBorder, 1),
         disabledBorder: _border(DomainPickerColors.cardBorder, 1),
@@ -597,42 +610,45 @@ class _DomainSearchBar extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final iconOnly = constraints.maxWidth < 560;
-        final action = iconOnly
-            ? SizedBox(
-                width: 48,
-                height: 48,
-                child: ElevatedButton(
-                  key: const ValueKey('domainSearchButton'),
-                  onPressed: enabled ? onSearch : null,
-                  style: ButtonStyle(
-                    elevation: const WidgetStatePropertyAll(0),
-                    padding: const WidgetStatePropertyAll(EdgeInsets.zero),
-                    backgroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (states.contains(WidgetState.disabled)) {
-                        return DomainPickerColors.blue.withValues(alpha: 0.45);
-                      }
-                      if (states.contains(WidgetState.pressed)) {
-                        return DomainPickerColors.bluePressed;
-                      }
-                      return DomainPickerColors.blue;
-                    }),
-                    foregroundColor: const WidgetStatePropertyAll(Colors.white),
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+        final action =
+            iconOnly
+                ? SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: ElevatedButton(
+                    key: const ValueKey('domainSearchButton'),
+                    onPressed: enabled ? onSearch : null,
+                    style: ButtonStyle(
+                      elevation: const WidgetStatePropertyAll(0),
+                      padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+                      backgroundColor: WidgetStateProperty.resolveWith((
+                        states,
+                      ) {
+                        if (states.contains(WidgetState.disabled)) {
+                          return DomainPickerColors.blue.withValues(
+                            alpha: 0.45,
+                          );
+                        }
+                        if (states.contains(WidgetState.pressed)) {
+                          return DomainPickerColors.bluePressed;
+                        }
+                        return DomainPickerColors.blue;
+                      }),
+                      foregroundColor: const WidgetStatePropertyAll(
+                        Colors.white,
+                      ),
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
+                    child: const Icon(Icons.search, size: 22),
                   ),
-                  child: const Icon(Icons.search, size: 22),
-                ),
-              )
-            : button;
+                )
+                : button;
         return Row(
-          children: [
-            Expanded(child: field),
-            const SizedBox(width: 10),
-            action,
-          ],
+          children: [Expanded(child: field), const SizedBox(width: 10), action],
         );
       },
     );
@@ -654,7 +670,12 @@ class _DomainGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final columns = maxWidth >= 1040 ? 3 : maxWidth >= 700 ? 2 : 1;
+    final columns =
+        maxWidth >= 1040
+            ? 3
+            : maxWidth >= 700
+            ? 2
+            : 1;
     const gap = 16.0;
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i += columns) {
@@ -664,7 +685,9 @@ class _DomainGrid extends StatelessWidget {
       );
       rows.add(
         Padding(
-          padding: EdgeInsets.only(bottom: i + columns < children.length ? gap : 0),
+          padding: EdgeInsets.only(
+            bottom: i + columns < children.length ? gap : 0,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -802,10 +825,7 @@ class _FooterButton extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (!iconAtEnd) ...[
-          Icon(icon, size: 18),
-          const SizedBox(width: 6),
-        ],
+        if (!iconAtEnd) ...[Icon(icon, size: 18), const SizedBox(width: 6)],
         Flexible(
           child: Text(
             label,
@@ -814,13 +834,12 @@ class _FooterButton extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
-        if (iconAtEnd) ...[
-          const SizedBox(width: 6),
-          Icon(icon, size: 18),
-        ],
+        if (iconAtEnd) ...[const SizedBox(width: 6), Icon(icon, size: 18)],
       ],
     );
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    );
     const padding = WidgetStatePropertyAll(
       EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
@@ -891,11 +910,7 @@ class _DomainArtBanner extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: [
-            Color(0xFFE4F0FF),
-            Color(0xFFF5F9FF),
-            Color(0xFFE7F2FF),
-          ],
+          colors: [Color(0xFFE4F0FF), Color(0xFFF5F9FF), Color(0xFFE7F2FF)],
         ),
         border: Border.all(color: const Color(0xFFD5E6F8)),
       ),
@@ -927,10 +942,18 @@ class _GlobeBadge extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: const Color(0xFFD5E6F8)),
         boxShadow: const [
-          BoxShadow(color: Color(0x140969DA), blurRadius: 10, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x140969DA),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
-      child: Icon(Icons.public, color: DomainPickerColors.blue, size: size * 0.62),
+      child: Icon(
+        Icons.public,
+        color: DomainPickerColors.blue,
+        size: size * 0.62,
+      ),
     );
   }
 }
@@ -982,7 +1005,9 @@ class _BrowserArt extends StatelessWidget {
                     height: compact ? 14 : 16,
                     decoration: const BoxDecoration(
                       color: Color(0xFFF3F8FF),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(11)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(11),
+                      ),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Row(
@@ -995,7 +1020,10 @@ class _BrowserArt extends StatelessWidget {
                           Container(
                             width: 5,
                             height: 5,
-                            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                           const SizedBox(width: 3),
                         ],
@@ -1058,7 +1086,11 @@ class _DomainTip extends StatelessWidget {
               color: Color(0xFFFFF4D6),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.lightbulb_outline, size: 16, color: Color(0xFFE0A106)),
+            child: const Icon(
+              Icons.lightbulb_outline,
+              size: 16,
+              color: Color(0xFFE0A106),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(

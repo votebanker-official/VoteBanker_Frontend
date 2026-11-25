@@ -13,8 +13,9 @@ class LegalConsentLine extends StatefulWidget {
 }
 
 class _LegalConsentLineState extends State<LegalConsentLine> {
-  late final TapGestureRecognizer _privacy = TapGestureRecognizer()
-    ..onTap = () => AppNav.open(context, AppRoutes.privacyPolicy);
+  late final TapGestureRecognizer _privacy =
+      TapGestureRecognizer()
+        ..onTap = () => AppNav.open(context, AppRoutes.privacyPolicy);
 
   @override
   void dispose() {

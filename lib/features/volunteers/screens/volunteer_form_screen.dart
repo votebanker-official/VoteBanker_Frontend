@@ -78,7 +78,9 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
         'role': _role,
         'skills': _skills.text.trim().isEmpty ? null : _skills.text.trim(),
         'availability':
-            _availability.text.trim().isEmpty ? null : _availability.text.trim(),
+            _availability.text.trim().isEmpty
+                ? null
+                : _availability.text.trim(),
         'notes': _notes.text.trim().isEmpty ? null : _notes.text.trim(),
       };
       if (widget.asApplication) {
@@ -93,15 +95,15 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
         }
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.line('volSaved'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.line('volSaved'))));
       Navigator.of(context).pop(true);
     } on VolunteerException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_errorMessage(l10n, error.code))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_errorMessage(l10n, error.code))));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -122,9 +124,10 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final editing = widget.volunteer != null;
-    final title = widget.asApplication
-        ? l10n.line('volNewApplication')
-        : editing
+    final title =
+        widget.asApplication
+            ? l10n.line('volNewApplication')
+            : editing
             ? l10n.line('volEdit')
             : l10n.line('volAdd');
 
@@ -143,7 +146,10 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                       icon: const Icon(Icons.arrow_back),
                     ),
                     Expanded(
-                      child: Text(title, style: AppTextStyles.headline(context)),
+                      child: Text(
+                        title,
+                        style: AppTextStyles.headline(context),
+                      ),
                     ),
                   ],
                 ),
@@ -188,8 +194,9 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                     if (text.isEmpty) {
                                       return l10n.line('volRequired');
                                     }
-                                    if (!RegExp(r'^\+?[0-9][0-9\s-]{6,18}$')
-                                        .hasMatch(text)) {
+                                    if (!RegExp(
+                                      r'^\+?[0-9][0-9\s-]{6,18}$',
+                                    ).hasMatch(text)) {
                                       return l10n.line('volInvalidPhone');
                                     }
                                     return null;
@@ -206,8 +213,9 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                   validator: (value) {
                                     final text = value?.trim() ?? '';
                                     if (text.isEmpty) return null;
-                                    if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
-                                        .hasMatch(text)) {
+                                    if (!RegExp(
+                                      r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
+                                    ).hasMatch(text)) {
                                       return l10n.line('volInvalidEmail');
                                     }
                                     return null;
@@ -265,8 +273,9 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                           child: Text(team.name),
                                         ),
                                     ],
-                                    onChanged: (value) =>
-                                        setState(() => _teamId = value),
+                                    onChanged:
+                                        (value) =>
+                                            setState(() => _teamId = value),
                                   ),
                                   const SizedBox(height: 12),
                                   DropdownButtonFormField<String>(
@@ -278,7 +287,9 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                       for (final status in volunteerStatuses)
                                         DropdownMenuItem(
                                           value: status,
-                                          child: Text(_statusLabel(l10n, status)),
+                                          child: Text(
+                                            _statusLabel(l10n, status),
+                                          ),
                                         ),
                                     ],
                                     onChanged: (value) {
@@ -298,15 +309,16 @@ class _VolunteerFormScreenState extends State<VolunteerFormScreen> {
                                 const SizedBox(height: 20),
                                 FilledButton(
                                   onPressed: _saving ? null : _save,
-                                  child: _saving
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : Text(l10n.line('volSave')),
+                                  child:
+                                      _saving
+                                          ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                          : Text(l10n.line('volSave')),
                                 ),
                               ],
                             ),

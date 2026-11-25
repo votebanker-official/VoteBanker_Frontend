@@ -19,7 +19,8 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
   @override
   void initState() {
     super.initState();
-    _channel = widget.request.isEmail ? OtpChannel.email : widget.request.channel;
+    _channel =
+        widget.request.isEmail ? OtpChannel.email : widget.request.channel;
   }
 
   void _send() {
@@ -50,9 +51,10 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             icon: Icons.phone_outlined,
             iconColor: resetBlue,
             title: 'Via SMS',
-            subtitle: request.isEmail
-                ? 'Add a mobile number to use SMS'
-                : 'Get OTP on ${request.maskedMobile}',
+            subtitle:
+                request.isEmail
+                    ? 'Add a mobile number to use SMS'
+                    : 'Get OTP on ${request.maskedMobile}',
             onTap: () => setState(() => _channel = OtpChannel.sms),
           ),
           const SizedBox(height: 10),
@@ -62,9 +64,10 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             icon: Icons.mail_outline_rounded,
             iconColor: const Color(0xFF7A5AF8),
             title: 'Via Email',
-            subtitle: request.isEmail
-                ? 'Get OTP on ${request.maskedEmail}'
-                : 'Add an email address to use email',
+            subtitle:
+                request.isEmail
+                    ? 'Get OTP on ${request.maskedEmail}'
+                    : 'Add an email address to use email',
             onTap: () => setState(() => _channel = OtpChannel.email),
           ),
           const SizedBox(height: 10),
@@ -74,14 +77,18 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             icon: Icons.chat_bubble_outline_rounded,
             iconColor: const Color(0xFF12B76A),
             title: 'Via WhatsApp',
-            subtitle: request.isEmail
-                ? 'Add a mobile number to use WhatsApp'
-                : 'Get OTP on WhatsApp ${request.maskedMobile}',
+            subtitle:
+                request.isEmail
+                    ? 'Add a mobile number to use WhatsApp'
+                    : 'Get OTP on WhatsApp ${request.maskedMobile}',
             onTap: () => setState(() => _channel = OtpChannel.whatsapp),
           ),
           const SizedBox(height: 20),
           ResetPrimaryButton(label: 'Send OTP', onPressed: _send),
-          ResetTextLink(label: 'Back to Login', onPressed: () => goToLogin(context)),
+          ResetTextLink(
+            label: 'Back to Login',
+            onPressed: () => goToLogin(context),
+          ),
         ],
       ),
     );
@@ -151,7 +158,9 @@ class _ChannelTile extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
                   color: selected ? resetBlue : resetMuted,
                   size: 20,
                 ),

@@ -415,7 +415,9 @@ class _AssemblySearchPanelState extends State<_AssemblySearchPanel> {
                   decoration: InputDecoration(
                     isDense: true,
                     hintText:
-                        _missing(lookup) ? widget.manualHint : widget.searchHint,
+                        _missing(lookup)
+                            ? widget.manualHint
+                            : widget.searchHint,
                     prefixIcon: Icon(
                       _missing(lookup) ? Icons.edit_outlined : Icons.search,
                       color: palette.textMuted,
@@ -524,9 +526,9 @@ class _AssemblySearchPanelState extends State<_AssemblySearchPanel> {
         children: [
           for (final item in visible)
             InkWell(
-              onTap: () => Navigator.of(
-                context,
-              ).pop(_AssemblyMenuResult.item(item)),
+              onTap:
+                  () =>
+                      Navigator.of(context).pop(_AssemblyMenuResult.item(item)),
               child: Container(
                 alignment: AlignmentDirectional.centerStart,
                 constraints: const BoxConstraints(

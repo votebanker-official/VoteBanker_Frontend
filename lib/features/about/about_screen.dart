@@ -1,8 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../app/routing/app_routes.dart';
 import '../../app/theme/app_colors.dart';
@@ -79,7 +75,10 @@ class _Header extends StatelessWidget {
                 onTap: onLogo,
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -118,13 +117,18 @@ class _Header extends StatelessWidget {
                   children: [
                     Row(children: [Expanded(child: brand)]),
                     const SizedBox(height: 8),
-                    const Align(alignment: Alignment.centerRight, child: controls),
+                    const Align(
+                      alignment: Alignment.centerRight,
+                      child: controls,
+                    ),
                   ],
                 );
               }
               return Row(
                 children: [
-                  Expanded(child: Align(alignment: Alignment.centerLeft, child: brand)),
+                  Expanded(
+                    child: Align(alignment: Alignment.centerLeft, child: brand),
+                  ),
                   controls,
                 ],
               );
@@ -152,14 +156,20 @@ class _PageBody extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final pad = width >= 1100 ? 48.0 : width >= 700 ? 28.0 : 16.0;
-        final columns = width >= 1000 ? 4 : width >= 700 ? 2 : 1;
+        final pad =
+            width >= 1100
+                ? 48.0
+                : width >= 700
+                ? 28.0
+                : 16.0;
+        final columns =
+            width >= 1000
+                ? 4
+                : width >= 700
+                ? 2
+                : 1;
         final pair = width >= 800;
-        // #region agent log
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _logAboutLayout(width, columns, pair);
-        });
-        // #endregion
+
         return Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
@@ -181,7 +191,11 @@ class _PageBody extends StatelessWidget {
                   const SizedBox(height: 28),
                   _Values(columns: columns),
                   const SizedBox(height: 28),
-                  _CallToAction(wide: pair, onStart: onStart, onContact: onContact),
+                  _CallToAction(
+                    wide: pair,
+                    onStart: onStart,
+                    onContact: onContact,
+                  ),
                 ],
               ),
             ),
@@ -222,19 +236,20 @@ class _Hero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'ABOUT VOTEBANKER',
-            style: AppTextStyles.descriptor(context),
-          ),
+          Text('ABOUT VOTEBANKER', style: AppTextStyles.descriptor(context)),
           const SizedBox(height: 10),
           Text(
             'About VoteBanker',
-            style: AppTextStyles.headline(context).copyWith(fontSize: wide ? 36 : 28),
+            style: AppTextStyles.headline(
+              context,
+            ).copyWith(fontSize: wide ? 36 : 28),
           ),
           const SizedBox(height: 8),
           Text(
             'Empowering Modern Political Campaigns & Voter Outreach.',
-            style: AppTextStyles.sectionTitle(context).copyWith(color: palette.secondary),
+            style: AppTextStyles.sectionTitle(
+              context,
+            ).copyWith(color: palette.secondary),
           ),
           const SizedBox(height: 14),
           Text(
@@ -350,25 +365,29 @@ class _Offer extends StatelessWidget {
       _Module(
         icon: Icons.groups_outlined,
         title: 'Voter Relationship Management (VRM)',
-        body: 'Organize voter records, segment lists, and track outreach cleanly.',
+        body:
+            'Organize voter records, segment lists, and track outreach cleanly.',
         route: AppRoutes.vrmRecords,
       ),
       _Module(
         icon: Icons.web_outlined,
         title: 'Website Builder',
-        body: 'Launch mobile-friendly campaign websites quickly to share updates and initiatives.',
+        body:
+            'Launch mobile-friendly campaign websites quickly to share updates and initiatives.',
         route: AppRoutes.website,
       ),
       _Module(
         icon: Icons.badge_outlined,
         title: 'Team & Volunteer Coordination',
-        body: 'Assign tasks, manage booth and area coordinators, and align field teams.',
+        body:
+            'Assign tasks, manage booth and area coordinators, and align field teams.',
         route: AppRoutes.team,
       ),
       _Module(
         icon: Icons.storefront_outlined,
         title: 'Merchandise',
-        body: 'Manage branded campaign materials and outreach essentials in one place.',
+        body:
+            'Manage branded campaign materials and outreach essentials in one place.',
         route: AppRoutes.merchandise,
       ),
     ];
@@ -425,7 +444,9 @@ class _ModuleCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   module.title,
-                  style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 16),
+                  style: AppTextStyles.sectionTitle(
+                    context,
+                  ).copyWith(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 Text(module.body, style: AppTextStyles.body(context)),
@@ -456,7 +477,11 @@ class _ModuleOpenButton extends StatelessWidget {
       onPressed: () => AppNav.open(context, route),
       style: TextButton.styleFrom(
         foregroundColor: palette.accent,
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.2),
+        textStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          height: 1.2,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         minimumSize: const Size(0, 36),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -479,7 +504,10 @@ class _Trust extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Data responsibility', style: AppTextStyles.sectionTitle(context)),
+          Text(
+            'Data responsibility',
+            style: AppTextStyles.sectionTitle(context),
+          ),
           const SizedBox(height: 8),
           Text(
             'VoteBanker workspaces use role-based access so candidates, managers, and field staff see only the records their role needs. We treat campaign data as confidential and expect teams to collect and use it for legitimate outreach.',
@@ -490,7 +518,9 @@ class _Trust extends StatelessWidget {
             decoration: BoxDecoration(
               color: palette.surfaceSecondary,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: palette.secondary.withValues(alpha: 0.45)),
+              border: Border.all(
+                color: palette.secondary.withValues(alpha: 0.45),
+              ),
             ),
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -502,7 +532,9 @@ class _Trust extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'VoteBanker is an independent campaign software platform and is not affiliated with, endorsed by, or part of any government body or election commission.',
-                      style: AppTextStyles.body(context).copyWith(fontWeight: FontWeight.w600),
+                      style: AppTextStyles.body(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -536,12 +568,14 @@ class _Values extends StatelessWidget {
       (
         icon: Icons.lock_outline,
         title: 'Security & Privacy',
-        body: 'Respecting campaign confidentiality and responsible record handling.',
+        body:
+            'Respecting campaign confidentiality and responsible record handling.',
       ),
       (
         icon: Icons.accessibility_new_outlined,
         title: 'Accessibility',
-        body: 'Practical, scalable software for local and large-scale teams alike.',
+        body:
+            'Practical, scalable software for local and large-scale teams alike.',
       ),
     ];
     return Column(
@@ -592,7 +626,11 @@ class _CallToAction extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: palette.accent.withValues(alpha: 0.35)),
         boxShadow: [
-          BoxShadow(color: palette.cardShadow, blurRadius: 24, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: palette.cardShadow,
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Padding(
@@ -651,7 +689,9 @@ class _Grid extends StatelessWidget {
               children: [
                 for (var j = 0; j < columns; j++) ...[
                   if (j > 0) const SizedBox(width: 12),
-                  Expanded(child: j < slice.length ? slice[j] : const SizedBox()),
+                  Expanded(
+                    child: j < slice.length ? slice[j] : const SizedBox(),
+                  ),
                 ],
               ],
             ),
@@ -689,7 +729,10 @@ class _InfoCard extends StatelessWidget {
             Text(eyebrow!, style: AppTextStyles.descriptor(context)),
           ],
           const SizedBox(height: 8),
-          Text(title, style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 18)),
+          Text(
+            title,
+            style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 18),
+          ),
           const SizedBox(height: 8),
           Text(body, style: AppTextStyles.body(context)),
         ],
@@ -708,35 +751,3 @@ class _Card extends StatelessWidget {
     return AppCard(child: child);
   }
 }
-
-// #region agent log
-double? _loggedAboutWidth;
-
-void _logAboutLayout(double width, int columns, bool pair) {
-  if (!kIsWeb) return;
-  if (_loggedAboutWidth != null && (width - _loggedAboutWidth!).abs() < 24) {
-    return;
-  }
-  _loggedAboutWidth = width;
-  http
-      .post(
-        Uri.parse(
-          'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-        ),
-        headers: const {
-          'Content-Type': 'application/json',
-          'X-Debug-Session-Id': '133bb1',
-        },
-        body: jsonEncode({
-          'sessionId': '133bb1',
-          'runId': 'about-page',
-          'hypothesisId': 'H1',
-          'location': 'about_screen.dart:_PageBody',
-          'message': 'about layout',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'data': {'width': width, 'columns': columns, 'pair': pair},
-        }),
-      )
-      .then((_) {}, onError: (_) {});
-}
-// #endregion

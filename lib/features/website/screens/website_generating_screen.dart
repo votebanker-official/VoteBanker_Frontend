@@ -15,7 +15,8 @@ class WebsiteGeneratingScreen extends StatefulWidget {
   const WebsiteGeneratingScreen({super.key});
 
   @override
-  State<WebsiteGeneratingScreen> createState() => _WebsiteGeneratingScreenState();
+  State<WebsiteGeneratingScreen> createState() =>
+      _WebsiteGeneratingScreenState();
 }
 
 class _WebsiteGeneratingScreenState extends State<WebsiteGeneratingScreen> {
@@ -156,9 +157,7 @@ class _WebsiteGeneratingScreenState extends State<WebsiteGeneratingScreen> {
                       i < _done
                           ? Icons.check_circle
                           : Icons.radio_button_unchecked,
-                      color: i < _done
-                          ? palette.secondary
-                          : palette.textMuted,
+                      color: i < _done ? palette.secondary : palette.textMuted,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -174,7 +173,9 @@ class _WebsiteGeneratingScreenState extends State<WebsiteGeneratingScreen> {
               const SizedBox(height: 8),
               Text(
                 _message(l10n),
-                style: AppTextStyles.muted(context).copyWith(color: palette.danger),
+                style: AppTextStyles.muted(
+                  context,
+                ).copyWith(color: palette.danger),
               ),
               if (_errorHint != null && _errorHint!.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -192,8 +193,8 @@ class _WebsiteGeneratingScreenState extends State<WebsiteGeneratingScreen> {
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () =>
-                    AppRouter.back(context, AppRoutes.websiteSections),
+                onPressed:
+                    () => AppRouter.back(context, AppRoutes.websiteSections),
                 child: Text(l10n.back),
               ),
             ],

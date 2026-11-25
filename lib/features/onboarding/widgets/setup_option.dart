@@ -49,8 +49,7 @@ class SetupOption extends StatelessWidget {
                   ],
                 ),
               ),
-              if (selected)
-                Icon(Icons.check_circle, color: palette.secondary),
+              if (selected) Icon(Icons.check_circle, color: palette.secondary),
             ],
           ),
         ),

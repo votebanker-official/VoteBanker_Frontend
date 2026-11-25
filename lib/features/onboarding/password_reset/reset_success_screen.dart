@@ -20,7 +20,11 @@ class ResetSuccessScreen extends StatelessWidget {
               color: Color(0xFFE7F8EF),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_rounded, color: resetSuccess, size: 52),
+            child: const Icon(
+              Icons.check_rounded,
+              color: resetSuccess,
+              size: 52,
+            ),
           ),
           const SizedBox(height: 18),
           const Text(

@@ -9,6 +9,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/utils/person_name.dart';
 import '../../../core/widgets/language_selector.dart';
@@ -93,7 +94,9 @@ class _LoginScreenState extends State<LoginScreen> {
         await ProfileService.instance.saveDraft(draft);
       }
       if (!mounted) return;
-      final next = await routeAfterBlueTikSignIn(AppRoutes.profile);
+      final resume =
+          await OnboardingProgressService.instance.resolveResumeRoute();
+      final next = await routeAfterBlueTikSignIn(resume);
       if (!mounted) return;
       replaceBrowserPath(next);
       Navigator.of(context).pushReplacementNamed(next);
@@ -170,10 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
     unawaited(WebsiteBuilderStore.instance.clearLocal());
     unawaited(PortfolioStore.instance.clear());
     if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.profile,
-      (route) => false,
-    );
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.profile, (route) => false);
   }
 
   void _openOtp({String? phone}) {
@@ -181,22 +183,52 @@ class _LoginScreenState extends State<LoginScreen> {
     AppRouter.open(context, AppRoutes.otp, arguments: phone ?? 'whatsapp');
   }
 
-  void _submit(AppLocalizations l10n) {
+  Future<void> _submit(AppLocalizations l10n) async {
     if (_busy) return;
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
     final raw = _identifier.text.trim();
-    if (raw.contains('@')) {
-      setState(() => _formError = l10n.loginEmailUsesGoogle);
+    final password = _password.text;
+    if (password.isEmpty) {
+      setState(() => _formError = 'Enter your password.');
       return;
     }
-    final phone = AuthService.normalizePhone(raw);
-    if (phone == null) {
-      setState(() => _formError = 'Enter a valid mobile number.');
-      return;
+
+    setState(() {
+      _busy = true;
+      _formError = null;
+    });
+    try {
+      await AuthService.instance.login(identifier: raw, password: password);
+      if (!mounted) return;
+      final draft = OnboardingScope.of(context).draft;
+      final savedProfile = await ProfileService.instance.fetchProfile();
+      if (!mounted) return;
+      if (savedProfile != null) {
+        ProfileService.applyProfile(draft, savedProfile);
+      }
+      final email = AuthService.instance.signedInEmail;
+      if (email.isNotEmpty) draft.email = email;
+      final phone = AuthService.instance.session?.phone ?? '';
+      if (phone.trim().isNotEmpty) draft.contactNumber = phone.trim();
+      if (savedProfile != null) {
+        await ProfileService.instance.saveDraft(draft);
+      }
+      if (!mounted) return;
+      final resume =
+          await OnboardingProgressService.instance.resolveResumeRoute();
+      final next = await routeAfterBlueTikSignIn(resume);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(next);
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _formError = e.message);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _formError = 'Could not sign in. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
-    setState(() => _formError = null);
-    _openOtp(phone: phone);
   }
 
   @override
@@ -216,10 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
             final desktop = width > 1024;
             final tablet = width >= 601 && width <= 1024;
             if (!desktop && !tablet) {
-              return _MobileLoginBody(
-                busy: _busy,
-                child: _mobileForm(l10n),
-              );
+              return _MobileLoginBody(busy: _busy, child: _mobileForm(l10n));
             }
             return Stack(
               children: [
@@ -241,15 +270,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     Expanded(
-                      child: desktop
-                          ? _DesktopLogin(
-                              form: _form(l10n, compact: false, showBrand: false),
-                              l10n: l10n,
-                            )
-                          : _TabletLogin(
-                              form: _form(l10n, compact: false, showBrand: false),
-                              l10n: l10n,
-                            ),
+                      child:
+                          desktop
+                              ? _DesktopLogin(
+                                form: _form(
+                                  l10n,
+                                  compact: false,
+                                  showBrand: false,
+                                ),
+                                l10n: l10n,
+                              )
+                              : _TabletLogin(
+                                form: _form(
+                                  l10n,
+                                  compact: false,
+                                  showBrand: false,
+                                ),
+                                l10n: l10n,
+                              ),
                     ),
                   ],
                 ),
@@ -348,9 +386,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => AppRouter.open(context, AppRoutes.forgotPassword),
+              onPressed:
+                  _busy
+                      ? null
+                      : () => AppRouter.open(context, AppRoutes.forgotPassword),
               child: Text(
                 l10n.loginForgot,
                 style: const TextStyle(
@@ -453,7 +492,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: const TextStyle(color: _navy, fontSize: 13.5),
               ),
               TextButton(
-                onPressed: _busy ? null : () => AppRouter.open(context, AppRoutes.signUp),
+                onPressed:
+                    _busy
+                        ? null
+                        : () => AppRouter.open(context, AppRoutes.signUp),
                 child: Text(
                   l10n.loginSignUp,
                   style: const TextStyle(
@@ -553,9 +595,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => AppRouter.open(context, AppRoutes.forgotPassword),
+              onPressed:
+                  _busy
+                      ? null
+                      : () => AppRouter.open(context, AppRoutes.forgotPassword),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.only(top: 6, bottom: 4),
                 minimumSize: Size.zero,
@@ -676,7 +719,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               GestureDetector(
-                onTap: _busy ? null : () => AppRouter.open(context, AppRoutes.signUp),
+                onTap:
+                    _busy
+                        ? null
+                        : () => AppRouter.open(context, AppRoutes.signUp),
                 child: Text(
                   l10n.loginSignUp,
                   style: const TextStyle(
@@ -722,7 +768,10 @@ class _DesktopLogin extends StatelessWidget {
             child: Align(
               alignment: const Alignment(0, -0.72),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 child: _BrandHero(l10n: l10n, large: true),
               ),
             ),
@@ -762,7 +811,10 @@ class _TabletLogin extends StatelessWidget {
             child: Align(
               alignment: const Alignment(0, -0.72),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: _BrandHero(l10n: l10n, large: true),
               ),
             ),
@@ -870,19 +922,21 @@ class _UnderlinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF2F7CFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2
-      ..strokeCap = StrokeCap.round;
-    final path = Path()
-      ..moveTo(size.width * 0.06, size.height * 0.35)
-      ..quadraticBezierTo(
-        size.width * 0.5,
-        size.height * 1.05,
-        size.width * 0.94,
-        size.height * 0.28,
-      );
+    final paint =
+        Paint()
+          ..color = const Color(0xFF2F7CFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.2
+          ..strokeCap = StrokeCap.round;
+    final path =
+        Path()
+          ..moveTo(size.width * 0.06, size.height * 0.35)
+          ..quadraticBezierTo(
+            size.width * 0.5,
+            size.height * 1.05,
+            size.width * 0.94,
+            size.height * 0.28,
+          );
     canvas.drawPath(path, paint);
   }
 
@@ -1009,24 +1063,24 @@ class _LoginField extends StatelessWidget {
         hintStyle: const TextStyle(color: Color(0xFF8AA0B8)),
         filled: true,
         fillColor: Colors.white,
-        prefixIcon: divided
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(width: 14),
-                  Icon(icon, color: iconColor, size: 22),
-                  Container(
-                    width: 1,
-                    height: 22,
-                    margin: const EdgeInsets.only(left: 10),
-                    color: const Color(0xFFD7E6F5),
-                  ),
-                ],
-              )
-            : Icon(icon, color: iconColor, size: 20),
-        prefixIconConstraints: divided
-            ? const BoxConstraints(minWidth: 58, minHeight: 48)
-            : null,
+        prefixIcon:
+            divided
+                ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 14),
+                    Icon(icon, color: iconColor, size: 22),
+                    Container(
+                      width: 1,
+                      height: 22,
+                      margin: const EdgeInsets.only(left: 10),
+                      color: const Color(0xFFD7E6F5),
+                    ),
+                  ],
+                )
+                : Icon(icon, color: iconColor, size: 20),
+        prefixIconConstraints:
+            divided ? const BoxConstraints(minWidth: 58, minHeight: 48) : null,
         suffixIcon: suffix,
         contentPadding: EdgeInsets.symmetric(vertical: divided ? 16 : 14),
         enabledBorder: OutlineInputBorder(
@@ -1159,11 +1213,7 @@ class _RoundSocial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkResponse(
-      onTap: onPressed,
-      radius: 28,
-      child: child,
-    );
+    return InkResponse(onTap: onPressed, radius: 28, child: child);
   }
 }
 
@@ -1177,7 +1227,9 @@ class _MobileLoginBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        const Positioned.fill(child: CustomPaint(painter: _MobileWavePainter())),
+        const Positioned.fill(
+          child: CustomPaint(painter: _MobileWavePainter()),
+        ),
         Column(
           children: [
             const Align(
@@ -1297,36 +1349,38 @@ class _MobileWavePainter extends CustomPainter {
       Paint()..color = const Color(0xFFF5FAFE),
     );
     final sky = Paint()..color = const Color(0xFFD7EEFF);
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(0, size.height * 0.20)
-      ..quadraticBezierTo(
-        size.width * 0.62,
-        size.height * 0.34,
-        size.width,
-        size.height * 0.12,
-      )
-      ..lineTo(size.width, 0)
-      ..close();
+    final path =
+        Path()
+          ..moveTo(0, 0)
+          ..lineTo(0, size.height * 0.20)
+          ..quadraticBezierTo(
+            size.width * 0.62,
+            size.height * 0.34,
+            size.width,
+            size.height * 0.12,
+          )
+          ..lineTo(size.width, 0)
+          ..close();
     canvas.drawPath(path, sky);
 
-    final bottom = Path()
-      ..moveTo(0, size.height * 0.78)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.64,
-        size.width * 0.55,
-        size.height * 0.84,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.82,
-        size.height,
-        size.width,
-        size.height * 0.86,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final bottom =
+        Path()
+          ..moveTo(0, size.height * 0.78)
+          ..quadraticBezierTo(
+            size.width * 0.28,
+            size.height * 0.64,
+            size.width * 0.55,
+            size.height * 0.84,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.82,
+            size.height,
+            size.width,
+            size.height * 0.86,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
     canvas.drawPath(bottom, Paint()..color = const Color(0xFFD4EAFF));
   }
 
@@ -1349,46 +1403,47 @@ class _WavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final soft = Paint()..color = const Color(0xFFD7ECFF);
-    final top = Path()
-      ..moveTo(0, size.height * 0.16)
-      ..quadraticBezierTo(
-        size.width * 0.22,
-        size.height * 0.02,
-        size.width * 0.48,
-        size.height * 0.1,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.78,
-        size.height * 0.2,
-        size.width,
-        size.height * 0.04,
-      )
-      ..lineTo(size.width, 0)
-      ..lineTo(0, 0)
-      ..close();
+    final top =
+        Path()
+          ..moveTo(0, size.height * 0.16)
+          ..quadraticBezierTo(
+            size.width * 0.22,
+            size.height * 0.02,
+            size.width * 0.48,
+            size.height * 0.1,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.78,
+            size.height * 0.2,
+            size.width,
+            size.height * 0.04,
+          )
+          ..lineTo(size.width, 0)
+          ..lineTo(0, 0)
+          ..close();
     canvas.drawPath(top, soft);
 
-    final bottom = Path()
-      ..moveTo(0, size.height * 0.72)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.58,
-        size.width * 0.55,
-        size.height * 0.78,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.82,
-        size.height * 0.98,
-        size.width,
-        size.height * 0.82,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final bottom =
+        Path()
+          ..moveTo(0, size.height * 0.72)
+          ..quadraticBezierTo(
+            size.width * 0.28,
+            size.height * 0.58,
+            size.width * 0.55,
+            size.height * 0.78,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.82,
+            size.height * 0.98,
+            size.width,
+            size.height * 0.82,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
     canvas.drawPath(bottom, soft..color = const Color(0xFFD4EAFF));
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

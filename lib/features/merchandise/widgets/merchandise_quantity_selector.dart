@@ -18,9 +18,10 @@ class MerchandiseQuantitySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selected = merchandisePresetQuantities.contains(quantity)
-        ? quantity
-        : merchandiseMinimumQuantity;
+    final selected =
+        merchandisePresetQuantities.contains(quantity)
+            ? quantity
+            : merchandiseMinimumQuantity;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -41,7 +42,10 @@ class MerchandiseQuantitySelector extends StatelessWidget {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
-            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: compact ? 8 : 12),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: compact ? 8 : 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),

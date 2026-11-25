@@ -19,7 +19,6 @@ class WebsiteSectionsScreen extends StatefulWidget {
 }
 
 class _WebsiteSectionsScreenState extends State<WebsiteSectionsScreen> {
-
   static const _labels = <String, String>{
     'home': 'secHome',
     'about': 'secAbout',
@@ -56,10 +55,14 @@ class _WebsiteSectionsScreenState extends State<WebsiteSectionsScreen> {
                 contentPadding: EdgeInsets.zero,
                 value: website.sections.contains(id),
                 activeColor: context.palette.accent,
-                checkColor: context.palette.isDark
-                    ? context.palette.background
-                    : Colors.white,
-                title: Text(l10n.line(_labels[id]!), style: AppTextStyles.body(context)),
+                checkColor:
+                    context.palette.isDark
+                        ? context.palette.background
+                        : Colors.white,
+                title: Text(
+                  l10n.line(_labels[id]!),
+                  style: AppTextStyles.body(context),
+                ),
                 onChanged: (checked) {
                   if (checked ?? false) {
                     website.sections.add(id);
@@ -75,7 +78,8 @@ class _WebsiteSectionsScreenState extends State<WebsiteSectionsScreen> {
               backLabel: l10n.back,
               onBack: () => AppRouter.back(context, AppRoutes.websiteQuestions),
               primaryLabel: l10n.line('continueAction'),
-              onPrimary: () => AppRouter.open(context, AppRoutes.websiteGenerating),
+              onPrimary:
+                  () => AppRouter.open(context, AppRoutes.websiteGenerating),
               skipLabel: l10n.skipForNow,
               onSkip: () => AppRouter.open(context, AppRoutes.speechPreview),
             ),

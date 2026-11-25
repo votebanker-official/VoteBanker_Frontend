@@ -129,27 +129,29 @@ class ApiWebsiteGenerationService implements WebsiteGenerationService {
       body['error'] as String? ?? 'generation_failed',
       hint: body['hint'] as String?,
       detail: body['detail'] as String?,
-      requiredEnv: required is List
-          ? [
-              for (final item in required)
-                if (item is String) item,
-            ]
-          : const [],
+      requiredEnv:
+          required is List
+              ? [
+                for (final item in required)
+                  if (item is String) item,
+              ]
+              : const [],
     );
   }
 
   Map<String, dynamic> _payload(WebsiteDraft draft) {
     return {
-      'description': draft.description.trim().isNotEmpty
-          ? draft.description.trim()
-          : [
-              draft.introduction,
-              draft.about,
-              draft.vision,
-              draft.mission,
-              draft.priorities,
-              draft.achievements,
-            ].where((value) => value.trim().isNotEmpty).join(' '),
+      'description':
+          draft.description.trim().isNotEmpty
+              ? draft.description.trim()
+              : [
+                draft.introduction,
+                draft.about,
+                draft.vision,
+                draft.mission,
+                draft.priorities,
+                draft.achievements,
+              ].where((value) => value.trim().isNotEmpty).join(' '),
       'templateId': draft.templateId,
       'style': draft.style,
       'websiteLanguage': draft.websiteLanguage,
@@ -222,8 +224,7 @@ class ApiWebsiteGenerationService implements WebsiteGenerationService {
       return false;
     }
     final error = _json(response)['error'];
-    return error == 'website_ai_not_configured' ||
-        error == 'website_ai_failed';
+    return error == 'website_ai_not_configured' || error == 'website_ai_failed';
   }
 
   Map<String, dynamic> _json(http.Response response) {

@@ -125,24 +125,25 @@ class VolunteerRecord {
   }
 
   Map<String, dynamic> toJson() => {
-        'fullName': fullName,
-        'mobile': mobile,
-        'email': email,
-        'role': role,
-        'teamId': teamId,
-        'location': location,
-        'photoUrl': photoUrl,
-        'skills': skills,
-        'availability': availability,
-        'status': status,
-        'notes': notes,
-      };
+    'fullName': fullName,
+    'mobile': mobile,
+    'email': email,
+    'role': role,
+    'teamId': teamId,
+    'location': location,
+    'photoUrl': photoUrl,
+    'skills': skills,
+    'availability': availability,
+    'status': status,
+    'notes': notes,
+  };
 
   String get initials {
     final parts = fullName.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts.first.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'.toUpperCase();
+    return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+        .toUpperCase();
   }
 }
 
@@ -275,7 +276,10 @@ class VolunteerOverview {
       stats: VolunteerStats.fromJson(
         (json['stats'] as Map?)?.cast<String, dynamic>() ?? const {},
       ),
-      recentVolunteers: _list(json['recentVolunteers'], VolunteerRecord.fromJson),
+      recentVolunteers: _list(
+        json['recentVolunteers'],
+        VolunteerRecord.fromJson,
+      ),
       recentActivity: _list(json['recentActivity'], VolunteerActivity.fromJson),
       teams: _list(json['teams'], VolunteerTeam.fromJson),
     );

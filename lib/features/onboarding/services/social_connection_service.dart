@@ -46,14 +46,17 @@ class SocialConnection {
 }
 
 class SocialConnectionService {
-  SocialConnectionService({http.Client? client}) : _client = client ?? http.Client();
+  SocialConnectionService({http.Client? client})
+    : _client = client ?? http.Client();
 
   final http.Client _client;
 
   Future<List<SocialConnection>> load() async {
     final response = await _send('GET', '/api/social-connections');
     final body = _json(response);
-    if (response != null && response.statusCode >= 200 && response.statusCode < 300) {
+    if (response != null &&
+        response.statusCode >= 200 &&
+        response.statusCode < 300) {
       final rows = body['connections'];
       if (rows is! List) return const [];
       return [
@@ -74,7 +77,9 @@ class SocialConnectionService {
       {'return_to': returnTo},
     );
     final body = _json(response);
-    if (response != null && response.statusCode >= 200 && response.statusCode < 300) {
+    if (response != null &&
+        response.statusCode >= 200 &&
+        response.statusCode < 300) {
       final url = body['authorizeUrl'] as String? ?? '';
       if (url.isEmpty) throw const SocialConnectionException('not_configured');
       return url;
@@ -84,13 +89,21 @@ class SocialConnectionService {
 
   Future<void> disconnect(String provider) async {
     final response = await _send('DELETE', '/api/social-connections/$provider');
-    if (response != null && response.statusCode >= 200 && response.statusCode < 300) {
+    if (response != null &&
+        response.statusCode >= 200 &&
+        response.statusCode < 300) {
       return;
     }
-    throw SocialConnectionException(_code(_json(response), 'disconnect_failed'));
+    throw SocialConnectionException(
+      _code(_json(response), 'disconnect_failed'),
+    );
   }
 
-  Future<http.Response?> _send(String method, String path, [Map<String, dynamic>? body]) async {
+  Future<http.Response?> _send(
+    String method,
+    String path, [
+    Map<String, dynamic>? body,
+  ]) async {
     final token = AuthService.instance.session?.accessToken ?? '';
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -99,8 +112,13 @@ class SocialConnectionService {
     final uri = Uri.parse('${AppConfig.apiBaseUrl}$path');
     try {
       if (method == 'GET') return await _client.get(uri, headers: headers);
-      if (method == 'DELETE') return await _client.delete(uri, headers: headers);
-      return await _client.post(uri, headers: headers, body: jsonEncode(body ?? const {}));
+      if (method == 'DELETE')
+        return await _client.delete(uri, headers: headers);
+      return await _client.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(body ?? const {}),
+      );
     } catch (error) {
       if (kDebugMode) debugPrint('social connection request failed: $error');
       return null;

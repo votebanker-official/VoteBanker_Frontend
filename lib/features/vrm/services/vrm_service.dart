@@ -130,14 +130,7 @@ class VrmService {
   }) async {
     http.Response? last;
     final bases = _bases;
-    // #region agent log
-    _agentLog('E', 'vrm_service.dart:_send', 'VRM bases selected', {
-      'method': method,
-      'path': path,
-      'bases': bases,
-      'baseCount': bases.length,
-    });
-    // #endregion
+
     for (final base in bases) {
       try {
         final uri = Uri.parse('$base$path');
@@ -162,67 +155,17 @@ class VrmService {
               .timeout(const Duration(seconds: 30));
         }
         last = response;
-        // #region agent log
-        _agentLog('C', 'vrm_service.dart:_send', 'VRM response received', {
-          'base': base,
-          'status': response.statusCode,
-          'continuing404': response.statusCode == 404,
-        });
-        // #endregion
+
         if (response.statusCode == 404) {
           continue;
         }
         return response;
       } catch (error) {
-        // #region agent log
-        _agentLog('A', 'vrm_service.dart:_send', 'VRM request threw', {
-          'base': base,
-          'errorType': error.runtimeType.toString(),
-          'error': error.toString().split('\n').first,
-        });
-        // #endregion
         continue;
       }
     }
-    // #region agent log
-    _agentLog('C', 'vrm_service.dart:_send', 'VRM bases exhausted', {
-      'hasLast': last != null,
-      'lastStatus': last?.statusCode,
-    });
-    // #endregion
-    return last;
-  }
 
-  void _agentLog(
-    String hypothesisId,
-    String location,
-    String message,
-    Map<String, Object?> data,
-  ) {
-    // #region agent log
-    try {
-      _client
-          .post(
-            Uri.parse(
-              'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-            ),
-            headers: const {
-              'Content-Type': 'application/json',
-              'X-Debug-Session-Id': '35f80f',
-            },
-            body: jsonEncode({
-              'sessionId': '35f80f',
-              'runId': 'post-fix',
-              'hypothesisId': hypothesisId,
-              'location': location,
-              'message': message,
-              'data': data,
-              'timestamp': DateTime.now().millisecondsSinceEpoch,
-            }),
-          )
-          .catchError((Object _) => http.Response('', 500));
-    } catch (_) {}
-    // #endregion
+    return last;
   }
 
   Map<String, dynamic> _json(http.Response response) {

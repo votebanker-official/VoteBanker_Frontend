@@ -673,7 +673,7 @@ class _WelcomeBackButton extends StatelessWidget {
     return IconButton(
       key: const Key('dashboard-welcome-back'),
       tooltip: l10n.back,
-      onPressed: () => AppRouter.popIfPossible(context),
+      onPressed: () => AppRouter.back(context, AppRoutes.ready),
       style: IconButton.styleFrom(
         backgroundColor: colors.accentSoft,
         foregroundColor: colors.accent,

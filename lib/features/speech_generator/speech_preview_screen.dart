@@ -27,7 +27,8 @@ class SpeechPreviewScreen extends StatefulWidget {
 }
 
 class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
-  late final SpeechPreviewSpeaker _speaker = widget.speaker ?? createSpeechPreviewSpeaker();
+  late final SpeechPreviewSpeaker _speaker =
+      widget.speaker ?? createSpeechPreviewSpeaker();
   String? _profileName;
   String? _profileParty;
   String? _profilePhotoUrl;
@@ -78,7 +79,9 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
     setState(() {
       _profileName = _text(profile?['full_name']);
       _profileParty = _text(profile?['organization']);
-      _profilePhotoUrl = ProfileService.photoUrlFromProfile(profile ?? const {});
+      _profilePhotoUrl = ProfileService.photoUrlFromProfile(
+        profile ?? const {},
+      );
     });
   }
 
@@ -90,16 +93,17 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
 
   String _first(String? primary, String? secondary, String fallback) {
     if (primary != null && primary.trim().isNotEmpty) return primary.trim();
-    if (secondary != null && secondary.trim().isNotEmpty) return secondary.trim();
+    if (secondary != null && secondary.trim().isNotEmpty)
+      return secondary.trim();
     return fallback;
   }
 
   Future<void> _copy(String speech) async {
     await Clipboard.setData(ClipboardData(text: speech));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Speech copied')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Speech copied')));
   }
 
   void _toggleSpeech(String speech, String language) {
@@ -119,7 +123,9 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
       },
     );
     if (message != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       return;
     }
     setState(() {
@@ -150,9 +156,10 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
           ? _first(_profileName, draft?.leaderName, _fallbackLeaderName)
           : _fallbackLeaderName,
     );
-    final party = signedIn
-        ? _first(_profileParty, draft?.party, _fallbackPartyName)
-        : _fallbackPartyName;
+    final party =
+        signedIn
+            ? _first(_profileParty, draft?.party, _fallbackPartyName)
+            : _fallbackPartyName;
     final language = _languageCode();
     final speech = speechPreviewDraft(
       languageCode: language,
@@ -160,12 +167,13 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
       partyName: party,
     );
     final photoBytes = signedIn ? draft?.photoBytes : null;
-    final photoUrl = signedIn
-        ? (_profilePhotoUrl ??
-            ((draft?.profilePhotoUrl.trim().isNotEmpty ?? false)
-                ? draft!.profilePhotoUrl.trim()
-                : null))
-        : null;
+    final photoUrl =
+        signedIn
+            ? (_profilePhotoUrl ??
+                ((draft?.profilePhotoUrl.trim().isNotEmpty ?? false)
+                    ? draft!.profilePhotoUrl.trim()
+                    : null))
+            : null;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FC),
@@ -178,7 +186,12 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
                 _TopBar(wide: wide, onSkip: _skip),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(wide ? 40 : 24, wide ? 8 : 4, wide ? 40 : 24, 12),
+                    padding: EdgeInsets.fromLTRB(
+                      wide ? 40 : 24,
+                      wide ? 8 : 4,
+                      wide ? 40 : 24,
+                      12,
+                    ),
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(
@@ -261,7 +274,8 @@ class _SkipNowButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final foreground = palette.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+    final foreground =
+        palette.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
     return TextButton(
       key: const Key('speech-preview-skip'),
       onPressed: onPressed,
@@ -317,11 +331,20 @@ class _PreviewCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
         boxShadow: const [
-          BoxShadow(color: Color(0x14102A56), blurRadius: 28, offset: Offset(0, 12)),
+          BoxShadow(
+            color: Color(0x14102A56),
+            blurRadius: 28,
+            offset: Offset(0, 12),
+          ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.fromLTRB(wide ? 28 : 16, wide ? 22 : 16, wide ? 28 : 16, wide ? 20 : 14),
+        padding: EdgeInsets.fromLTRB(
+          wide ? 28 : 16,
+          wide ? 22 : 16,
+          wide ? 28 : 16,
+          wide ? 20 : 14,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -377,7 +400,10 @@ class _PreviewCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           child: Text(
                             party,
                             key: const Key('speech-preview-party'),
@@ -407,7 +433,8 @@ class _PreviewCard extends StatelessWidget {
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
                     child: Directionality(
-                      textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+                      textDirection:
+                          rtl ? TextDirection.rtl : TextDirection.ltr,
                       child: Text(
                         speech,
                         key: const Key('speech-preview-draft'),
@@ -449,7 +476,9 @@ class _GenerateButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         icon: const Icon(Icons.auto_awesome, size: 18),
@@ -500,7 +529,8 @@ class _ListenButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final background = playing ? const Color(0xFF2563EB) : const Color(0xFFEFF6FF);
+    final background =
+        playing ? const Color(0xFF2563EB) : const Color(0xFFEFF6FF);
     final foreground = playing ? Colors.white : const Color(0xFF2563EB);
     return Tooltip(
       message: playing ? 'Stop' : 'Listen',
@@ -587,10 +617,7 @@ class _LeaderPortraitPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    canvas.drawOval(
-      rect,
-      Paint()..color = const Color(0xFFDBEAFE),
-    );
+    canvas.drawOval(rect, Paint()..color = const Color(0xFFDBEAFE));
     final shoulder = Paint()..color = const Color(0xFF334155);
     canvas.drawOval(
       Rect.fromCenter(
@@ -649,9 +676,15 @@ class _CopyButton extends StatelessWidget {
         style: IconButton.styleFrom(
           backgroundColor: const Color(0xFFF8FAFC),
           side: const BorderSide(color: Color(0xFFE2E8F0)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
-        icon: const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF475569)),
+        icon: const Icon(
+          Icons.copy_rounded,
+          size: 18,
+          color: Color(0xFF475569),
+        ),
       );
     }
     return TextButton.icon(
@@ -665,7 +698,10 @@ class _CopyButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       ),
       icon: const Icon(Icons.copy_rounded, size: 16),
-      label: const Text('Copy Draft', style: TextStyle(fontWeight: FontWeight.w700)),
+      label: const Text(
+        'Copy Draft',
+        style: TextStyle(fontWeight: FontWeight.w700),
+      ),
     );
   }
 }

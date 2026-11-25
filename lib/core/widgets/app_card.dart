@@ -26,7 +26,10 @@ class AppCard extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: palette.border.withValues(alpha: 0.88), width: 1.2),
+        border: Border.all(
+          color: palette.border.withValues(alpha: 0.88),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
             color: palette.cardShadow.withValues(alpha: 0.28),

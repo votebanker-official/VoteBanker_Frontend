@@ -31,7 +31,8 @@ class PasswordResetRequest {
       return PasswordResetRequest(identifier: value, isEmail: true);
     }
     final digits = value.replaceAll(RegExp(r'\D'), '');
-    final local = digits.length > 10 ? digits.substring(digits.length - 10) : digits;
+    final local =
+        digits.length > 10 ? digits.substring(digits.length - 10) : digits;
     if (local.length != 10 || local.startsWith('0')) return null;
     return PasswordResetRequest(identifier: local, isEmail: false);
   }
@@ -47,7 +48,8 @@ class PasswordResetRequest {
 
   String get maskedMobile {
     final digits = identifier.replaceAll(RegExp(r'\D'), '');
-    final local = digits.length >= 10 ? digits.substring(digits.length - 10) : digits;
+    final local =
+        digits.length >= 10 ? digits.substring(digits.length - 10) : digits;
     if (local.length < 4) return local;
     return '+91 ${local.substring(0, 2)}*** **${local.substring(local.length - 3)}';
   }

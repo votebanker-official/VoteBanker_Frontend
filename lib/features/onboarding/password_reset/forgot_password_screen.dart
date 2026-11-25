@@ -58,7 +58,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           const SizedBox(height: 18),
           ResetPrimaryButton(label: 'Continue', onPressed: _continue),
-          ResetTextLink(label: 'Back to Login', onPressed: () => goToLogin(context)),
+          ResetTextLink(
+            label: 'Back to Login',
+            onPressed: () => goToLogin(context),
+          ),
         ],
       ),
     );

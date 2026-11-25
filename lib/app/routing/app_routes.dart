@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/services/onboarding_progress_service.dart';
 import '../../core/services/profile_service.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 
@@ -95,6 +96,11 @@ abstract final class AppNav {
       unawaited(ProfileService.instance.saveDraft(draft));
     }
     unawaited(ProfileService.instance.saveLastRoute(route));
+    if (OnboardingProgressService.instance.isKnownOnboardingRoute(route)) {
+      unawaited(
+        OnboardingProgressService.instance.saveProgress(currentStep: route),
+      );
+    }
     Navigator.of(context).pushNamed(route, arguments: arguments);
   }
 

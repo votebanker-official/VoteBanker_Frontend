@@ -70,7 +70,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             suffix: IconButton(
               onPressed: () => setState(() => _hidePassword = !_hidePassword),
               icon: Icon(
-                _hidePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                _hidePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: resetMuted,
                 size: 20,
               ),
@@ -89,7 +91,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             suffix: IconButton(
               onPressed: () => setState(() => _hideConfirm = !_hideConfirm),
               icon: Icon(
-                _hideConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                _hideConfirm
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: resetMuted,
                 size: 20,
               ),
@@ -102,7 +106,8 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           const SizedBox(height: 18),
           ResetPrimaryButton(
             label: 'Reset Password',
-            onPressed: _valid && _password.text == _confirm.text ? _submit : null,
+            onPressed:
+                _valid && _password.text == _confirm.text ? _submit : null,
           ),
         ],
       ),

@@ -38,13 +38,7 @@ class WebsiteBuilderScreen extends StatefulWidget {
 
 class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
   static const _totalSteps = 5;
-  static const _labels = [
-    'Basics',
-    'Content',
-    'Design',
-    'Preview',
-    'Publish',
-  ];
+  static const _labels = ['Basics', 'Content', 'Design', 'Preview', 'Publish'];
 
   late int _step;
   late WebsiteBuilderDraft _draft;
@@ -146,9 +140,10 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
 
   Future<void> _bootstrap() async {
     final session = OnboardingScope.of(context);
-    final stored = session.ignoreStoredWebsiteDrafts
-        ? null
-        : await WebsiteBuilderStore.instance.loadPreferred();
+    final stored =
+        session.ignoreStoredWebsiteDrafts
+            ? null
+            : await WebsiteBuilderStore.instance.loadPreferred();
     final draft = stored ?? WebsiteBuilderDraft();
 
     final template = WebsiteTemplates.normalize(
@@ -158,7 +153,8 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
     session.draft.websiteTemplate = template;
 
     applyLeaderProfile(draft, session.draft);
-    if (draft.design.websiteName.isEmpty && session.draft.selectedDomain != null) {
+    if (draft.design.websiteName.isEmpty &&
+        session.draft.selectedDomain != null) {
       draft.design.websiteName = session.draft.selectedDomain!;
     }
 
@@ -309,15 +305,19 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
     await WebsiteBuilderStore.instance.saveNow(_draft);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).line('wbDraftSaved'))),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).line('wbDraftSaved')),
+      ),
     );
   }
 
   bool _validateStep(int step) {
     _errors.clear();
     if (step == 1) {
-      _errors['fullName'] =
-          WebsiteValidators.requiredText(_fullName.text, label: 'Full name');
+      _errors['fullName'] = WebsiteValidators.requiredText(
+        _fullName.text,
+        label: 'Full name',
+      );
       _errors['designation'] = WebsiteValidators.requiredText(
         _designation.text,
         label: 'Designation',
@@ -401,10 +401,12 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
     if (result.error != null) {
       setState(() {
         _publishError = switch (result.error) {
-          'payment_required' =>
-            AppLocalizations.of(context).line('wbPaymentRequired'),
-          'sign_in_required' =>
-            AppLocalizations.of(context).line('wbSignInRequired'),
+          'payment_required' => AppLocalizations.of(
+            context,
+          ).line('wbPaymentRequired'),
+          'sign_in_required' => AppLocalizations.of(
+            context,
+          ).line('wbSignInRequired'),
           'validation_failed' => _draft.publishBlockingReasons().join(' '),
           _ => AppLocalizations.of(context).line('wbPublishFailed'),
         };
@@ -508,12 +510,12 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: PrimaryButton(
-                    label: _step == _totalSteps
-                        ? l10n.line('wbSaveDraft')
-                        : l10n.next,
-                    onPressed: _step == _totalSteps
-                        ? _saveDraftExplicit
-                        : _next,
+                    label:
+                        _step == _totalSteps
+                            ? l10n.line('wbSaveDraft')
+                            : l10n.next,
+                    onPressed:
+                        _step == _totalSteps ? _saveDraftExplicit : _next,
                   ),
                 ),
               ],
@@ -876,8 +878,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
         ],
         if (template == WebsiteTemplates.community) ...[
           const BuilderSectionHeader('Community events'),
-          if (_draft.events.isEmpty)
-            const EmptyEntriesHint('No events yet.'),
+          if (_draft.events.isEmpty) const EmptyEntriesHint('No events yet.'),
           for (var i = 0; i < _draft.events.length; i++) _eventEditor(i),
           Align(
             alignment: Alignment.centerLeft,
@@ -906,12 +907,13 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
                     child: SizedBox(
                       width: 84,
                       height: 84,
-                      child: _draft.gallery[i].bytes != null
-                          ? Image.memory(
-                              _draft.gallery[i].bytes!,
-                              fit: BoxFit.cover,
-                            )
-                          : const ColoredBox(color: Color(0xFFE5E7EB)),
+                      child:
+                          _draft.gallery[i].bytes != null
+                              ? Image.memory(
+                                _draft.gallery[i].bytes!,
+                                fit: BoxFit.cover,
+                              )
+                              : const ColoredBox(color: Color(0xFFE5E7EB)),
                     ),
                   ),
                   Positioned(
@@ -949,10 +951,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
               final err = WebsiteValidators.url(_videoUrl.text);
               if (err != null || _videoUrl.text.trim().isEmpty) return;
               setState(() {
-                _draft.videoUrls = [
-                  ..._draft.videoUrls,
-                  _videoUrl.text.trim(),
-                ];
+                _draft.videoUrls = [..._draft.videoUrls, _videoUrl.text.trim()];
                 _videoUrl.clear();
                 _onChanged();
               });
@@ -1393,9 +1392,10 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
       children: [
         BuilderSectionHeader(
           published ? 'Website published' : 'Purchase and publish',
-          subtitle: published
-              ? 'Your website status is published.'
-              : 'Save your draft, complete payment, then publish.',
+          subtitle:
+              published
+                  ? 'Your website status is published.'
+                  : 'Save your draft, complete payment, then publish.',
         ),
         WebsiteBuilderPreview(draft: _draft, compact: true),
         const SizedBox(height: 12),
@@ -1410,11 +1410,15 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.line('wbPlanTitle'),
-                    style: AppTextStyles.headline(context)),
+                Text(
+                  l10n.line('wbPlanTitle'),
+                  style: AppTextStyles.headline(context),
+                ),
                 const SizedBox(height: 6),
-                Text(l10n.line('wbPlanBody'),
-                    style: AppTextStyles.muted(context)),
+                Text(
+                  l10n.line('wbPlanBody'),
+                  style: AppTextStyles.muted(context),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   '₹999',
@@ -1428,8 +1432,9 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
           const SizedBox(height: 12),
           Text(
             _publishError!,
-            style: AppTextStyles.body(context)
-                .copyWith(color: context.palette.danger),
+            style: AppTextStyles.body(
+              context,
+            ).copyWith(color: context.palette.danger),
           ),
         ],
         if (published && (_draft.publishedUrl ?? '').isNotEmpty) ...[
@@ -1455,10 +1460,7 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
           child: Text(l10n.line('wbSaveDraft')),
         ),
         const SizedBox(height: 8),
-        Text(
-          l10n.line('wbPaymentNote'),
-          style: AppTextStyles.muted(context),
-        ),
+        Text(l10n.line('wbPaymentNote'), style: AppTextStyles.muted(context)),
       ],
     );
   }
@@ -1489,22 +1491,23 @@ class _EntryCard extends StatelessWidget {
                   onPressed: () async {
                     final ok = await showDialog<bool>(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Remove entry?'),
-                        content: const Text(
-                          'This cannot be undone for this draft session.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Remove entry?'),
+                            content: const Text(
+                              'This cannot be undone for this draft session.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Remove'),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Remove'),
-                          ),
-                        ],
-                      ),
                     );
                     if (ok == true) onRemove();
                   },

@@ -23,13 +23,19 @@ class MerchandiseBookingConfirmation extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         'Your product is booked, and our VoteBanker team will contact you soon.',
-        style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700, height: 1.35),
+        style: text.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          height: 1.35,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(productName, style: text.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            productName,
+            style: text.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 8),
           Text('$quantity pieces', style: text.bodyMedium),
           if (totalPaise != null) ...[

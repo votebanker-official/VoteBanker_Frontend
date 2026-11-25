@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,6 +12,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../services/social_connection_service.dart';
@@ -338,7 +341,9 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
                               title: l10n.socialTitle,
                               subtitle: l10n.socialBody,
                               backLabel: l10n.line('backToProfile'),
-                              onBack: () => AppRouter.popIfPossible(context),
+                              onBack:
+                                  () =>
+                                      AppRouter.back(context, AppRoutes.domain),
                             ),
                             const SizedBox(height: 16),
                             DecoratedBox(
@@ -418,6 +423,13 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
                                 child: _GradientContinue(
                                   label: l10n.saveAndContinue,
                                   onPressed: () {
+                                    unawaited(
+                                      OnboardingProgressService.instance
+                                          .saveProgress(
+                                            completedStep: AppRoutes.social,
+                                            currentStep: AppRoutes.blueTik,
+                                          ),
+                                    );
                                     AppRouter.open(context, AppRoutes.blueTik);
                                   },
                                 ),

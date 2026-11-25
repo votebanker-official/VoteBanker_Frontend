@@ -63,7 +63,11 @@ SocialConnectCopy socialConnectCopy(AppLocalizations l10n, String providerId) {
         secure: l10n.line('socialYtSecure'),
       );
     default:
-      throw ArgumentError.value(providerId, 'providerId', 'Unknown social provider');
+      throw ArgumentError.value(
+        providerId,
+        'providerId',
+        'Unknown social provider',
+      );
   }
 }
 
@@ -95,93 +99,114 @@ class SocialConnectDialog extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 440),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(22, 10, 22, 18),
-          child: busy
-              ? _ConnectingBody(copy: copy, mark: mark)
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          tooltip: l10n.line('socialCancel'),
-                          onPressed: () => Navigator.pop(context, false),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          mark,
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              l10n.line('socialConnectTitle').replaceAll('{provider}', copy.name),
-                              style: AppTextStyles.headline(context).copyWith(fontSize: 22),
-                            ),
+          child:
+              busy
+                  ? _ConnectingBody(copy: copy, mark: mark)
+                  : SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            tooltip: l10n.line('socialCancel'),
+                            onPressed: () => Navigator.pop(context, false),
+                            icon: const Icon(Icons.close),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(copy.summary, style: AppTextStyles.body(context)),
-                      const SizedBox(height: 16),
-                      _InfoBlock(
-                        icon: Icons.verified_user_outlined,
-                        title: l10n.line('socialSecureTitle'),
-                        body: copy.secure,
-                      ),
-                      const SizedBox(height: 10),
-                      _InfoBlock(
-                        icon: Icons.lock_outline,
-                        title: l10n.line('socialPermissionsTitle'),
-                        body: copy.permissions,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          mark,
-                          const SizedBox(width: 10),
-                          Icon(Icons.arrow_forward, size: 16, color: palette.textMuted),
-                          const SizedBox(width: 10),
-                          Icon(Icons.person_outline, size: 22, color: palette.textMuted),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.line('socialRedirectNote').replaceAll('{provider}', copy.name),
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.muted(context),
-                      ),
-                      if (error != null) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          error!,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.body(context).copyWith(color: palette.danger),
+                        ),
+                        Row(
+                          children: [
+                            mark,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                l10n
+                                    .line('socialConnectTitle')
+                                    .replaceAll('{provider}', copy.name),
+                                style: AppTextStyles.headline(
+                                  context,
+                                ).copyWith(fontSize: 22),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(copy.summary, style: AppTextStyles.body(context)),
+                        const SizedBox(height: 16),
+                        _InfoBlock(
+                          icon: Icons.verified_user_outlined,
+                          title: l10n.line('socialSecureTitle'),
+                          body: copy.secure,
+                        ),
+                        const SizedBox(height: 10),
+                        _InfoBlock(
+                          icon: Icons.lock_outline,
+                          title: l10n.line('socialPermissionsTitle'),
+                          body: copy.permissions,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            mark,
+                            const SizedBox(width: 10),
+                            Icon(
+                              Icons.arrow_forward,
+                              size: 16,
+                              color: palette.textMuted,
+                            ),
+                            const SizedBox(width: 10),
+                            Icon(
+                              Icons.person_outline,
+                              size: 22,
+                              color: palette.textMuted,
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
-                        TextButton(
+                        Text(
+                          l10n
+                              .line('socialRedirectNote')
+                              .replaceAll('{provider}', copy.name),
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.muted(context),
+                        ),
+                        if (error != null) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            error!,
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.body(
+                              context,
+                            ).copyWith(color: palette.danger),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: onContinue,
+                            child: Text(l10n.line('socialRetry')),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                            shape: const StadiumBorder(),
+                          ),
                           onPressed: onContinue,
-                          child: Text(l10n.line('socialRetry')),
+                          child: Text(
+                            l10n
+                                .line('socialContinueTo')
+                                .replaceAll('{provider}', copy.name),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text(l10n.line('socialCancel')),
                         ),
                       ],
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          shape: const StadiumBorder(),
-                        ),
-                        onPressed: onContinue,
-                        child: Text(l10n.line('socialContinueTo').replaceAll('{provider}', copy.name)),
-                      ),
-                      const SizedBox(height: 4),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: Text(l10n.line('socialCancel')),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
         ),
       ),
     );
@@ -224,8 +249,12 @@ class SocialConnectedDialog extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      l10n.line('socialConnectedHeading').replaceAll('{provider}', provider),
-                      style: AppTextStyles.headline(context).copyWith(fontSize: 20),
+                      l10n
+                          .line('socialConnectedHeading')
+                          .replaceAll('{provider}', provider),
+                      style: AppTextStyles.headline(
+                        context,
+                      ).copyWith(fontSize: 20),
                     ),
                   ),
                   Icon(Icons.check_circle, color: palette.secondary),
@@ -264,8 +293,12 @@ class SocialConnectedDialog extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    l10n.line('socialConnectedBody').replaceAll('{provider}', provider),
-                    style: AppTextStyles.body(context).copyWith(color: const Color(0xFF157A3A)),
+                    l10n
+                        .line('socialConnectedBody')
+                        .replaceAll('{provider}', provider),
+                    style: AppTextStyles.body(
+                      context,
+                    ).copyWith(color: const Color(0xFF157A3A)),
                   ),
                 ),
               ),
@@ -312,7 +345,9 @@ class _ConnectingBody extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  l10n.line('socialConnectTitle').replaceAll('{provider}', copy.name),
+                  l10n
+                      .line('socialConnectTitle')
+                      .replaceAll('{provider}', copy.name),
                   style: AppTextStyles.headline(context).copyWith(fontSize: 22),
                 ),
               ),
@@ -325,10 +360,15 @@ class _ConnectingBody extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 3),
           ),
           const SizedBox(height: 16),
-          Text(l10n.line('socialConnecting'), style: AppTextStyles.label(context)),
+          Text(
+            l10n.line('socialConnecting'),
+            style: AppTextStyles.label(context),
+          ),
           const SizedBox(height: 6),
           Text(
-            l10n.line('socialConnectingHint').replaceAll('{provider}', copy.name),
+            l10n
+                .line('socialConnectingHint')
+                .replaceAll('{provider}', copy.name),
             textAlign: TextAlign.center,
             style: AppTextStyles.muted(context),
           ),
@@ -340,7 +380,11 @@ class _ConnectingBody extends StatelessWidget {
 }
 
 class _InfoBlock extends StatelessWidget {
-  const _InfoBlock({required this.icon, required this.title, required this.body});
+  const _InfoBlock({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
 
   final IconData icon;
   final String title;

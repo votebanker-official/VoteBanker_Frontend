@@ -81,12 +81,7 @@ class ResetBrand extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Image.asset(
-          AppAssets.logo,
-          width: 56,
-          height: 56,
-          fit: BoxFit.contain,
-        ),
+        Image.asset(AppAssets.logo, width: 56, height: 56, fit: BoxFit.contain),
         const SizedBox(height: 8),
         Text(
           AppLocalizations.of(context).appName,
@@ -223,9 +218,10 @@ class ResetPrimaryButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           gradient: LinearGradient(
-            colors: onPressed == null
-                ? const [Color(0xFFB9D4F5), Color(0xFF9EC3F0)]
-                : const [Color(0xFF3B8BFF), Color(0xFF1677F2)],
+            colors:
+                onPressed == null
+                    ? const [Color(0xFFB9D4F5), Color(0xFF9EC3F0)]
+                    : const [Color(0xFF3B8BFF), Color(0xFF1677F2)],
           ),
         ),
         child: FilledButton(
@@ -260,7 +256,11 @@ class ResetPrimaryButton extends StatelessWidget {
 }
 
 class ResetTextLink extends StatelessWidget {
-  const ResetTextLink({required this.label, required this.onPressed, super.key});
+  const ResetTextLink({
+    required this.label,
+    required this.onPressed,
+    super.key,
+  });
 
   final String label;
   final VoidCallback onPressed;
@@ -282,7 +282,9 @@ class ResetTextLink extends StatelessWidget {
 }
 
 void goToLogin(BuildContext context) {
-  Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+  Navigator.of(
+    context,
+  ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
 }
 
 class _WaveBackground extends StatelessWidget {
@@ -300,42 +302,44 @@ class _WavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final soft = Paint()..color = const Color(0xFFD7ECFF);
-    final top = Path()
-      ..moveTo(0, size.height * 0.16)
-      ..quadraticBezierTo(
-        size.width * 0.22,
-        size.height * 0.02,
-        size.width * 0.48,
-        size.height * 0.1,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.78,
-        size.height * 0.2,
-        size.width,
-        size.height * 0.04,
-      )
-      ..lineTo(size.width, 0)
-      ..lineTo(0, 0)
-      ..close();
+    final top =
+        Path()
+          ..moveTo(0, size.height * 0.16)
+          ..quadraticBezierTo(
+            size.width * 0.22,
+            size.height * 0.02,
+            size.width * 0.48,
+            size.height * 0.1,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.78,
+            size.height * 0.2,
+            size.width,
+            size.height * 0.04,
+          )
+          ..lineTo(size.width, 0)
+          ..lineTo(0, 0)
+          ..close();
     canvas.drawPath(top, soft);
 
-    final bottom = Path()
-      ..moveTo(0, size.height * 0.72)
-      ..quadraticBezierTo(
-        size.width * 0.28,
-        size.height * 0.58,
-        size.width * 0.55,
-        size.height * 0.78,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.82,
-        size.height * 0.98,
-        size.width,
-        size.height * 0.82,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
+    final bottom =
+        Path()
+          ..moveTo(0, size.height * 0.72)
+          ..quadraticBezierTo(
+            size.width * 0.28,
+            size.height * 0.58,
+            size.width * 0.55,
+            size.height * 0.78,
+          )
+          ..quadraticBezierTo(
+            size.width * 0.82,
+            size.height * 0.98,
+            size.width,
+            size.height * 0.82,
+          )
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height)
+          ..close();
     canvas.drawPath(bottom, soft..color = const Color(0xFFD4EAFF));
   }
 

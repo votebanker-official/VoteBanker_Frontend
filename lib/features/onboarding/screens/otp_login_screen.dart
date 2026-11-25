@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -141,23 +142,10 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
           (signupName != null && signupName.isNotEmpty)) {
         await ProfileService.instance.saveDraft(draft);
       }
-      final state = await ProfileService.instance.fetchProfileState();
+      final resume =
+          await OnboardingProgressService.instance.resolveResumeRoute();
       if (!mounted) return;
-      if (state == null) {
-        throw const AuthException(
-          'profile_unavailable',
-          'We could not load your profile. Please try again.',
-        );
-      }
-      final profile = state['profile'];
-      final lastRoute = state['last_route'];
-      final fallback =
-          profile is Map<String, dynamic>
-              ? (lastRoute is String && lastRoute.startsWith("/")
-                  ? lastRoute
-                  : AppRoutes.dashboard)
-              : AppRoutes.profile;
-      final nextRoute = await routeAfterBlueTikSignIn(fallback);
+      final nextRoute = await routeAfterBlueTikSignIn(resume);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(nextRoute);
     } on AuthException catch (e) {

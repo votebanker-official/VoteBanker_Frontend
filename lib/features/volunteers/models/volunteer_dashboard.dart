@@ -33,7 +33,8 @@ class DashboardVolunteer {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts.first.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
-    return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'.toUpperCase();
+    return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
+        .toUpperCase();
   }
 
   DashboardVolunteer copyWith({
@@ -53,7 +54,8 @@ class DashboardVolunteer {
       location: location ?? this.location,
       status: status ?? this.status,
       skills: skills ?? this.skills,
-      availability: availability == _keep ? this.availability : availability as String?,
+      availability:
+          availability == _keep ? this.availability : availability as String?,
       email: email == _keep ? this.email : email as String?,
       phone: phone == _keep ? this.phone : phone as String?,
       notes: notes == _keep ? this.notes : notes as String?,
@@ -72,7 +74,8 @@ DashboardVolunteer dashboardVolunteerFromRecord(VolunteerRecord record) {
   return DashboardVolunteer(
     id: record.id,
     name: record.fullName,
-    location: (record.location ?? '').trim().isEmpty ? '—' : record.location!.trim(),
+    location:
+        (record.location ?? '').trim().isEmpty ? '—' : record.location!.trim(),
     status: volunteerStatusLabel(record.status),
     skills: splitVolunteerSkills(record.skills),
     availability: _clean(record.availability),

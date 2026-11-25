@@ -57,9 +57,8 @@ class LocationSelection {
 
     this.state = state;
     final districts = catalog.districtsOf(country, state);
-    this.district = district.isNotEmpty && districts.contains(district)
-        ? district
-        : '';
+    this.district =
+        district.isNotEmpty && districts.contains(district) ? district : '';
   }
 
   LocationIssue? issue(LocationCatalog catalog) {

@@ -1,10 +1,7 @@
 /// Safe links for saved VRM social contacts.
 /// Usernames stay as text. Only a real http(s) profile URL on the expected host opens.
 abstract final class SocialContactLinks {
-  static const instagramHosts = {
-    'instagram.com',
-    'www.instagram.com',
-  };
+  static const instagramHosts = {'instagram.com', 'www.instagram.com'};
 
   static const facebookHosts = {
     'facebook.com',
@@ -28,7 +25,8 @@ abstract final class SocialContactLinks {
     if (value.isEmpty) return true;
     final url = profileUrl(value, hosts);
     if (url != null) return true;
-    if (value.contains(RegExp(r'[\s/\\]')) || value.contains('://')) return false;
+    if (value.contains(RegExp(r'[\s/\\]')) || value.contains('://'))
+      return false;
     final handle = value.startsWith('@') ? value.substring(1) : value;
     return RegExp(r'^[A-Za-z0-9._]{1,50}$').hasMatch(handle);
   }

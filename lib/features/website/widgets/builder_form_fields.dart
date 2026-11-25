@@ -74,11 +74,7 @@ class BuilderPhotoPicker extends StatelessWidget {
     if (file == null) return;
     final bytes = await file.readAsBytes();
     onChanged(
-      MediaRef(
-        base64: base64Encode(bytes),
-        caption: media.caption,
-        url: '',
-      ),
+      MediaRef(base64: base64Encode(bytes), caption: media.caption, url: ''),
     );
   }
 
@@ -93,10 +89,9 @@ class BuilderPhotoPicker extends StatelessWidget {
         children: [
           Text(
             requiredField ? '$label *' : '$label (optional)',
-            style: AppTextStyles.label(context).copyWith(
-              fontSize: 13,
-              color: palette.textMuted,
-            ),
+            style: AppTextStyles.label(
+              context,
+            ).copyWith(fontSize: 13, color: palette.textMuted),
           ),
           const SizedBox(height: 8),
           Row(
@@ -106,17 +101,15 @@ class BuilderPhotoPicker extends StatelessWidget {
                 child: SizedBox(
                   width: round ? 80 : 120,
                   height: round ? 80 : 72,
-                  child: bytes != null
-                      ? Image.memory(bytes, fit: BoxFit.cover)
-                      : media.url.isNotEmpty
+                  child:
+                      bytes != null
+                          ? Image.memory(bytes, fit: BoxFit.cover)
+                          : media.url.isNotEmpty
                           ? Image.network(media.url, fit: BoxFit.cover)
                           : ColoredBox(
-                              color: palette.surfaceHighlight,
-                              child: Icon(
-                                Icons.person,
-                                color: palette.textMuted,
-                              ),
-                            ),
+                            color: palette.surfaceHighlight,
+                            child: Icon(Icons.person, color: palette.textMuted),
+                          ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -128,9 +121,11 @@ class BuilderPhotoPicker extends StatelessWidget {
                     OutlinedButton.icon(
                       onPressed: _pick,
                       icon: const Icon(Icons.upload_outlined),
-                      label: Text(bytes == null && media.url.isEmpty
-                          ? 'Upload'
-                          : 'Replace'),
+                      label: Text(
+                        bytes == null && media.url.isEmpty
+                            ? 'Upload'
+                            : 'Replace',
+                      ),
                     ),
                     if (media.hasImage)
                       OutlinedButton.icon(
