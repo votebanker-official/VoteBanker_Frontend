@@ -159,7 +159,7 @@ abstract final class AppRouter {
       reverseTransitionDuration: const Duration(milliseconds: 180),
       pageBuilder: (context, animation, secondaryAnimation) {
         if (!showFooter) return page;
-        return AppFooterShell(child: page);
+        return GlobalFooter.wrapIfDisplayed(context, page);
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);

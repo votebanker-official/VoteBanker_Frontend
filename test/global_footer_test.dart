@@ -31,6 +31,15 @@ void main() {
       expect(tester.takeException(), isNull, reason: route);
     }
 
+    await _setSurface(tester, const Size(390, 844));
+    for (final route in AppRoutes.globalFooterRoutes) {
+      await tester.pumpWidget(_app(route));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(GlobalFooter), findsNothing, reason: route);
+      expect(tester.takeException(), isNull, reason: route);
+    }
+
     for (final route in const [
       AppRoutes.login,
       AppRoutes.otp,
@@ -44,6 +53,37 @@ void main() {
       expect(find.byType(GlobalFooter), findsNothing, reason: route);
       expect(tester.takeException(), isNull, reason: route);
     }
+  });
+
+  testWidgets('mobile navigation remains while app footers are omitted', (
+    tester,
+  ) async {
+    await _setSurface(tester, const Size(390, 844));
+    await tester.pumpWidget(
+      _app(AppRoutes.dashboard, platform: TargetPlatform.android),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GlobalFooter), findsNothing);
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+    expect(scaffold.bottomNavigationBar, isNotNull);
+    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Analytics'), findsWidgets);
+    expect(find.byIcon(Icons.add), findsWidgets);
+    expect(find.text('Notifications'), findsWidgets);
+    expect(find.text('My Portfolio'), findsWidgets);
+
+    await _setSurface(tester, const Size(1280, 900));
+    await tester.pumpWidget(
+      _app(AppRoutes.dashboard, platform: TargetPlatform.android),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(GlobalFooter), findsNothing);
+
+    await _setSurface(tester, const Size(1024, 900));
+    await tester.pumpWidget(_app(AppRoutes.dashboard));
+    await tester.pumpAndSettle();
+    expect(find.byType(GlobalFooter), findsNothing);
   });
 
   test('voter records route is excluded from the shared footer shell', () {
@@ -222,8 +262,9 @@ void main() {
   ) async {
     await _setSurface(tester, const Size(1280, 800));
     await tester.pumpWidget(
-      const MaterialApp(
-        home: AppFooterShell(
+      MaterialApp(
+        theme: ThemeData(platform: TargetPlatform.windows),
+        home: const AppFooterShell(
           child: ColoredBox(key: Key('page-body'), color: Colors.white),
         ),
       ),
@@ -249,41 +290,27 @@ void main() {
 
     await _setSurface(tester, const Size(390, 900));
     await tester.pumpWidget(
-      const MaterialApp(
-        home: AppFooterShell(
+      MaterialApp(
+        theme: ThemeData(platform: TargetPlatform.windows),
+        home: const AppFooterShell(
           child: ColoredBox(key: Key('page-body'), color: Colors.white),
         ),
       ),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    final narrowPage = tester.getRect(find.byKey(const Key('page-body')));
-    final narrowFooter = tester.getRect(find.byKey(const Key('global-footer')));
-    expect(narrowFooter.left, 0);
-    expect(narrowFooter.width, 390);
-    expect(narrowFooter.top, greaterThanOrEqualTo(narrowPage.bottom - 1));
-    expect(
-      tester.getTopLeft(find.text('Quick Links')).dy,
-      greaterThan(
-        tester
-            .getTopLeft(
-              find.text('Voter Relationship Management Private Limited'),
-            )
-            .dy,
-      ),
-    );
-    expect(
-      tester.getTopLeft(find.text('Follow Us')).dy,
-      greaterThan(tester.getTopLeft(find.text('Company')).dy),
-    );
+    expect(find.byKey(const Key('global-footer')), findsNothing);
+    expect(find.text('Quick Links'), findsNothing);
+    expect(tester.getRect(find.byKey(const Key('page-body'))).width, 390);
   });
 
   testWidgets('long pages scroll to the full footer below the content', (
     tester,
   ) async {
-    await _setSurface(tester, const Size(800, 600));
+    await _setSurface(tester, const Size(1280, 600));
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(platform: TargetPlatform.windows),
         home: AppFooterShell(
           child: ListView(
             children: [
@@ -299,7 +326,7 @@ void main() {
 
     final footer = find.byKey(const Key('global-footer'));
     final before = tester.getRect(footer);
-    expect(before.width, 800);
+    expect(before.width, 1280);
     expect(before.top, greaterThan(1500));
     expect(before.height, greaterThan(120));
 
@@ -308,7 +335,7 @@ void main() {
     final after = tester.getRect(footer);
     expect(after.top, lessThan(before.top));
     expect(after.height, before.height);
-    expect(after.width, 800);
+    expect(after.width, 1280);
     expect(
       find.text('Voter Relationship Management Private Limited'),
       findsWidgets,
@@ -331,14 +358,14 @@ Future<void> _setSurface(WidgetTester tester, Size size) async {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Widget _app(String route) {
+Widget _app(String route, {TargetPlatform platform = TargetPlatform.windows}) {
   return ThemeScope(
     controller: ThemeController(),
     child: OnboardingScope(
       controller: OnboardingController(),
       child: MaterialApp(
         key: ValueKey(route),
-        theme: AppTheme.light(),
+        theme: AppTheme.light().copyWith(platform: platform),
         locale: const Locale('en'),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [

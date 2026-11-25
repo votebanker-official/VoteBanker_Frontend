@@ -142,10 +142,9 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder:
-            (_) => AppFooterShell(
-              child: WebsiteBuilderScreen(
-                continueOnboarding: continueOnboarding,
-              ),
+            (context) => GlobalFooter.wrapIfDisplayed(
+              context,
+              WebsiteBuilderScreen(continueOnboarding: continueOnboarding),
             ),
       ),
     );

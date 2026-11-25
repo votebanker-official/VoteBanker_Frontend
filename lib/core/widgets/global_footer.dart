@@ -28,6 +28,21 @@ class GlobalFooter extends StatelessWidget {
   static const copyrightLine =
       '© 2026 Voter Relationship Management Private Limited. All rights reserved.';
 
+  static const mobileBreakpoint = columnBreakpoint;
+
+  static bool shouldDisplay(BuildContext context) {
+    final platform = Theme.of(context).platform;
+    final nativeMobile =
+        !kIsWeb &&
+        (platform == TargetPlatform.android || platform == TargetPlatform.iOS);
+    return !nativeMobile &&
+        MediaQuery.sizeOf(context).width >= mobileBreakpoint;
+  }
+
+  static Widget wrapIfDisplayed(BuildContext context, Widget child) {
+    return shouldDisplay(context) ? AppFooterShell(child: child) : child;
+  }
+
   /// Official VoteBanker profiles. An empty value stays visible and does not
   /// open a guessed address.
   static const socialUrls = <String, String>{
@@ -273,6 +288,7 @@ class _AppFooterShellState extends State<AppFooterShell> {
 
   @override
   Widget build(BuildContext context) {
+    if (!GlobalFooter.shouldDisplay(context)) return widget.child;
     return Material(
       color: Colors.white,
       child: LayoutBuilder(

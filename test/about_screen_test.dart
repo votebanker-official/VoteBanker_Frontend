@@ -55,9 +55,13 @@ void main() {
       );
 
       final footer = find.byKey(const Key('global-footer'));
-      await tester.ensureVisible(footer);
-      await tester.pump();
-      expect(footer.hitTestable(), findsOneWidget);
+      if (size.width >= GlobalFooter.mobileBreakpoint) {
+        await tester.ensureVisible(footer);
+        await tester.pump();
+        expect(footer.hitTestable(), findsOneWidget);
+      } else {
+        expect(footer, findsNothing);
+      }
       expect(tester.takeException(), isNull);
     });
   }
@@ -122,7 +126,7 @@ Widget _app(String route) {
       controller: OnboardingController(),
       child: MaterialApp(
         key: ValueKey(route),
-        theme: AppTheme.light(),
+        theme: AppTheme.light().copyWith(platform: TargetPlatform.windows),
         locale: const Locale('en'),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: const [
