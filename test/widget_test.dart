@@ -373,8 +373,8 @@ void main() {
     final websiteContext = tester.element(find.text('My Website'));
     expect(OnboardingScope.of(websiteContext).draft.fullName, isEmpty);
 
-    // Header Skip opens domain search for portfolio name selection.
-    await tester.tap(find.text('Skip'));
+    // Book Now opens domain search for portfolio name selection.
+    await _tapLabel(tester, 'Book Now');
     await tester.pumpAndSettle();
     expect(find.text('Name Your Website'), findsWidgets);
 
@@ -420,12 +420,14 @@ void main() {
 
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
-    expect(find.text('Name Your Website'), findsWidgets);
-    await _tapLabel(tester, 'Skip for now');
+    expect(find.text('Speech Generator'), findsWidgets);
+    await _tapLabel(tester, 'Skip Now');
     expect(find.text('Social Media Setup'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Get Your Blue Tik'), findsOneWidget);
+    await _tapLabel(tester, 'Skip Now');
+    expect(find.text('Get Your Voter Lists'), findsWidgets);
     await _tapLabel(tester, 'Skip Now');
     expect(find.text('Create Your Campaign Merchandise'), findsOneWidget);
     expect(find.text('Design & Order'), findsWidgets);

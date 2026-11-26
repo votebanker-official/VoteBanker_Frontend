@@ -257,7 +257,8 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => AppRouter.open(context, AppRoutes.social),
+                    onPressed:
+                        () => AppRouter.open(context, AppRoutes.speechPreview),
                     child: Text(l10n.portfolioSkip),
                   ),
                 ),
