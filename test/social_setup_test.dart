@@ -142,7 +142,7 @@ void main() {
     await tester.tap(save);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('blue-tik-screen')), findsOneWidget);
-    expect(find.text('Get Your Blue Tik'), findsOneWidget);
+    expect(find.text('Get Your Blue Tick Assistance'), findsOneWidget);
     expect(find.text(enTranslations['socialTitle']!), findsNothing);
     expect(find.byType(CampaignTemplatesScreen), findsNothing);
   });
