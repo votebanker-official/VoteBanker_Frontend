@@ -24,7 +24,10 @@ class ThemeToggle extends StatelessWidget {
           shape: CircleBorder(side: BorderSide(color: palette.border)),
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: controller.toggle,
+            onTap:
+                () => controller.setMode(
+                  isDark ? ThemeMode.light : ThemeMode.dark,
+                ),
             child: SizedBox(
               width: 48,
               height: 48,

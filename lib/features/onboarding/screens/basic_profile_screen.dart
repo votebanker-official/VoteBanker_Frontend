@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/localization/app_localizations.dart';
@@ -12,6 +10,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/utils/person_name.dart';
@@ -97,6 +96,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       return;
     }
     final draft = OnboardingScope.of(context).draft;
+    final sessionEmail =
+        (AuthService.instance.session?.email ?? '').trim().toLowerCase();
+    final draftLeaderName = draft.leaderName.trim();
+    if (draftLeaderName.contains('@') ||
+        (sessionEmail.isNotEmpty &&
+            draftLeaderName.toLowerCase() == sessionEmail)) {
+      draft.leaderName = '';
+    }
     if (draft.leaderName.trim().isEmpty) {
       final socialName = _accountDisplayName();
       if (socialName.isNotEmpty) {
@@ -167,16 +174,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     if (error != null && error.isNotEmpty) {
       AuthService.instance.socialLaunchError = null;
     }
-    // #region agent log
-    _profileDebugLog('C', 'leader profile social return', {
-      'hasTicket': ticket != null && ticket.isNotEmpty,
-      'hasError': error != null && error.isNotEmpty,
-      'sessionEmailLength':
-          (AuthService.instance.session?.email ?? '').trim().length,
-      'sessionNameLength':
-          (AuthService.instance.session?.fullName ?? '').trim().length,
-    });
-    // #endregion
+
     if ((ticket != null && ticket.isNotEmpty) ||
         (error != null && error.isNotEmpty)) {
       clearAuthQuery();
@@ -209,16 +207,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       if (_email.text.trim().isEmpty && email.isNotEmpty) {
         _email.text = email;
       }
-      // #region agent log
-      _profileDebugLog('D', 'profile after google ticket', {
-        'hasSessionEmail': email.isNotEmpty,
-        'sessionEmailLength': email.length,
-        'hasSessionName': fullName.isNotEmpty,
-        'sessionNameLength': fullName.length,
-        'draftNameLength': draft.leaderName.trim().length,
-        'emailFieldLength': _email.text.trim().length,
-      });
-      // #endregion
     }
     if (!mounted) return;
     if (_leaderName.text.trim().isEmpty && draft.leaderName.isNotEmpty) {
@@ -249,6 +237,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     if (profile != null) {
       ProfileService.applyProfile(draft, profile);
     }
+    final sessionEmail = (AuthService.instance.session?.email ?? '').trim();
+    final sessionEmailLower = sessionEmail.toLowerCase();
+    final appliedLeaderName = draft.leaderName.trim();
+    if (appliedLeaderName.contains('@') ||
+        (sessionEmailLower.isNotEmpty &&
+            appliedLeaderName.toLowerCase() == sessionEmailLower)) {
+      draft.leaderName = '';
+    }
     final socialName = _accountDisplayName();
     final savedName =
         profile != null && profile['full_name'] is String
@@ -257,7 +253,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     if (draft.leaderName.trim().isEmpty && socialName.isNotEmpty) {
       draft.leaderName = socialName;
     }
-    final sessionEmail = AuthService.instance.session?.email.trim() ?? '';
     if (_email.text.trim().isEmpty && sessionEmail.isNotEmpty) {
       _email.text = sessionEmail;
     }
@@ -270,23 +265,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         _leaderName.text.trim() != draft.leaderName) {
       _leaderName.text = draft.leaderName;
     }
-    // #region agent log
-    _profileDebugLog('B', 'saved profile applied to leader form', {
-      'profileLoaded': profile != null,
-      'savedNameLength':
-          profile == null
-              ? 0
-              : (profile['full_name'] is String
-                  ? (profile['full_name'] as String).trim().length
-                  : 0),
-      'profileHasEmailKey': profile != null && profile.containsKey('email'),
-      'draftNameLength': draft.leaderName.trim().length,
-      'fieldNameLength': _leaderName.text.trim().length,
-      'emailFieldLength': _email.text.trim().length,
-      'sessionEmailLength':
-          (AuthService.instance.session?.email ?? '').trim().length,
-    });
-    // #endregion
+
     if (profile == null) {
       await _applyGooglePhoto(draft);
       if (!mounted) return;
@@ -354,13 +333,16 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     });
   }
 
-  /// Google display name, or the fetched email when Google sends no name.
+  /// Account display name from the authenticated session/profile.
   String _accountDisplayName() {
-    final named = formatPersonName(
-      AuthService.instance.session?.fullName ?? '',
-    );
-    if (named.isNotEmpty) return named;
-    return AuthService.instance.session?.email.trim() ?? '';
+    final session = AuthService.instance.session;
+    final raw = (session?.fullName ?? '').trim();
+    if (raw.isEmpty) return '';
+    final email = (session?.email ?? '').trim().toLowerCase();
+    if (raw.contains('@') || (email.isNotEmpty && raw.toLowerCase() == email)) {
+      return '';
+    }
+    return formatPersonName(raw);
   }
 
   Future<void> _applyGooglePhoto(OnboardingDraft draft) async {
@@ -395,36 +377,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
       // The rest of the form still works if the bundled list cannot be read.
     }
   }
-
-  // #region agent log
-  void _profileDebugLog(
-    String hypothesisId,
-    String message,
-    Map<String, Object?> data,
-  ) {
-    http
-        .post(
-          Uri.parse(
-            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-          ),
-          headers: const {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '6d3aea',
-          },
-          body: jsonEncode({
-            'sessionId': '6d3aea',
-            'runId': 'pre-fix',
-            'hypothesisId': hypothesisId,
-            'location': 'basic_profile_screen.dart',
-            'message': message,
-            'data': data,
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          }),
-        )
-        .timeout(const Duration(seconds: 2))
-        .catchError((_) => http.Response('', 599));
-  }
-  // #endregion
 
   @override
   void dispose() {
@@ -623,6 +575,10 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         );
         return;
       }
+      await OnboardingProgressService.instance.saveProgress(
+        completedStep: AppRoutes.profile,
+        currentStep: AppRoutes.additionalProfile,
+      );
     }
     if (!mounted) return;
     setState(() => _saving = false);
@@ -638,6 +594,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
     unawaited(WebsiteBuilderStore.instance.clearLocal());
     unawaited(PortfolioStore.instance.clear());
     unawaited(ProfileService.instance.saveLastRoute(AppRoutes.website));
+    unawaited(
+      OnboardingProgressService.instance.saveProgress(
+        currentStep: AppRoutes.website,
+      ),
+    );
     Navigator.of(context).pushNamed(AppRoutes.website);
   }
 
@@ -973,6 +934,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
         final palette = context.palette;
         final page =
             palette.isDark ? palette.background : const Color(0xFFF5F8FC);
+        final fieldBorder =
+            palette.isDark ? palette.border : const Color(0xFFE3EDF6);
         final gap = wide ? 16.0 : 14.0;
         Widget pair(Widget left, Widget right) {
           if (!wide) {
@@ -1031,15 +994,11 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                           isDense: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE3EDF6),
-                            ),
+                            borderSide: BorderSide(color: fieldBorder),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE3EDF6),
-                            ),
+                            borderSide: BorderSide(color: fieldBorder),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -1420,6 +1379,7 @@ class _ProfileTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 6, 16, 4),
       child: Row(
@@ -1427,7 +1387,10 @@ class _ProfileTopBar extends StatelessWidget {
           IconButton(
             tooltip: l10n.back,
             onPressed: onBack,
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF0F2744)),
+            icon: Icon(
+              Icons.arrow_back,
+              color: palette.isDark ? palette.text : const Color(0xFF0F2744),
+            ),
           ),
           ClipOval(
             child: Image.asset(
@@ -1443,8 +1406,8 @@ class _ProfileTopBar extends StatelessWidget {
               l10n.appName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF0F2744),
+              style: TextStyle(
+                color: palette.isDark ? palette.text : const Color(0xFF0F2744),
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
                 letterSpacing: 0.4,
@@ -1457,13 +1420,19 @@ class _ProfileTopBar extends StatelessWidget {
           const SizedBox(width: 10),
           CircleAvatar(
             radius: 18,
-            backgroundColor: const Color(0xFFD7E6F5),
+            backgroundColor:
+                palette.isDark
+                    ? palette.surfaceSecondary
+                    : const Color(0xFFD7E6F5),
             backgroundImage: photo == null ? null : MemoryImage(photo!),
             child:
                 photo == null
-                    ? const Icon(
+                    ? Icon(
                       Icons.person,
-                      color: Color(0xFF0F2744),
+                      color:
+                          palette.isDark
+                              ? palette.textMuted
+                              : const Color(0xFF0F2744),
                       size: 18,
                     )
                     : null,
@@ -1513,16 +1482,32 @@ class _QuoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Container(
       constraints: const BoxConstraints(minHeight: 112),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFF3FFF8), Color(0xFFE7F8EF), Color(0xFFF4FBFF)],
+          colors:
+              palette.isDark
+                  ? [
+                    palette.surfaceSecondary,
+                    palette.surface,
+                    palette.backgroundRaised,
+                  ]
+                  : const [
+                    Color(0xFFF3FFF8),
+                    Color(0xFFE7F8EF),
+                    Color(0xFFF4FBFF),
+                  ],
         ),
+        border:
+            palette.isDark
+                ? Border.all(color: palette.border.withValues(alpha: 0.65))
+                : null,
         boxShadow: const [
           BoxShadow(
             color: Color(0x120F2744),
@@ -1698,8 +1683,14 @@ class _PhotoCard extends StatelessWidget {
                   DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFE8F1FF),
-                      border: Border.all(color: Colors.white, width: 3),
+                      color:
+                          palette.isDark
+                              ? palette.surfaceHighlight
+                              : const Color(0xFFE8F1FF),
+                      border: Border.all(
+                        color: palette.isDark ? palette.border : Colors.white,
+                        width: 3,
+                      ),
                       boxShadow: const [
                         BoxShadow(color: Color(0x332563EB), blurRadius: 12),
                       ],
@@ -1719,7 +1710,10 @@ class _PhotoCard extends StatelessWidget {
                               ? Icon(
                                 Icons.person,
                                 size: diameter * 0.44,
-                                color: const Color(0xFF64748B),
+                                color:
+                                    palette.isDark
+                                        ? palette.textMuted
+                                        : const Color(0xFF64748B),
                               )
                               : null,
                     ),
@@ -1786,9 +1780,17 @@ class _PhotoCard extends StatelessWidget {
                       ),
                       OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0F2744),
+                          foregroundColor:
+                              palette.isDark
+                                  ? palette.text
+                                  : const Color(0xFF0F2744),
                           visualDensity: VisualDensity.compact,
-                          side: const BorderSide(color: Color(0xFFD5E2EF)),
+                          side: BorderSide(
+                            color:
+                                palette.isDark
+                                    ? palette.border
+                                    : const Color(0xFFD5E2EF),
+                          ),
                           shape: const StadiumBorder(),
                         ),
                         onPressed: onDelete,

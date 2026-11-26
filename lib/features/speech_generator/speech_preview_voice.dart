@@ -105,7 +105,10 @@ bool speechVoiceSoundsMale(String name) {
 }
 
 bool _mentions(String name, String hint) {
-  return RegExp('\\b${RegExp.escape(hint)}\\b', caseSensitive: false).hasMatch(name);
+  return RegExp(
+    '\\b${RegExp.escape(hint)}\\b',
+    caseSensitive: false,
+  ).hasMatch(name);
 }
 
 SpeechVoiceChoice chooseSpeechVoice({
@@ -128,9 +131,14 @@ SpeechVoiceChoice chooseSpeechVoice({
   }
   final selected = best ?? voices.first;
   final male = speechVoiceSoundsMale(selected.name);
-  final languageMatch = _languageScore(selected.lang, languageCode, locale) >= 3;
+  final languageMatch =
+      _languageScore(selected.lang, languageCode, locale) >= 3;
   final pitch = male && languageMatch ? 0.92 : 0.86;
-  return SpeechVoiceChoice(locale: locale, pitch: pitch, voiceName: selected.name);
+  return SpeechVoiceChoice(
+    locale: locale,
+    pitch: pitch,
+    voiceName: selected.name,
+  );
 }
 
 int _score(ListedSpeechVoice voice, String languageCode, String locale) {
@@ -147,7 +155,8 @@ int _score(ListedSpeechVoice voice, String languageCode, String locale) {
 int _languageScore(String lang, String languageCode, String locale) {
   final value = lang.toLowerCase().replaceAll('_', '-');
   if (value == locale.toLowerCase()) return 6;
-  if (value.startsWith('${languageCode.toLowerCase()}-') || value == languageCode.toLowerCase()) {
+  if (value.startsWith('${languageCode.toLowerCase()}-') ||
+      value == languageCode.toLowerCase()) {
     return 4;
   }
   if (value.startsWith('en')) return 1;

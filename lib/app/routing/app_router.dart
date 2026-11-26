@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../core/services/onboarding_progress_service.dart';
+import '../../core/services/profile_service.dart';
 import '../../features/about/about_screen.dart';
 import '../../features/legal/contact_support_screen.dart';
 import '../../features/legal/data_deletion_screen.dart';
@@ -169,6 +173,7 @@ abstract final class AppRouter {
           routeName: normalized,
           showWebFooter: showFooter,
           showMobileNavigation: false,
+          compactFooter: normalized == AppRoutes.dashboard,
         );
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -182,6 +187,12 @@ abstract final class AppRouter {
   }
 
   static void replace(BuildContext context, String route) {
+    unawaited(ProfileService.instance.saveLastRoute(route));
+    if (OnboardingProgressService.instance.isKnownOnboardingRoute(route)) {
+      unawaited(
+        OnboardingProgressService.instance.saveProgress(currentStep: route),
+      );
+    }
     Navigator.of(context).pushReplacementNamed(route);
   }
 

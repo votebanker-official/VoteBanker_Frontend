@@ -44,12 +44,19 @@ class AdminService {
     return response.body;
   }
 
-  Future<Map<String, dynamic>> patchJson(String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> patchJson(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final response = await _send('PATCH', path, body);
     return _decode(response);
   }
 
-  Future<http.Response> _send(String method, String path, [Map<String, dynamic>? body]) async {
+  Future<http.Response> _send(
+    String method,
+    String path, [
+    Map<String, dynamic>? body,
+  ]) async {
     var session = AuthService.instance.session;
     if (session == null) throw const AdminApiException(401, 'unauthorized');
     final response = await _request(method, path, session.accessToken, body);
@@ -76,7 +83,11 @@ class AdminService {
       try {
         final uri = Uri.parse('$base$path');
         final response = await switch (method) {
-          'PATCH' => http.patch(uri, headers: headers, body: jsonEncode(body ?? {})),
+          'PATCH' => http.patch(
+            uri,
+            headers: headers,
+            body: jsonEncode(body ?? {}),
+          ),
           _ => http.get(uri, headers: headers),
         }.timeout(const Duration(seconds: 25));
         if (response.statusCode == 404) continue;
@@ -101,7 +112,8 @@ class AdminService {
   String _errorCode(String body) {
     try {
       final decoded = jsonDecode(body);
-      if (decoded is Map && decoded['error'] is String) return decoded['error'] as String;
+      if (decoded is Map && decoded['error'] is String)
+        return decoded['error'] as String;
     } catch (_) {}
     return 'request_failed';
   }

@@ -248,7 +248,11 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                   alignment: Alignment.centerLeft,
                   child: IconButton(
                     tooltip: l10n.back,
-                    onPressed: () => AppRouter.back(context, AppRoutes.domain),
+                    onPressed:
+                        () => AppRouter.back(
+                          context,
+                          AppRoutes.additionalProfile,
+                        ),
                     icon: const Icon(Icons.arrow_back),
                   ),
                 ),

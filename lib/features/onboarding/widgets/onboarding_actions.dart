@@ -23,9 +23,10 @@ class OnboardingActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backButton = onBack == null
-        ? null
-        : SecondaryButton(label: backLabel ?? '', onPressed: onBack!);
+    final backButton =
+        onBack == null
+            ? null
+            : SecondaryButton(label: backLabel ?? '', onPressed: onBack!);
     final primaryButton = PrimaryButton(
       label: primaryLabel,
       onPressed: onPrimary,
@@ -36,7 +37,8 @@ class OnboardingActions extends StatelessWidget {
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
-            final sideBySide = backButton != null && constraints.maxWidth >= 460;
+            final sideBySide =
+                backButton != null && constraints.maxWidth >= 460;
             if (sideBySide) {
               return Row(
                 children: [

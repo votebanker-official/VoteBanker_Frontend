@@ -118,7 +118,7 @@ class _DashboardPlaceholderScreenState
           body: SafeArea(
             child: Row(
               children: [
-                if (wide) SizedBox(width: 248, child: sidebar()),
+                if (wide) SizedBox(width: 232, child: sidebar()),
                 Expanded(
                   child: Column(
                     children: [
@@ -134,7 +134,7 @@ class _DashboardPlaceholderScreenState
                         child: Align(
                           alignment: Alignment.topCenter,
                           child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1100),
+                            constraints: const BoxConstraints(maxWidth: 1160),
                             child: ListView(
                               keyboardDismissBehavior:
                                   ScrollViewKeyboardDismissBehavior.onDrag,
@@ -162,9 +162,9 @@ class _DashboardPlaceholderScreenState
                                   LayoutBuilder(
                                     builder: (context, grid) {
                                       final columns =
-                                          grid.maxWidth >= 860
+                                          grid.maxWidth >= 740
                                               ? 3
-                                              : grid.maxWidth >= 560
+                                              : grid.maxWidth >= 520
                                               ? 2
                                               : 1;
                                       return GridView.builder(
@@ -177,8 +177,7 @@ class _DashboardPlaceholderScreenState
                                               crossAxisCount: columns,
                                               mainAxisSpacing: 12,
                                               crossAxisSpacing: 12,
-                                              mainAxisExtent:
-                                                  columns == 1 ? 84 : 96,
+                                              mainAxisExtent: 92,
                                             ),
                                         itemBuilder: (context, index) {
                                           return _ModuleCard(
@@ -194,6 +193,7 @@ class _DashboardPlaceholderScreenState
                                 const SizedBox(height: 14),
                                 _PromoBanner(
                                   colors: colors,
+                                  narrow: constraints.maxWidth < 720,
                                   title: l10n.line('dashPromoTitle'),
                                   body: l10n.line('dashPromoBody'),
                                   action: l10n.line('dashStartCampaign'),
@@ -260,13 +260,6 @@ class _DashboardPlaceholderScreenState
         subtitle: l10n.line('dashCampaignBody'),
         color: const Color(0xFF10B981),
         route: AppRoutes.merchandise,
-      ),
-      _Module(
-        Icons.view_carousel_outlined,
-        l10n.line('campaignTemplatesNav'),
-        subtitle: l10n.line('dashCampaignBody'),
-        color: const Color(0xFF8B5CF6),
-        route: AppRoutes.campaignTemplates,
       ),
       _Module(
         Icons.account_balance_outlined,
@@ -454,10 +447,15 @@ class _ModuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconColor =
+        colors.isDark
+            ? Color.lerp(module.color, Colors.white, 0.35)!
+            : module.color;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
+        hoverColor: colors.accent.withValues(alpha: 0.07),
         onTap:
             module.route == null
                 ? null
@@ -483,10 +481,10 @@ class _ModuleCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: module.color.withValues(alpha: 0.12),
+                    color: iconColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(module.icon, color: module.color, size: 22),
+                  child: Icon(module.icon, color: iconColor, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -669,7 +667,7 @@ class _WelcomeBackButton extends StatelessWidget {
     return IconButton(
       key: const Key('dashboard-welcome-back'),
       tooltip: l10n.back,
-      onPressed: () => AppRouter.popIfPossible(context),
+      onPressed: () => AppRouter.back(context, AppRoutes.ready),
       style: IconButton.styleFrom(
         backgroundColor: colors.accentSoft,
         foregroundColor: colors.accent,
@@ -699,6 +697,7 @@ class _Overview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final chartHeight = MediaQuery.sizeOf(context).width < 560 ? 108.0 : 144.0;
     final stats = [
       _Stat(
         l10n.line('dashTotalVoters'),
@@ -771,7 +770,7 @@ class _Overview extends StatelessWidget {
                     crossAxisCount: columns,
                     mainAxisSpacing: 10,
                     crossAxisSpacing: 10,
-                    mainAxisExtent: 88,
+                    mainAxisExtent: constraints.maxWidth < 280 ? 104 : 88,
                   ),
                   itemBuilder:
                       (context, index) =>
@@ -780,9 +779,9 @@ class _Overview extends StatelessWidget {
               },
             ),
             const SizedBox(height: 8),
-            const SizedBox(
-              height: 120,
-              child: CustomPaint(painter: _ReachPainter()),
+            SizedBox(
+              height: chartHeight,
+              child: CustomPaint(painter: _ReachPainter(colors.accent)),
             ),
           ],
         ),
@@ -810,7 +809,7 @@ class _StatTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: stat.color.withValues(alpha: 0.08),
+        color: stat.color.withValues(alpha: colors.isDark ? 0.14 : 0.08),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Padding(
@@ -835,8 +834,11 @@ class _StatTile extends StatelessWidget {
             ),
             Text(
               '↑ ${stat.change}',
-              style: const TextStyle(
-                color: Color(0xFF10B981),
+              style: TextStyle(
+                color:
+                    colors.isDark
+                        ? const Color(0xFF4ADE80)
+                        : const Color(0xFF10B981),
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
@@ -849,22 +851,24 @@ class _StatTile extends StatelessWidget {
 }
 
 class _ReachPainter extends CustomPainter {
-  const _ReachPainter();
+  const _ReachPainter(this.color);
+
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
     final line =
         Paint()
-          ..color = const Color(0xFF2563EB)
+          ..color = color
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.4
           ..strokeCap = StrokeCap.round;
     final fill =
         Paint()
-          ..shader = const LinearGradient(
+          ..shader = LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0x332563EB), Color(0x002563EB)],
+            colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0)],
           ).createShader(Offset.zero & size);
     const points = [0.72, 0.64, 0.68, 0.52, 0.58, 0.4, 0.46, 0.28];
     final path = Path();
@@ -888,12 +892,15 @@ class _ReachPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return oldDelegate is! _ReachPainter || oldDelegate.color != color;
+  }
 }
 
 class _PromoBanner extends StatelessWidget {
   const _PromoBanner({
     required this.colors,
+    required this.narrow,
     required this.title,
     required this.body,
     required this.action,
@@ -901,6 +908,7 @@ class _PromoBanner extends StatelessWidget {
   });
 
   final DashboardColors colors;
+  final bool narrow;
   final String title;
   final String body;
   final String action;
@@ -908,10 +916,11 @@ class _PromoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final narrow = MediaQuery.sizeOf(context).width < 720;
+    final announcementColor =
+        colors.isDark ? colors.accent : const Color(0xFF2563EB);
     final copy = Row(
       children: [
-        const Icon(Icons.campaign_outlined, color: Color(0xFF2563EB)),
+        Icon(Icons.campaign_outlined, color: announcementColor),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -941,6 +950,9 @@ class _PromoBanner extends StatelessWidget {
     final button = FilledButton(
       style: FilledButton.styleFrom(
         backgroundColor: const Color(0xFF2563EB),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(48, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         shape: const StadiumBorder(),
       ),
       onPressed: onStart,
@@ -948,8 +960,9 @@ class _PromoBanner extends StatelessWidget {
     );
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: colors.isDark ? colors.cardAlt : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(16),
+        border: colors.isDark ? Border.all(color: colors.border) : null,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -999,16 +1012,22 @@ class _SidebarFooter extends StatelessWidget {
         children: [
           DecoratedBox(
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: colors.isDark ? colors.cardAlt : const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(16),
+              border: colors.isDark ? Border.all(color: colors.border) : null,
             ),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.campaign, color: Color(0xFF2563EB)),
-                  const SizedBox(height: 6),
+                  Icon(
+                    Icons.campaign,
+                    color:
+                        colors.isDark ? colors.accent : const Color(0xFF2563EB),
+                    size: 20,
+                  ),
+                  const SizedBox(height: 4),
                   Text(
                     l10n.line('dashGrowTitle'),
                     style: TextStyle(
@@ -1025,7 +1044,7 @@ class _SidebarFooter extends StatelessWidget {
                       height: 1.3,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   TextButton(
                     onPressed: onStart,
                     child: Text(l10n.line('dashGetStarted')),

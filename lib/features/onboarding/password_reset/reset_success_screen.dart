@@ -16,28 +16,35 @@ class ResetSuccessScreen extends StatelessWidget {
           Container(
             width: 88,
             height: 88,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE7F8EF),
+            decoration: BoxDecoration(
+              color:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.surfaceContainerHighest
+                      : const Color(0xFFE7F8EF),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_rounded, color: resetSuccess, size: 52),
+            child: const Icon(
+              Icons.check_rounded,
+              color: resetSuccess,
+              size: 52,
+            ),
           ),
           const SizedBox(height: 18),
-          const Text(
+          Text(
             'Password Reset Successfully!',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: resetBlue,
+              color: resetBlueFor(context),
               fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Your password has been updated. You can now login with your new password.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: resetNavy,
+              color: resetNavyFor(context),
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
               height: 1.4,

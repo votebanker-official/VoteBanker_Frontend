@@ -4,9 +4,17 @@ import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_service.dart';
 import '../services/vrm_service.dart';
+
+AppPalette _getMorePalette(BuildContext context) {
+  return Theme.of(context).extension<AppPalette>() ??
+      (Theme.of(context).brightness == Brightness.dark
+          ? AppPalette.dark
+          : AppPalette.light);
+}
 
 /// Lets signed-in users request one of the available voter packages.
 class VrmGetMoreScreen extends StatelessWidget {
@@ -20,17 +28,18 @@ class VrmGetMoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _getMorePalette(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor: palette.background,
       body: Stack(
         children: [
           const Positioned.fill(child: _PageWash()),
-          const Positioned(
+          Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             height: 160,
-            child: _Dunes(),
+            child: _Dunes(palette: palette),
           ),
           Positioned.fill(child: _GetMoreBody(service: service)),
         ],
@@ -97,6 +106,7 @@ class _GetMoreBodyState extends State<_GetMoreBody> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = _getMorePalette(context);
     final offers = <_Offer>[
       _Offer(
         packageCode: 'voters_100',
@@ -144,9 +154,14 @@ class _GetMoreBodyState extends State<_GetMoreBody> {
                       constraints: const BoxConstraints(maxWidth: 1120),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: palette.surface,
                           borderRadius: BorderRadius.circular(28),
-                          border: Border.all(color: const Color(0xFFE8EEF6)),
+                          border: Border.all(
+                            color:
+                                palette.isDark
+                                    ? palette.border
+                                    : const Color(0xFFE8EEF6),
+                          ),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x143B82F6),
@@ -170,8 +185,11 @@ class _GetMoreBodyState extends State<_GetMoreBody> {
                               Text(
                                 l10n.line('vrmRequestDisclaimer'),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color(0xFF667085),
+                                style: TextStyle(
+                                  color:
+                                      palette.isDark
+                                          ? palette.textMuted
+                                          : const Color(0xFF667085),
                                   fontSize: 13,
                                   height: 1.4,
                                 ),
@@ -228,10 +246,13 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = _getMorePalette(context);
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFF5A524), width: 2)),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        border: const Border(
+          bottom: BorderSide(color: Color(0xFFF5A524), width: 2),
+        ),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -246,9 +267,12 @@ class _TopBar extends StatelessWidget {
                   if (!desktop)
                     PopupMenuButton<String>(
                       tooltip: l10n.line('vrmNavHome'),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.menu_rounded,
-                        color: VrmGetMoreScreen._navy,
+                        color:
+                            palette.isDark
+                                ? palette.text
+                                : VrmGetMoreScreen._navy,
                       ),
                       onSelected: (value) => _open(context, value),
                       itemBuilder:
@@ -306,6 +330,7 @@ class _Brand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = _getMorePalette(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -325,8 +350,8 @@ class _Brand extends StatelessWidget {
             l10n.appName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: VrmGetMoreScreen._navy,
+            style: TextStyle(
+              color: palette.isDark ? palette.text : VrmGetMoreScreen._navy,
               fontWeight: FontWeight.w800,
               fontSize: 18,
               letterSpacing: 0.2,
@@ -351,10 +376,11 @@ class _NavLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _getMorePalette(context);
     return TextButton.icon(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: VrmGetMoreScreen._navy,
+        foregroundColor: palette.isDark ? palette.text : VrmGetMoreScreen._navy,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -373,6 +399,7 @@ class _ProfileMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = _getMorePalette(context);
     final avatar = AuthService.instance.session?.avatarUrl.trim() ?? '';
     return PopupMenuButton<String>(
       tooltip: l10n.cardProfile,
@@ -394,20 +421,26 @@ class _ProfileMenu extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundColor: const Color(0xFFE8F1FF),
+            backgroundColor:
+                palette.isDark
+                    ? palette.surfaceSecondary
+                    : const Color(0xFFE8F1FF),
             backgroundImage: avatar.isEmpty ? null : NetworkImage(avatar),
             child:
                 avatar.isEmpty
-                    ? const Icon(
+                    ? Icon(
                       Icons.person_rounded,
                       size: 18,
-                      color: Color(0xFF3B82F6),
+                      color:
+                          palette.isDark
+                              ? palette.accent
+                              : const Color(0xFF3B82F6),
                     )
                     : null,
           ),
-          const Icon(
+          Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: VrmGetMoreScreen._muted,
+            color: palette.isDark ? palette.textMuted : VrmGetMoreScreen._muted,
           ),
         ],
       ),
@@ -423,6 +456,7 @@ class _Heading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = _getMorePalette(context);
     final copy = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -437,7 +471,7 @@ class _Heading extends StatelessWidget {
               child: Text(
                 l10n.line('vrmGetMoreTitle'),
                 style: TextStyle(
-                  color: VrmGetMoreScreen._navy,
+                  color: palette.isDark ? palette.text : VrmGetMoreScreen._navy,
                   fontSize: wide ? 32 : 24,
                   fontWeight: FontWeight.w800,
                   height: 1.15,
@@ -452,7 +486,8 @@ class _Heading extends StatelessWidget {
           child: Text(
             l10n.line('vrmGetMoreBody'),
             style: TextStyle(
-              color: VrmGetMoreScreen._muted,
+              color:
+                  palette.isDark ? palette.textMuted : VrmGetMoreScreen._muted,
               fontSize: wide ? 16 : 14,
               height: 1.4,
             ),
@@ -461,10 +496,13 @@ class _Heading extends StatelessWidget {
       ],
     );
 
-    final art = const SizedBox(
+    final art = SizedBox(
       width: 168,
       height: 132,
-      child: CustomPaint(painter: _BallotPainter()),
+      child: CustomPaint(
+        key: const Key('vrm-get-more-art'),
+        painter: _BallotPainter(palette),
+      ),
     );
 
     if (!wide) {
@@ -493,12 +531,15 @@ class _BackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = _getMorePalette(context);
     return IconButton(
       tooltip: tooltip,
       onPressed: onPressed,
       style: IconButton.styleFrom(
-        backgroundColor: const Color(0xFFF4F7FB),
-        foregroundColor: VrmGetMoreScreen._navy,
+        backgroundColor:
+            palette.isDark ? palette.surfaceSecondary : const Color(0xFFF4F7FB),
+        foregroundColor: palette.isDark ? palette.text : VrmGetMoreScreen._navy,
+        side: palette.isDark ? BorderSide(color: palette.border) : null,
         fixedSize: const Size(40, 40),
       ),
       icon: const Icon(Icons.arrow_back_rounded, size: 20),
@@ -550,6 +591,7 @@ class _OfferCardState extends State<_OfferCard> {
   @override
   Widget build(BuildContext context) {
     final offer = widget.offer;
+    final palette = _getMorePalette(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -558,14 +600,31 @@ class _OfferCardState extends State<_OfferCard> {
         curve: Curves.easeOut,
         transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
         decoration: BoxDecoration(
-          color: _hover ? const Color(0xFFF8FBFF) : Colors.white,
+          color:
+              palette.isDark
+                  ? (_hover
+                      ? palette.surfaceHighlight
+                      : palette.surfaceSecondary)
+                  : (_hover ? const Color(0xFFF8FBFF) : Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: _hover ? const Color(0xFF93C5FD) : const Color(0xFFD7E3F4),
+            color:
+                palette.isDark
+                    ? (_hover ? palette.accent : palette.border)
+                    : (_hover
+                        ? const Color(0xFF93C5FD)
+                        : const Color(0xFFD7E3F4)),
           ),
           boxShadow: [
             BoxShadow(
-              color: _hover ? const Color(0x223B82F6) : const Color(0x0F1B2559),
+              color:
+                  palette.isDark
+                      ? palette.cardShadow.withValues(
+                        alpha: _hover ? 0.3 : 0.14,
+                      )
+                      : (_hover
+                          ? const Color(0x223B82F6)
+                          : const Color(0x0F1B2559)),
               blurRadius: _hover ? 18 : 8,
               offset: const Offset(0, 4),
             ),
@@ -588,7 +647,10 @@ class _OfferCardState extends State<_OfferCard> {
                   children: [
                     DecoratedBox(
                       decoration: BoxDecoration(
-                        color: offer.background,
+                        color:
+                            palette.isDark
+                                ? offer.color.withValues(alpha: 0.16)
+                                : offer.background,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: SizedBox(
@@ -601,8 +663,11 @@ class _OfferCardState extends State<_OfferCard> {
                     Expanded(
                       child: Text(
                         offer.label,
-                        style: const TextStyle(
-                          color: VrmGetMoreScreen._navy,
+                        style: TextStyle(
+                          color:
+                              palette.isDark
+                                  ? palette.text
+                                  : VrmGetMoreScreen._navy,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           height: 1.3,
@@ -617,10 +682,13 @@ class _OfferCardState extends State<_OfferCard> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     else
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: 16,
-                        color: Color(0xFF94A3B8),
+                        color:
+                            palette.isDark
+                                ? palette.textMuted
+                                : const Color(0xFF94A3B8),
                       ),
                   ],
                 ),
@@ -638,12 +706,25 @@ class _PageWash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DecoratedBox(
+    final palette = _getMorePalette(context);
+    return DecoratedBox(
+      key: const Key('vrm-get-more-page-wash'),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFFFF6EA), Color(0xFFF7F9FC), Color(0xFFEEF5FF)],
+          colors:
+              palette.isDark
+                  ? [
+                    palette.background,
+                    palette.backgroundRaised,
+                    palette.background,
+                  ]
+                  : const [
+                    Color(0xFFFFF6EA),
+                    Color(0xFFF7F9FC),
+                    Color(0xFFEEF5FF),
+                  ],
           stops: [0, 0.45, 1],
         ),
       ),
@@ -652,21 +733,33 @@ class _PageWash extends StatelessWidget {
 }
 
 class _Dunes extends StatelessWidget {
-  const _Dunes();
+  const _Dunes({required this.palette});
+
+  final AppPalette palette;
 
   @override
   Widget build(BuildContext context) {
-    return const CustomPaint(painter: _DunePainter());
+    return CustomPaint(
+      key: const Key('vrm-get-more-dunes'),
+      painter: _DunePainter(palette),
+    );
   }
 }
 
 class _DunePainter extends CustomPainter {
-  const _DunePainter();
+  _DunePainter(AppPalette palette)
+    : _front =
+          palette.isDark ? palette.surfaceSecondary : const Color(0xFFF8E7D2),
+      _back =
+          palette.isDark ? palette.backgroundRaised : const Color(0xFFE4EEF8);
+
+  final Color _front;
+  final Color _back;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final saffron = Paint()..color = const Color(0xFFF8E7D2);
-    final blue = Paint()..color = const Color(0xFFE4EEF8);
+    final saffron = Paint()..color = _front;
+    final blue = Paint()..color = _back;
     final front =
         Path()
           ..moveTo(0, size.height * 0.55)
@@ -708,11 +801,22 @@ class _DunePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return oldDelegate is! _DunePainter ||
+        oldDelegate._front != _front ||
+        oldDelegate._back != _back;
+  }
 }
 
 class _BallotPainter extends CustomPainter {
-  const _BallotPainter();
+  _BallotPainter(AppPalette palette)
+    : _paper = palette.isDark ? palette.surfaceSecondary : Colors.white,
+      _paperBorder = palette.isDark ? palette.border : const Color(0xFFD6E0EA),
+      _check = palette.isDark ? palette.accent : const Color(0xFF3B82F6);
+
+  final Color _paper;
+  final Color _paperBorder;
+  final Color _check;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -777,18 +881,18 @@ class _BallotPainter extends CustomPainter {
       ),
       const Radius.circular(4),
     );
-    canvas.drawRRect(paper, Paint()..color = Colors.white);
+    canvas.drawRRect(paper, Paint()..color = _paper);
     canvas.drawRRect(
       paper,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = const Color(0xFFD6E0EA),
+        ..color = _paperBorder,
     );
 
     final check =
         Paint()
-          ..color = const Color(0xFF3B82F6)
+          ..color = _check
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.4
           ..strokeCap = StrokeCap.round;
@@ -801,7 +905,12 @@ class _BallotPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return oldDelegate is! _BallotPainter ||
+        oldDelegate._paper != _paper ||
+        oldDelegate._paperBorder != _paperBorder ||
+        oldDelegate._check != _check;
+  }
 }
 
 class _CrownPainter extends CustomPainter {

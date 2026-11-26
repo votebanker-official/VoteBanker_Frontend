@@ -58,7 +58,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           const SizedBox(height: 18),
           ResetPrimaryButton(label: 'Continue', onPressed: _continue),
-          ResetTextLink(label: 'Back to Login', onPressed: () => goToLogin(context)),
+          ResetTextLink(
+            label: 'Back to Login',
+            onPressed: () => goToLogin(context),
+          ),
         ],
       ),
     );
@@ -73,11 +76,18 @@ class _ShieldMark extends StatelessWidget {
     return Container(
       width: 72,
       height: 72,
-      decoration: const BoxDecoration(
-        color: Color(0xFFE8F3FF),
+      decoration: BoxDecoration(
+        color:
+            Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).colorScheme.surfaceContainerHighest
+                : const Color(0xFFE8F3FF),
         shape: BoxShape.circle,
       ),
-      child: const Icon(Icons.shield_outlined, color: resetBlue, size: 36),
+      child: Icon(
+        Icons.shield_outlined,
+        color: resetBlueFor(context),
+        size: 36,
+      ),
     );
   }
 }

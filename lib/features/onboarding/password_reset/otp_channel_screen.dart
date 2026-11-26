@@ -19,7 +19,8 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
   @override
   void initState() {
     super.initState();
-    _channel = widget.request.isEmail ? OtpChannel.email : widget.request.channel;
+    _channel =
+        widget.request.isEmail ? OtpChannel.email : widget.request.channel;
   }
 
   void _send() {
@@ -48,11 +49,12 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             selected: _channel == OtpChannel.sms,
             enabled: !request.isEmail,
             icon: Icons.phone_outlined,
-            iconColor: resetBlue,
+            iconColor: resetBlueFor(context),
             title: 'Via SMS',
-            subtitle: request.isEmail
-                ? 'Add a mobile number to use SMS'
-                : 'Get OTP on ${request.maskedMobile}',
+            subtitle:
+                request.isEmail
+                    ? 'Add a mobile number to use SMS'
+                    : 'Get OTP on ${request.maskedMobile}',
             onTap: () => setState(() => _channel = OtpChannel.sms),
           ),
           const SizedBox(height: 10),
@@ -62,9 +64,10 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             icon: Icons.mail_outline_rounded,
             iconColor: const Color(0xFF7A5AF8),
             title: 'Via Email',
-            subtitle: request.isEmail
-                ? 'Get OTP on ${request.maskedEmail}'
-                : 'Add an email address to use email',
+            subtitle:
+                request.isEmail
+                    ? 'Get OTP on ${request.maskedEmail}'
+                    : 'Add an email address to use email',
             onTap: () => setState(() => _channel = OtpChannel.email),
           ),
           const SizedBox(height: 10),
@@ -74,14 +77,18 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             icon: Icons.chat_bubble_outline_rounded,
             iconColor: const Color(0xFF12B76A),
             title: 'Via WhatsApp',
-            subtitle: request.isEmail
-                ? 'Add a mobile number to use WhatsApp'
-                : 'Get OTP on WhatsApp ${request.maskedMobile}',
+            subtitle:
+                request.isEmail
+                    ? 'Add a mobile number to use WhatsApp'
+                    : 'Get OTP on WhatsApp ${request.maskedMobile}',
             onTap: () => setState(() => _channel = OtpChannel.whatsapp),
           ),
           const SizedBox(height: 20),
           ResetPrimaryButton(label: 'Send OTP', onPressed: _send),
-          ResetTextLink(label: 'Back to Login', onPressed: () => goToLogin(context)),
+          ResetTextLink(
+            label: 'Back to Login',
+            onPressed: () => goToLogin(context),
+          ),
         ],
       ),
     );
@@ -109,10 +116,16 @@ class _ChannelTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Opacity(
       opacity: enabled ? 1 : 0.45,
       child: Material(
-        color: selected ? const Color(0xFFF3F8FF) : Colors.white,
+        color:
+            selected
+                ? theme.brightness == Brightness.dark
+                    ? theme.colorScheme.surfaceContainerHighest
+                    : const Color(0xFFF3F8FF)
+                : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -122,7 +135,12 @@ class _ChannelTile extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: selected ? resetBlue : const Color(0xFFD7E8F8),
+                color:
+                    selected
+                        ? resetBlueFor(context)
+                        : theme.brightness == Brightness.dark
+                        ? theme.dividerColor
+                        : const Color(0xFFD7E8F8),
                 width: selected ? 1.4 : 1,
               ),
             ),
@@ -136,8 +154,8 @@ class _ChannelTile extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          color: resetNavy,
+                        style: TextStyle(
+                          color: resetNavyFor(context),
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                         ),
@@ -145,14 +163,20 @@ class _ChannelTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: const TextStyle(color: resetMuted, fontSize: 12),
+                        style: TextStyle(
+                          color: resetMutedFor(context),
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Icon(
-                  selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                  color: selected ? resetBlue : resetMuted,
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  color:
+                      selected ? resetBlueFor(context) : resetMutedFor(context),
                   size: 20,
                 ),
               ],

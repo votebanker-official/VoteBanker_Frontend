@@ -1,8 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../app/routing/app_routes.dart';
 import '../../app/theme/app_colors.dart';
@@ -35,9 +31,6 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
       if (!mounted) return;
       final deletion = ModalRoute.of(context)?.settings.arguments == 'deletion';
       if (deletion) _revealUntilVisible(6, 0);
-      // #region agent log
-      _logPrivacyOpen(deletion);
-      // #endregion
     });
   }
 
@@ -46,45 +39,6 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
     restorePrivacyMeta();
     super.dispose();
   }
-
-  // #region agent log
-  void _logPrivacyOpen(bool deletion) {
-    if (!kIsWeb) return;
-    try {
-      final section = _sectionKeys[6].currentContext?.findRenderObject();
-      double? sectionDy;
-      if (section is RenderBox && section.hasSize) {
-        sectionDy = section.localToGlobal(Offset.zero).dy;
-      }
-      final height = MediaQuery.sizeOf(context).height;
-      http
-          .post(
-            Uri.parse(
-              'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-            ),
-            headers: const {
-              'Content-Type': 'application/json',
-              'X-Debug-Session-Id': '133bb1',
-            },
-            body: jsonEncode({
-              'sessionId': '133bb1',
-              'runId': 'privacy',
-              'hypothesisId': 'H1',
-              'location': 'privacy_policy_screen.dart:init',
-              'message': 'privacy page open',
-              'timestamp': DateTime.now().millisecondsSinceEpoch,
-              'data': {
-                'deletion': deletion,
-                'width': MediaQuery.sizeOf(context).width,
-                'sectionDy': sectionDy,
-                'inView': sectionDy != null && sectionDy >= 0 && sectionDy < height,
-              },
-            }),
-          )
-          .then((_) {}, onError: (_) {});
-    } catch (_) {}
-  }
-  // #endregion
 
   void _showSection(int index) => _revealUntilVisible(index, 0);
 
@@ -116,11 +70,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
           scrollable = Scrollable.maybeOf(scrollable.context);
         }
       }
-      if (attempt == 5 || (dy >= 0 && dy <= height * 0.2)) {
-        // #region agent log
-        _logPrivacyOpen(ModalRoute.of(context)?.settings.arguments == 'deletion');
-        // #endregion
-      }
+      if (attempt == 5 || (dy >= 0 && dy <= height * 0.2)) {}
       if ((dy < 0 || dy > height * 0.2) && attempt < 6) {
         _revealUntilVisible(index, attempt + 1);
       }
@@ -159,22 +109,23 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                   constraints: const BoxConstraints(maxWidth: 1120),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(pad, 24, pad, 40),
-                    child: wide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(width: 280, child: toc),
-                              const SizedBox(width: 20),
-                              Expanded(child: article),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              toc,
-                              const SizedBox(height: 16),
-                              article,
-                            ],
-                          ),
+                    child:
+                        wide
+                            ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(width: 280, child: toc),
+                                const SizedBox(width: 20),
+                                Expanded(child: article),
+                              ],
+                            )
+                            : Column(
+                              children: [
+                                toc,
+                                const SizedBox(height: 16),
+                                article,
+                              ],
+                            ),
                   ),
                 ),
               );
@@ -217,7 +168,9 @@ class _Header extends StatelessWidget {
                   'Privacy Policy',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 18),
+                  style: AppTextStyles.sectionTitle(
+                    context,
+                  ).copyWith(fontSize: 18),
                 ),
               ),
               const ThemeToggle(),
@@ -267,7 +220,10 @@ class _Contents extends StatelessWidget {
                 style: TextButton.styleFrom(
                   alignment: Alignment.centerLeft,
                   foregroundColor: palette.accent,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
                 child: Text(
                   _sections[i].title,
@@ -295,13 +251,18 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(section.title, style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 20)),
+          Text(
+            section.title,
+            style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 20),
+          ),
           const SizedBox(height: 10),
           for (final block in section.blocks) ...[
             if (block.heading != null) ...[
               Text(
                 block.heading!,
-                style: AppTextStyles.body(context).copyWith(fontWeight: FontWeight.w800),
+                style: AppTextStyles.body(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 6),
             ],
@@ -348,48 +309,27 @@ const _sections = <_PolicySection>[
     ]),
   ]),
   _PolicySection('3. Information we collect', [
-    _Block(
-      heading: 'Account and sign-in',
-      [
-        'Name, mobile number used for one-time passcode verification (delivered through WhatsApp, and through SMS where a messaging gateway is used), email address, including an address received through Google sign-in, profile photo, and campaign role or designation.',
-      ],
-    ),
-    _Block(
-      heading: 'Voter Relationship Management (VRM)',
-      [
-        'Constituent names, phone numbers, addresses, and booth, ward, or constituency tags that a leader or an authorised team member uploads or types into the workspace. VoteBanker stores these records so the campaign can organise outreach. The campaign, as Data Fiduciary, decides what to collect and from whom.',
-      ],
-    ),
-    _Block(
-      heading: 'Team and volunteer coordination',
-      [
-        'Volunteer and team-member names, contact details, assigned roles, and task or activity records entered by the workspace.',
-      ],
-    ),
-    _Block(
-      heading: 'Website Builder',
-      [
-        'Public profile details, biography, photographs, and announcements a leader chooses to place on a campaign microsite. Content published on a microsite is visible to people who open that site.',
-      ],
-    ),
-    _Block(
-      heading: 'AI features (speech and content tools)',
-      [
-        'Text prompts, topic inputs, and leader-profile context that you submit so the product can draft speeches, letters, social captions, or other campaign material. Those inputs are processed only to produce the output you asked for. They are not used to build a separate advertising profile.',
-      ],
-    ),
-    _Block(
-      heading: 'Social connections (Meta and WhatsApp)',
-      [
-        'If you connect Facebook, Instagram, or a WhatsApp Business account, we receive the OAuth tokens and the permissions you approve so the workspace can publish or read the account data that connection requires. You can disconnect those accounts from the social settings in the product.',
-      ],
-    ),
-    _Block(
-      heading: 'Merchandise',
-      [
-        'Shipping address, order history, and payment transaction references for campaign materials. Raw card numbers and UPI credentials are handled by the payment gateway that processes the payment. VoteBanker does not store those credentials on its servers.',
-      ],
-    ),
+    _Block(heading: 'Account and sign-in', [
+      'Name, mobile number used for one-time passcode verification (delivered through WhatsApp, and through SMS where a messaging gateway is used), email address, including an address received through Google sign-in, profile photo, and campaign role or designation.',
+    ]),
+    _Block(heading: 'Voter Relationship Management (VRM)', [
+      'Constituent names, phone numbers, addresses, and booth, ward, or constituency tags that a leader or an authorised team member uploads or types into the workspace. VoteBanker stores these records so the campaign can organise outreach. The campaign, as Data Fiduciary, decides what to collect and from whom.',
+    ]),
+    _Block(heading: 'Team and volunteer coordination', [
+      'Volunteer and team-member names, contact details, assigned roles, and task or activity records entered by the workspace.',
+    ]),
+    _Block(heading: 'Website Builder', [
+      'Public profile details, biography, photographs, and announcements a leader chooses to place on a campaign microsite. Content published on a microsite is visible to people who open that site.',
+    ]),
+    _Block(heading: 'AI features (speech and content tools)', [
+      'Text prompts, topic inputs, and leader-profile context that you submit so the product can draft speeches, letters, social captions, or other campaign material. Those inputs are processed only to produce the output you asked for. They are not used to build a separate advertising profile.',
+    ]),
+    _Block(heading: 'Social connections (Meta and WhatsApp)', [
+      'If you connect Facebook, Instagram, or a WhatsApp Business account, we receive the OAuth tokens and the permissions you approve so the workspace can publish or read the account data that connection requires. You can disconnect those accounts from the social settings in the product.',
+    ]),
+    _Block(heading: 'Merchandise', [
+      'Shipping address, order history, and payment transaction references for campaign materials. Raw card numbers and UPI credentials are handled by the payment gateway that processes the payment. VoteBanker does not store those credentials on its servers.',
+    ]),
   ]),
   _PolicySection('4. Mobile permissions and cookies', [
     _Block([

@@ -17,10 +17,7 @@ class ButtonLabel extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 20),
-          const SizedBox(width: 10),
-        ],
+        if (icon != null) ...[Icon(icon, size: 20), const SizedBox(width: 10)],
         Flexible(
           child: Text(
             label,

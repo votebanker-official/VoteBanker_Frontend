@@ -68,10 +68,10 @@ class WebsiteItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'description': description,
-        'meta': meta,
-      };
+    'title': title,
+    'description': description,
+    'meta': meta,
+  };
 
   factory WebsiteItem.fromJson(Map<String, dynamic> json) {
     return WebsiteItem(
@@ -137,40 +137,43 @@ class WebsiteSection {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type.name,
-        'titleKey': titleKey,
-        'heading': heading,
-        'subtitle': subtitle,
-        'content': content,
-        'enabled': enabled,
-        'order': order,
-        'items': [for (final item in items) item.toJson()],
-        'imageHint': imageHint,
-        'imageUrl': imageUrl,
-        'imageSource': imageSource,
-      };
+    'id': id,
+    'type': type.name,
+    'titleKey': titleKey,
+    'heading': heading,
+    'subtitle': subtitle,
+    'content': content,
+    'enabled': enabled,
+    'order': order,
+    'items': [for (final item in items) item.toJson()],
+    'imageHint': imageHint,
+    'imageUrl': imageUrl,
+    'imageSource': imageSource,
+  };
 
   factory WebsiteSection.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'];
     return WebsiteSection(
-      id: (json['id'] as String? ?? '').trim().isEmpty
-          ? 'section'
-          : (json['id'] as String).trim(),
+      id:
+          (json['id'] as String? ?? '').trim().isEmpty
+              ? 'section'
+              : (json['id'] as String).trim(),
       type: websiteSectionTypeFrom(json['type'] as String?),
-      titleKey: (json['titleKey'] as String? ?? json['type'] as String? ?? 'custom')
-          .trim(),
+      titleKey:
+          (json['titleKey'] as String? ?? json['type'] as String? ?? 'custom')
+              .trim(),
       heading: (json['heading'] as String? ?? '').trim(),
       subtitle: (json['subtitle'] as String? ?? '').trim(),
       content: (json['content'] as String? ?? '').trim(),
       enabled: json['enabled'] != false,
       order: json['order'] is num ? (json['order'] as num).toInt() : 0,
-      items: rawItems is List
-          ? [
-              for (final item in rawItems)
-                if (item is Map<String, dynamic>) WebsiteItem.fromJson(item),
-            ]
-          : const [],
+      items:
+          rawItems is List
+              ? [
+                for (final item in rawItems)
+                  if (item is Map<String, dynamic>) WebsiteItem.fromJson(item),
+              ]
+              : const [],
       imageHint: (json['imageHint'] as String? ?? '').trim(),
       imageUrl: (json['imageUrl'] as String? ?? '').trim(),
       imageSource: (json['imageSource'] as String? ?? '').trim(),
@@ -254,32 +257,32 @@ class WebsiteDocument {
   bool has(WebsiteSectionType type) => find(type) != null;
 
   Map<String, dynamic> toJson() => {
-        'siteTitle': siteTitle,
-        'personName': personName,
-        'professionalTitle': professionalTitle,
-        'organization': organization,
-        'tagline': tagline,
-        'introduction': introduction,
-        'heroTitle': heroTitle,
-        'websiteType': websiteType,
-        'heroLayout': heroLayout,
-        'primaryCta': primaryCta,
-        'secondaryCta': secondaryCta,
-        'themeId': themeId,
-        'layoutVariant': layoutVariant,
-        'languageCode': languageCode,
-        'translationPending': translationPending,
-        'navigation': navigation,
-        'sections': [for (final section in sections) section.toJson()],
-        'seoTitle': seoTitle,
-        'seoDescription': seoDescription,
-        'brandIdentity': brandIdentity,
-        'templateId': templateId,
-        'designDirection': designDirection,
-        'heroImageUrl': heroImageUrl,
-        'heroImageSource': heroImageSource,
-        'source': source,
-      };
+    'siteTitle': siteTitle,
+    'personName': personName,
+    'professionalTitle': professionalTitle,
+    'organization': organization,
+    'tagline': tagline,
+    'introduction': introduction,
+    'heroTitle': heroTitle,
+    'websiteType': websiteType,
+    'heroLayout': heroLayout,
+    'primaryCta': primaryCta,
+    'secondaryCta': secondaryCta,
+    'themeId': themeId,
+    'layoutVariant': layoutVariant,
+    'languageCode': languageCode,
+    'translationPending': translationPending,
+    'navigation': navigation,
+    'sections': [for (final section in sections) section.toJson()],
+    'seoTitle': seoTitle,
+    'seoDescription': seoDescription,
+    'brandIdentity': brandIdentity,
+    'templateId': templateId,
+    'designDirection': designDirection,
+    'heroImageUrl': heroImageUrl,
+    'heroImageSource': heroImageSource,
+    'source': source,
+  };
 
   factory WebsiteDocument.fromJson(
     Map<String, dynamic> json, {
@@ -303,21 +306,26 @@ class WebsiteDocument {
       secondaryCta: (json['secondaryCta'] as String? ?? '').trim(),
       themeId: (json['themeId'] as String? ?? 'professional').trim(),
       layoutVariant:
-          json['layoutVariant'] is num ? (json['layoutVariant'] as num).toInt() : 0,
+          json['layoutVariant'] is num
+              ? (json['layoutVariant'] as num).toInt()
+              : 0,
       languageCode: (json['languageCode'] as String? ?? 'en').trim(),
       translationPending: json['translationPending'] == true,
-      navigation: rawNav is List
-          ? [
-              for (final item in rawNav)
-                if (item is String && item.trim().isNotEmpty) item.trim(),
-            ]
-          : const [],
-      sections: rawSections is List
-          ? [
-              for (final item in rawSections)
-                if (item is Map<String, dynamic>) WebsiteSection.fromJson(item),
-            ]
-          : const [],
+      navigation:
+          rawNav is List
+              ? [
+                for (final item in rawNav)
+                  if (item is String && item.trim().isNotEmpty) item.trim(),
+              ]
+              : const [],
+      sections:
+          rawSections is List
+              ? [
+                for (final item in rawSections)
+                  if (item is Map<String, dynamic>)
+                    WebsiteSection.fromJson(item),
+              ]
+              : const [],
       portrait: portrait,
       logo: logo,
       gallery: gallery,

@@ -1,8 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../app/routing/app_routes.dart';
 import '../../app/theme/app_colors.dart';
@@ -53,9 +49,6 @@ class _PublicDocumentState extends State<PublicDocument> {
     applyPageMeta('${widget.title} | VoteBanker', widget.description);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // #region agent log
-      _logPublicPage(widget.title);
-      // #endregion
     });
   }
 
@@ -76,38 +69,6 @@ class _PublicDocumentState extends State<PublicDocument> {
     super.dispose();
   }
 
-  // #region agent log
-  void _logPublicPage(String title) {
-    if (!kIsWeb) return;
-    try {
-      http
-          .post(
-            Uri.parse(
-              'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-            ),
-            headers: const {
-              'Content-Type': 'application/json',
-              'X-Debug-Session-Id': '133bb1',
-            },
-            body: jsonEncode({
-              'sessionId': '133bb1',
-              'runId': 'legal-pages',
-              'hypothesisId': 'H2',
-              'location': 'public_info_page.dart:init',
-              'message': 'public page open',
-              'timestamp': DateTime.now().millisecondsSinceEpoch,
-              'data': {
-                'title': title,
-                'width': MediaQuery.sizeOf(context).width,
-                'sections': widget.sections.length,
-              },
-            }),
-          )
-          .then((_) {}, onError: (_) {});
-    } catch (_) {}
-  }
-  // #endregion
-
   void _showSection(int index) => _reveal(index, 0);
 
   void _reveal(int index, int attempt) {
@@ -126,7 +87,11 @@ class _PublicDocumentState extends State<PublicDocument> {
         while (scrollable != null) {
           final position = scrollable.position;
           if (position.hasContentDimensions && position.maxScrollExtent > 2) {
-            position.ensureVisible(object, alignment: 0.06, duration: Duration.zero);
+            position.ensureVisible(
+              object,
+              alignment: 0.06,
+              duration: Duration.zero,
+            );
           }
           scrollable = Scrollable.maybeOf(scrollable.context);
         }
@@ -177,22 +142,23 @@ class _PublicDocumentState extends State<PublicDocument> {
                   constraints: const BoxConstraints(maxWidth: 1120),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(pad, 24, pad, 40),
-                    child: wide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(width: 280, child: toc),
-                              const SizedBox(width: 20),
-                              Expanded(child: article),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              toc,
-                              const SizedBox(height: 16),
-                              article,
-                            ],
-                          ),
+                    child:
+                        wide
+                            ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(width: 280, child: toc),
+                                const SizedBox(width: 20),
+                                Expanded(child: article),
+                              ],
+                            )
+                            : Column(
+                              children: [
+                                toc,
+                                const SizedBox(height: 16),
+                                article,
+                              ],
+                            ),
                   ),
                 ),
               );
@@ -236,7 +202,9 @@ class _PublicHeader extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 18),
+                  style: AppTextStyles.sectionTitle(
+                    context,
+                  ).copyWith(fontSize: 18),
                 ),
               ),
               const ThemeToggle(),
@@ -288,7 +256,10 @@ class _Contents extends StatelessWidget {
                 style: TextButton.styleFrom(
                   alignment: Alignment.centerLeft,
                   foregroundColor: palette.accent,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
                 child: Text(
                   titles[i],

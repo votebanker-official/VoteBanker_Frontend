@@ -46,10 +46,9 @@ class AppTextField extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: AppTextStyles.label(context).copyWith(
-              fontSize: 13,
-              color: context.palette.textMuted,
-            ),
+            style: AppTextStyles.label(
+              context,
+            ).copyWith(fontSize: 13, color: context.palette.textMuted),
           ),
           const SizedBox(height: 8),
         ],

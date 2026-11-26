@@ -62,10 +62,13 @@ class SocialIntegrationStatus {
 
   factory SocialIntegrationStatus.fromJson(Map<String, dynamic> json) {
     final accounts = json['accounts'];
-    final map = accounts is Map<String, dynamic> ? accounts : const <String, dynamic>{};
+    final map =
+        accounts is Map<String, dynamic> ? accounts : const <String, dynamic>{};
     final capabilities = json['capabilities'];
     final caps =
-        capabilities is Map<String, dynamic> ? capabilities : const <String, dynamic>{};
+        capabilities is Map<String, dynamic>
+            ? capabilities
+            : const <String, dynamic>{};
     SocialAccountStatus account(String key) {
       final value = map[key];
       return SocialAccountStatus.fromJson(
@@ -95,7 +98,7 @@ class SocialCaptionResult {
 
 class SocialIntegrationService {
   SocialIntegrationService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
@@ -138,7 +141,8 @@ class SocialIntegrationService {
         'allowComments': allowComments,
         if (link != null && link.isNotEmpty) 'link': link,
         if (mediaName != null) 'mediaName': mediaName,
-        if (scheduledFor != null) 'scheduledFor': scheduledFor.toUtc().toIso8601String(),
+        if (scheduledFor != null)
+          'scheduledFor': scheduledFor.toUtc().toIso8601String(),
       },
     );
     final json = _json(response);
@@ -174,7 +178,11 @@ class SocialIntegrationService {
     throw SocialIntegrationException(_errorCode(response, json));
   }
 
-  Future<http.Response?> _send(String method, String path, {Map<String, dynamic>? body}) async {
+  Future<http.Response?> _send(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
     http.Response? last;
     for (final base in _bases) {
       try {
@@ -184,9 +192,14 @@ class SocialIntegrationService {
           headers['Authorization'] = 'Bearer $token';
         }
         final uri = Uri.parse('$base$path');
-        final Future<http.Response> call = method == 'GET'
-            ? _client.get(uri, headers: headers)
-            : _client.post(uri, headers: headers, body: jsonEncode(body ?? const {}));
+        final Future<http.Response> call =
+            method == 'GET'
+                ? _client.get(uri, headers: headers)
+                : _client.post(
+                  uri,
+                  headers: headers,
+                  body: jsonEncode(body ?? const {}),
+                );
         final response = await call.timeout(const Duration(seconds: 30));
         last = response;
         if (response.statusCode == 404 && base != _bases.last) continue;

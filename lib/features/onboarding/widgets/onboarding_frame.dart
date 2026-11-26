@@ -42,7 +42,8 @@ class OnboardingFrame extends StatelessWidget {
                 return const SizedBox.shrink();
               }
               final wide = AppBreakpoints.isWide(constraints.maxWidth);
-              final horizontal = contentHorizontalPadding ?? (wide ? 28.0 : 16.0);
+              final horizontal =
+                  contentHorizontalPadding ?? (wide ? 28.0 : 16.0);
               final header = Padding(
                 padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 0),
                 child: const Row(
@@ -63,7 +64,9 @@ class OnboardingFrame extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.topCenter,
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxContentWidth),
+                          constraints: BoxConstraints(
+                            maxWidth: maxContentWidth,
+                          ),
                           child: TweenAnimationBuilder<double>(
                             tween: Tween(begin: 0, end: 1),
                             duration: const Duration(milliseconds: 280),
@@ -121,10 +124,13 @@ class OnboardingFrame extends StatelessWidget {
                                 headerClearance,
                               ),
                               child: ConstrainedBox(
-                                constraints: BoxConstraints(minHeight: minHeight),
+                                constraints: BoxConstraints(
+                                  minHeight: minHeight,
+                                ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [child],
                                 ),
                               ),
@@ -134,10 +140,7 @@ class OnboardingFrame extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: header,
-                  ),
+                  Align(alignment: Alignment.topRight, child: header),
                 ],
               );
             },

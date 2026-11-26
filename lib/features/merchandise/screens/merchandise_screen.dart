@@ -84,7 +84,7 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
       builder: (context, constraints) {
         final showSidebar = constraints.maxWidth >= AppBreakpoints.tablet;
         return Scaffold(
-          backgroundColor: const Color(0xFFF4F7FB),
+          backgroundColor: DashboardColors.of(context).page,
           body: SafeArea(
             child: Row(
               children: [

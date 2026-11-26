@@ -29,22 +29,31 @@ class VrmVoterRecord {
     return VrmVoterRecord(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      age: json['age'] is int
-          ? json['age'] as int
-          : int.tryParse('${json['age'] ?? ''}'),
+      age:
+          json['age'] is int
+              ? json['age'] as int
+              : int.tryParse('${json['age'] ?? ''}'),
       gender: json['gender'] as String?,
-      epicNumber: json['epicNumber'] as String? ?? json['epic_number'] as String?,
-      sourceSerial: json['sourceSerial'] is int
-          ? json['sourceSerial'] as int
-          : int.tryParse('${json['sourceSerial'] ?? json['source_serial'] ?? ''}'),
+      epicNumber:
+          json['epicNumber'] as String? ?? json['epic_number'] as String?,
+      sourceSerial:
+          json['sourceSerial'] is int
+              ? json['sourceSerial'] as int
+              : int.tryParse(
+                '${json['sourceSerial'] ?? json['source_serial'] ?? ''}',
+              ),
       needsReview: json['needsReview'] == true || json['needs_review'] == true,
-      reviewNotes: json['reviewNotes'] as String? ?? json['review_notes'] as String?,
+      reviewNotes:
+          json['reviewNotes'] as String? ?? json['review_notes'] as String?,
       whatsappContact:
-          json['whatsappContact'] as String? ?? json['whatsapp_contact'] as String?,
+          json['whatsappContact'] as String? ??
+          json['whatsapp_contact'] as String?,
       instagramContact:
-          json['instagramContact'] as String? ?? json['instagram_contact'] as String?,
+          json['instagramContact'] as String? ??
+          json['instagram_contact'] as String?,
       facebookContact:
-          json['facebookContact'] as String? ?? json['facebook_contact'] as String?,
+          json['facebookContact'] as String? ??
+          json['facebook_contact'] as String?,
     );
   }
 

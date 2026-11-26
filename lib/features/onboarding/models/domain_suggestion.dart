@@ -148,7 +148,9 @@ String? domainSlug(String query) {
   if (cleaned.isEmpty || cleaned.length > 63) {
     return null;
   }
-  if (!RegExp(r'^(?:[a-z0-9]|[a-z0-9][a-z0-9-]{0,61}[a-z0-9])$').hasMatch(cleaned)) {
+  if (!RegExp(
+    r'^(?:[a-z0-9]|[a-z0-9][a-z0-9-]{0,61}[a-z0-9])$',
+  ).hasMatch(cleaned)) {
     return null;
   }
   return cleaned;
@@ -171,16 +173,20 @@ List<DomainSuggestion> availableDomainsFirst(List<DomainSuggestion> results) {
     final bStandard = standardDomainExtensions.indexOf(bExt);
     final aPolitical = politicalDomainExtensions.indexOf(aExt);
     final bPolitical = politicalDomainExtensions.indexOf(bExt);
-    final aRank = aStandard != -1
-        ? aStandard
-        : aPolitical != -1
+    final aRank =
+        aStandard != -1
+            ? aStandard
+            : aPolitical != -1
             ? standardDomainExtensions.length + aPolitical
-            : standardDomainExtensions.length + politicalDomainExtensions.length;
-    final bRank = bStandard != -1
-        ? bStandard
-        : bPolitical != -1
+            : standardDomainExtensions.length +
+                politicalDomainExtensions.length;
+    final bRank =
+        bStandard != -1
+            ? bStandard
+            : bPolitical != -1
             ? standardDomainExtensions.length + bPolitical
-            : standardDomainExtensions.length + politicalDomainExtensions.length;
+            : standardDomainExtensions.length +
+                politicalDomainExtensions.length;
 
     if (aRank != bRank) {
       return aRank.compareTo(bRank);

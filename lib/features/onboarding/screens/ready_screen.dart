@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
+import '../../../core/services/onboarding_progress_service.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/onboarding_header.dart';
@@ -13,6 +14,7 @@ class ReadyScreen extends StatelessWidget {
   const ReadyScreen({super.key});
 
   void _dashboard(BuildContext context) {
+    OnboardingProgressService.instance.markComplete();
     AppRouter.open(context, AppRoutes.dashboard);
   }
 
@@ -72,8 +74,7 @@ class ReadyScreen extends StatelessWidget {
               child: IconButton(
                 key: const Key('ready-back'),
                 tooltip: l10n.back,
-                onPressed:
-                    () => AppRouter.back(context, AppRoutes.campaignTemplates),
+                onPressed: () => AppRouter.back(context, AppRoutes.blueTik),
                 style: IconButton.styleFrom(
                   foregroundColor: context.palette.text,
                   fixedSize: const Size(48, 48),

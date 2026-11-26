@@ -39,7 +39,8 @@ class _SpeechResultScreenState extends State<SpeechResultScreen> {
     super.initState();
     _title = TextEditingController(text: widget.speech.title);
     _sections = [
-      for (final section in widget.speech.sections) TextEditingController(text: section.content),
+      for (final section in widget.speech.sections)
+        TextEditingController(text: section.content),
     ];
   }
 
@@ -53,7 +54,8 @@ class _SpeechResultScreenState extends State<SpeechResultScreen> {
   }
 
   GeneratedSpeech _current() {
-    final title = _title.text.trim().isEmpty ? widget.speech.title : _title.text.trim();
+    final title =
+        _title.text.trim().isEmpty ? widget.speech.title : _title.text.trim();
     return widget.speech.copyWith(
       title: title,
       sections: [
@@ -74,7 +76,10 @@ class _SpeechResultScreenState extends State<SpeechResultScreen> {
   Future<void> _download(AppLocalizations l10n) async {
     final speech = _current();
     try {
-      final path = await saveSpeechDocument(speechFileName(speech.title), _document(l10n, speech));
+      final path = await saveSpeechDocument(
+        speechFileName(speech.title),
+        _document(l10n, speech),
+      );
       if (!mounted) {
         return;
       }
@@ -105,7 +110,9 @@ class _SpeechResultScreenState extends State<SpeechResultScreen> {
   }
 
   void _note(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _translate(AppLocalizations l10n) async {
@@ -151,15 +158,30 @@ class _SpeechResultScreenState extends State<SpeechResultScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _Meta(l10n.line('speechLanguage'), _choice(l10n, speechLanguageKeys, speech.language)),
-            _Meta(l10n.line('speechType'), _choice(l10n, speechTypeKeys, speech.speechType)),
-            _Meta(l10n.line('speechDuration'), _choice(l10n, speechDurationKeys, speech.duration)),
-            _Meta(l10n.line('speechTone'), _choice(l10n, speechToneKeys, speech.tone)),
+            _Meta(
+              l10n.line('speechLanguage'),
+              _choice(l10n, speechLanguageKeys, speech.language),
+            ),
+            _Meta(
+              l10n.line('speechType'),
+              _choice(l10n, speechTypeKeys, speech.speechType),
+            ),
+            _Meta(
+              l10n.line('speechDuration'),
+              _choice(l10n, speechDurationKeys, speech.duration),
+            ),
+            _Meta(
+              l10n.line('speechTone'),
+              _choice(l10n, speechToneKeys, speech.tone),
+            ),
           ],
         ),
         if (speech.isMock) ...[
           const SizedBox(height: 12),
-          Text(l10n.line('speechMockNote'), style: AppTextStyles.muted(context)),
+          Text(
+            l10n.line('speechMockNote'),
+            style: AppTextStyles.muted(context),
+          ),
         ],
         const SizedBox(height: 16),
         for (var i = 0; i < speech.sections.length; i++) ...[
@@ -167,14 +189,19 @@ class _SpeechResultScreenState extends State<SpeechResultScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(speech.sections[i].heading, style: AppTextStyles.label(context)),
+                Text(
+                  speech.sections[i].heading,
+                  style: AppTextStyles.label(context),
+                ),
                 const SizedBox(height: 8),
                 if (_editing)
                   TextField(
                     controller: _sections[i],
                     maxLines: null,
                     style: AppTextStyles.body(context),
-                    decoration: const InputDecoration(border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
                   )
                 else
                   Text(_sections[i].text, style: AppTextStyles.body(context)),
@@ -241,12 +268,19 @@ class _SpeechResultScreenState extends State<SpeechResultScreen> {
             child: Text(l10n.line('speechEditPrompt')),
           ),
         ),
-        Text(l10n.line('speechVoiceLater'), style: AppTextStyles.muted(context)),
+        Text(
+          l10n.line('speechVoiceLater'),
+          style: AppTextStyles.muted(context),
+        ),
       ],
     );
   }
 
-  String _choice(AppLocalizations l10n, Map<String, String> keys, String value) {
+  String _choice(
+    AppLocalizations l10n,
+    Map<String, String> keys,
+    String value,
+  ) {
     final key = keys[value];
     return key == null ? value : l10n.line(key);
   }
@@ -266,7 +300,10 @@ class _Meta extends StatelessWidget {
         color: context.palette.accent.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text('$label: $value', style: AppTextStyles.muted(context).copyWith(fontSize: 13)),
+      child: Text(
+        '$label: $value',
+        style: AppTextStyles.muted(context).copyWith(fontSize: 13),
+      ),
     );
   }
 }

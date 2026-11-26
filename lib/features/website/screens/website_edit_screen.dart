@@ -124,7 +124,9 @@ class _WebsiteEditScreenState extends State<WebsiteEditScreen> {
         'unreachable' => l10n.line('websiteGenerateUnreachable'),
         _ => l10n.line('websiteGenerateFailed'),
       };
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) {
         return;
@@ -183,39 +185,89 @@ class _WebsiteEditScreenState extends State<WebsiteEditScreen> {
             const SizedBox(height: 12),
             AppTextField(controller: _title, label: l10n.line('qTitle')),
             const SizedBox(height: 12),
-            AppTextField(controller: _organization, label: l10n.line('qOrganization')),
+            AppTextField(
+              controller: _organization,
+              label: l10n.line('qOrganization'),
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _description, label: l10n.line('websiteInfoTitle'), maxLines: 4),
+            AppTextField(
+              controller: _description,
+              label: l10n.line('websiteInfoTitle'),
+              maxLines: 4,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _about, label: l10n.line('qAbout'), maxLines: 4),
+            AppTextField(
+              controller: _about,
+              label: l10n.line('qAbout'),
+              maxLines: 4,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _vision, label: l10n.line('qVision'), maxLines: 3),
+            AppTextField(
+              controller: _vision,
+              label: l10n.line('qVision'),
+              maxLines: 3,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _mission, label: l10n.line('qMission'), maxLines: 3),
+            AppTextField(
+              controller: _mission,
+              label: l10n.line('qMission'),
+              maxLines: 3,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _priorities, label: l10n.line('qPriorities'), maxLines: 3),
+            AppTextField(
+              controller: _priorities,
+              label: l10n.line('qPriorities'),
+              maxLines: 3,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _achievements, label: l10n.line('qWork'), maxLines: 4),
+            AppTextField(
+              controller: _achievements,
+              label: l10n.line('qWork'),
+              maxLines: 4,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _events, label: l10n.line('secEvents'), maxLines: 3),
+            AppTextField(
+              controller: _events,
+              label: l10n.line('secEvents'),
+              maxLines: 3,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _action, label: l10n.line('qCta'), maxLines: 2),
+            AppTextField(
+              controller: _action,
+              label: l10n.line('qCta'),
+              maxLines: 2,
+            ),
             const SizedBox(height: 12),
             AppTextField(controller: _phone, label: l10n.line('qPhone')),
             const SizedBox(height: 12),
             AppTextField(controller: _email, label: l10n.line('qEmail')),
             const SizedBox(height: 12),
-            AppTextField(controller: _address, label: l10n.line('qAddress'), maxLines: 2),
+            AppTextField(
+              controller: _address,
+              label: l10n.line('qAddress'),
+              maxLines: 2,
+            ),
             const SizedBox(height: 12),
-            AppTextField(controller: _social, label: l10n.line('qSocial'), maxLines: 2),
+            AppTextField(
+              controller: _social,
+              label: l10n.line('qSocial'),
+              maxLines: 2,
+            ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: _pickLogo,
-              icon: Icon(_website.logo == null ? Icons.add_a_photo_outlined : Icons.check),
+              icon: Icon(
+                _website.logo == null
+                    ? Icons.add_a_photo_outlined
+                    : Icons.check,
+              ),
               label: Text(l10n.line('qLogo')),
             ),
             const SizedBox(height: 16),
-            PrimaryButton(label: l10n.line('updatePreview'), onPressed: _update),
+            PrimaryButton(
+              label: l10n.line('updatePreview'),
+              onPressed: _update,
+            ),
           ],
         ),
       ),

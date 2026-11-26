@@ -5,8 +5,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/routing/app_routes.dart';
+import 'package:votebanker/app/theme/app_colors.dart';
+import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/vrm/models/vrm_voter_record.dart';
@@ -15,6 +18,10 @@ import 'package:votebanker/features/vrm/screens/vrm_records_screen.dart';
 import 'package:votebanker/features/vrm/services/vrm_service.dart';
 
 void main() {
+  setUpAll(() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
   testWidgets('Skip Now opens campaign templates from voter records', (
     tester,
   ) async {
@@ -382,6 +389,75 @@ void main() {
     },
   );
 
+  testWidgets('voter records remain readable in both themes and layouts', (
+    tester,
+  ) async {
+    final controller = ThemeController();
+    final service = VrmService(
+      client: MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'success': true,
+            'records': [
+              {
+                'id': 'complete',
+                'name': 'Completed Voter',
+                'age': 21,
+                'gender': 'Male',
+                'epicNumber': 'NNA5100110',
+                'whatsappContact': '+919876543210',
+                'instagramContact': 'ahmed.raza',
+                'facebookContact': 'ahmed.fb',
+              },
+              {
+                'id': 'incomplete',
+                'name': 'Incomplete Voter',
+                'age': 33,
+                'gender': 'Female',
+                'epicNumber': 'NNA3849201',
+              },
+              {
+                'id': 'review',
+                'name': 'Review Voter',
+                'age': 45,
+                'gender': 'Female',
+                'epicNumber': 'NNA4590444',
+                'whatsappContact': '+919876543211',
+                'instagramContact': 'review.voter',
+                'facebookContact': 'review.fb',
+                'needsReview': true,
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      ),
+      baseUrls: const ['http://vrm.test'],
+    );
+
+    for (final size in const [Size(1280, 1500), Size(390, 1800)]) {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      await tester.pumpWidget(_themeAwareRecordsApp(controller, service));
+      await tester.pumpAndSettle();
+
+      _expectRecordTheme(tester, AppPalette.light, isDark: false);
+      controller.value = ThemeMode.dark;
+      await tester.pumpAndSettle();
+      _expectRecordTheme(tester, AppPalette.dark, isDark: true);
+      expect(tester.takeException(), isNull);
+
+      controller.value = ThemeMode.light;
+      await tester.pumpAndSettle();
+      _expectRecordTheme(tester, AppPalette.light, isDark: false);
+      expect(tester.takeException(), isNull);
+    }
+
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  });
+
   testWidgets('View more voters lists the three priced options', (
     tester,
   ) async {
@@ -464,6 +540,79 @@ void main() {
     }
   });
 
+  testWidgets(
+    'View More Voters follows the active theme on desktop and mobile',
+    (tester) async {
+      final controller = ThemeController();
+
+      for (final size in const [Size(1280, 1000), Size(390, 1000)]) {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        await tester.pumpWidget(_themeAwareGetMoreApp(controller));
+        await tester.pumpAndSettle();
+
+        final lightDunes =
+            tester
+                .widget<CustomPaint>(
+                  find.byKey(const Key('vrm-get-more-dunes')),
+                )
+                .painter!;
+        final lightArt =
+            tester
+                .widget<CustomPaint>(find.byKey(const Key('vrm-get-more-art')))
+                .painter!;
+        _expectGetMoreTheme(
+          tester,
+          AppPalette.light,
+          isDark: false,
+          width: size.width,
+        );
+
+        controller.value = ThemeMode.dark;
+        await tester.pumpAndSettle();
+        final darkDunes =
+            tester
+                .widget<CustomPaint>(
+                  find.byKey(const Key('vrm-get-more-dunes')),
+                )
+                .painter!;
+        expect(darkDunes.shouldRepaint(lightDunes), isTrue);
+        final darkArt =
+            tester
+                .widget<CustomPaint>(find.byKey(const Key('vrm-get-more-art')))
+                .painter!;
+        expect(darkArt.shouldRepaint(lightArt), isTrue);
+        _expectGetMoreTheme(
+          tester,
+          AppPalette.dark,
+          isDark: true,
+          width: size.width,
+        );
+        expect(tester.takeException(), isNull);
+
+        controller.value = ThemeMode.light;
+        await tester.pumpAndSettle();
+        final restoredDunes =
+            tester
+                .widget<CustomPaint>(
+                  find.byKey(const Key('vrm-get-more-dunes')),
+                )
+                .painter!;
+        expect(restoredDunes.shouldRepaint(darkDunes), isTrue);
+        _expectGetMoreTheme(
+          tester,
+          AppPalette.light,
+          isDark: false,
+          width: size.width,
+        );
+        expect(tester.takeException(), isNull);
+      }
+
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+    },
+  );
+
   testWidgets('View more voters records a request and clarifies no payment', (
     tester,
   ) async {
@@ -516,4 +665,275 @@ void main() {
       findsOneWidget,
     );
   });
+}
+
+Widget _themeAwareRecordsApp(ThemeController controller, VrmService service) {
+  return ThemeScope(
+    controller: controller,
+    child: ValueListenableBuilder<ThemeMode>(
+      valueListenable: controller,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: mode,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: VrmRecordsScreen(service: service),
+        );
+      },
+    ),
+  );
+}
+
+Widget _themeAwareGetMoreApp(ThemeController controller) {
+  return ThemeScope(
+    controller: controller,
+    child: ValueListenableBuilder<ThemeMode>(
+      valueListenable: controller,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: mode,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const VrmGetMoreScreen(),
+        );
+      },
+    ),
+  );
+}
+
+void _expectGetMoreTheme(
+  WidgetTester tester,
+  AppPalette palette, {
+  required bool isDark,
+  required double width,
+}) {
+  const lightNavy = Color(0xFF1B2559);
+  const lightMuted = Color(0xFF8B93A7);
+  const lightDisclaimer = Color(0xFF667085);
+  final primary = isDark ? palette.text : lightNavy;
+
+  expect(
+    tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor,
+    palette.background,
+  );
+  expect(
+    tester.widget<Text>(find.text('View More Voters')).style!.color,
+    primary,
+  );
+  expect(
+    tester
+        .widget<Text>(find.text('Choose how many more voter records you want.'))
+        .style!
+        .color,
+    isDark ? palette.textMuted : lightMuted,
+  );
+  expect(
+    tester
+        .widget<Text>(
+          find.text(
+            'Submitting records a request only. No payment is processed and no voter records are delivered.',
+          ),
+        )
+        .style!
+        .color,
+    isDark ? palette.textMuted : lightDisclaimer,
+  );
+
+  final contentCard = tester.widget<DecoratedBox>(
+    find
+        .ancestor(
+          of: find.text('View More Voters'),
+          matching: find.byType(DecoratedBox),
+        )
+        .first,
+  );
+  final contentDecoration = contentCard.decoration as BoxDecoration;
+  expect(contentDecoration.color, palette.surface);
+  expect(
+    (contentDecoration.border! as Border).top.color,
+    isDark ? palette.border : const Color(0xFFE8EEF6),
+  );
+  expect(tester.getRect(find.text('View More Voters')).width, lessThan(width));
+
+  final topBar = tester.widget<DecoratedBox>(
+    find
+        .ancestor(
+          of: find.text('VOTE BANKER'),
+          matching: find.byType(DecoratedBox),
+        )
+        .first,
+  );
+  expect((topBar.decoration as BoxDecoration).color, palette.surface);
+  expect(tester.widget<Text>(find.text('VOTE BANKER')).style!.color, primary);
+
+  final wash = tester.widget<DecoratedBox>(
+    find.byKey(const Key('vrm-get-more-page-wash')),
+  );
+  final gradient =
+      (wash.decoration as BoxDecoration).gradient! as LinearGradient;
+  expect(
+    gradient.colors,
+    isDark
+        ? [palette.background, palette.backgroundRaised, palette.background]
+        : const [Color(0xFFFFF6EA), Color(0xFFF7F9FC), Color(0xFFEEF5FF)],
+  );
+
+  for (final label in const [
+    'Request 100 voters for ₹100',
+    'Request 1000 voters for ₹999',
+    'Request 10000 voters for ₹9999',
+  ]) {
+    final labelFinder = find.text(label);
+    expect(tester.widget<Text>(labelFinder).style!.color, primary);
+    final card = tester.widget<AnimatedContainer>(
+      find
+          .ancestor(of: labelFinder, matching: find.byType(AnimatedContainer))
+          .first,
+    );
+    final decoration = card.decoration! as BoxDecoration;
+    expect(decoration.color, isDark ? palette.surfaceSecondary : Colors.white);
+    expect(
+      (decoration.border! as Border).top.color,
+      isDark ? palette.border : const Color(0xFFD7E3F4),
+    );
+    expect(tester.getRect(labelFinder).width, lessThanOrEqualTo(width));
+  }
+
+  expect(
+    tester
+        .widget<Icon>(find.byIcon(Icons.arrow_forward_ios_rounded).first)
+        .color,
+    isDark ? palette.textMuted : const Color(0xFF94A3B8),
+  );
+  final backButton = tester.widget<IconButton>(
+    find
+        .ancestor(
+          of: find.byIcon(Icons.arrow_back_rounded),
+          matching: find.byType(IconButton),
+        )
+        .first,
+  );
+  expect(backButton.style!.foregroundColor!.resolve({}), primary);
+}
+
+void _expectRecordTheme(
+  WidgetTester tester,
+  AppPalette palette, {
+  required bool isDark,
+}) {
+  const lightInk = Color(0xFF0F172A);
+  const lightMuted = Color(0xFF64748B);
+  const lightBlue = Color(0xFF2563EB);
+  final primary = isDark ? palette.text : lightInk;
+  final secondary = isDark ? palette.textMuted : lightMuted;
+  final complete = isDark ? palette.success : const Color(0xFF16A34A);
+  final incomplete = isDark ? palette.danger : const Color(0xFFE11D48);
+
+  expect(tester.widget<Text>(find.text('My Voters')).style!.color, primary);
+  expect(
+    tester.widget<Text>(find.text('3 records')).style!.color,
+    isDark ? palette.accent : lightBlue,
+  );
+  expect(
+    tester
+        .widget<Text>(find.text('Voter records (name, age, gender, EPIC).'))
+        .style!
+        .color,
+    secondary,
+  );
+  expect(
+    tester.widget<Text>(find.text('Completed Voter')).style!.color,
+    primary,
+  );
+  expect(
+    tester.widget<Text>(find.text('EPIC: NNA5100110')).style!.color,
+    primary,
+  );
+  expect(tester.widget<Text>(find.text('Age: 21')).style!.color, secondary);
+  expect(
+    tester.widget<Text>(find.text('Gender: Male')).style!.color,
+    secondary,
+  );
+
+  final completeCard = tester.widget<DecoratedBox>(
+    find
+        .ancestor(
+          of: find.text('Completed Voter'),
+          matching: find.byType(DecoratedBox),
+        )
+        .first,
+  );
+  final cardDecoration = completeCard.decoration as BoxDecoration;
+  expect(cardDecoration.color, palette.surface);
+  expect((cardDecoration.border! as Border).top.color, complete);
+
+  expect(
+    tester.widget<Text>(find.text('Complete details').first).style!.color,
+    complete,
+  );
+  expect(
+    tester.widget<Text>(find.text('Incomplete details').first).style!.color,
+    incomplete,
+  );
+  expect(
+    tester.widget<Text>(find.text('Needs review').last).style!.color,
+    isDark ? palette.campaign : const Color(0xFFD97706),
+  );
+
+  final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
+  final search = fields.first;
+  final whatsapp = fields[1];
+  expect(search.decoration!.fillColor, palette.surface);
+  expect(
+    search.decoration!.hintStyle!.color,
+    isDark ? palette.textMuted : const Color(0xFF94A3B8),
+  );
+  expect(search.style?.color, isDark ? palette.text : isNull);
+  expect(whatsapp.style?.color, isDark ? palette.text : isNull);
+  expect(whatsapp.decoration!.fillColor, palette.surfaceSecondary);
+  expect(
+    tester.widget<Text>(find.text('WhatsApp').first).style!.color,
+    secondary,
+  );
+  expect(
+    tester.widget<Icon>(find.byIcon(Icons.search)).color,
+    isDark ? palette.textMuted : lightMuted,
+  );
+  expect(tester.widget<Icon>(find.byIcon(Icons.arrow_back)).color, primary);
+
+  expect(find.text('All Voters'), findsOneWidget);
+  expect(find.text('Complete'), findsOneWidget);
+  expect(find.text('Incomplete'), findsOneWidget);
+  expect(find.text('Needs review'), findsWidgets);
+  expect(find.byKey(const Key('vrm-records-skip')), findsOneWidget);
+  expect(find.text('Save'), findsWidgets);
+
+  final save = tester.widget<OutlinedButton>(
+    find
+        .ancestor(
+          of: find.text('Save').first,
+          matching: find.byType(OutlinedButton),
+        )
+        .first,
+  );
+  expect(
+    save.style!.foregroundColor!.resolve({}),
+    isDark ? palette.accent : const Color(0xFF2563EB),
+  );
+  expect(
+    save.style!.backgroundColor!.resolve({}),
+    isDark ? palette.surfaceSecondary : const Color(0xFFEFF6FF),
+  );
 }

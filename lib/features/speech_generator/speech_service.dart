@@ -16,7 +16,7 @@ class SpeechException implements Exception {
 /// Asks the VOTE BANKER backend to draft a speech. The model key stays on the server.
 class SpeechService {
   SpeechService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
@@ -41,7 +41,9 @@ class SpeechService {
       throw const SpeechException('unreachable');
     }
     final body = _json(response);
-    if (response.statusCode >= 200 && response.statusCode < 300 && body['success'] == true) {
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        body['success'] == true) {
       final speech = body['speech'];
       if (speech is Map<String, dynamic>) {
         return GeneratedSpeech.fromJson(speech);

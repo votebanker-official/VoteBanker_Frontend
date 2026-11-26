@@ -81,7 +81,10 @@ class _SpeechGeneratingScreenState extends State<SpeechGeneratingScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
       children: [
-        Text(l10n.line('speechCreating'), style: AppTextStyles.headline(context)),
+        Text(
+          l10n.line('speechCreating'),
+          style: AppTextStyles.headline(context),
+        ),
         const SizedBox(height: 16),
         AppCard(
           child: Column(
@@ -95,13 +98,19 @@ class _SpeechGeneratingScreenState extends State<SpeechGeneratingScreen> {
                         i < _done
                             ? Icons.check_circle
                             : i == _done
-                                ? Icons.timelapse
-                                : Icons.radio_button_unchecked,
-                        color: i < _done ? context.palette.secondary : context.palette.textMuted,
+                            ? Icons.timelapse
+                            : Icons.radio_button_unchecked,
+                        color:
+                            i < _done
+                                ? context.palette.secondary
+                                : context.palette.textMuted,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(l10n.line(_stages[i]), style: AppTextStyles.body(context)),
+                        child: Text(
+                          l10n.line(_stages[i]),
+                          style: AppTextStyles.body(context),
+                        ),
                       ),
                     ],
                   ),

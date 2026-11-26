@@ -149,6 +149,9 @@ String speechPreviewDraft({
   required String leaderName,
   required String partyName,
 }) {
-  final template = speechPreviewDrafts[languageCode] ?? speechPreviewDrafts['en']!;
-  return template.replaceAll('{name}', leaderName).replaceAll('{party}', partyName);
+  final template =
+      speechPreviewDrafts[languageCode] ?? speechPreviewDrafts['en']!;
+  return template
+      .replaceAll('{name}', leaderName)
+      .replaceAll('{party}', partyName);
 }

@@ -37,7 +37,9 @@ class SettingsScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       l10n.cardSettings,
-                      style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 18),
+                      style: AppTextStyles.sectionTitle(
+                        context,
+                      ).copyWith(fontSize: 18),
                     ),
                   ),
                   const ThemeToggle(),
@@ -59,15 +61,19 @@ class SettingsScreen extends StatelessWidget {
                       _SettingsLink(
                         icon: Icons.shield_outlined,
                         title: 'Privacy Policy',
-                        body: 'How VoteBanker handles account, voter, and campaign data.',
-                        onTap: () => AppNav.open(context, AppRoutes.privacyPolicy),
+                        body:
+                            'How VoteBanker handles account, voter, and campaign data.',
+                        onTap:
+                            () => AppNav.open(context, AppRoutes.privacyPolicy),
                       ),
                       Divider(color: palette.border, height: 1),
                       _SettingsLink(
                         icon: Icons.delete_outline,
                         title: 'Account & data deletion',
-                        body: 'Disconnect social accounts or ask for the workspace to be erased.',
-                        onTap: () => AppNav.open(context, AppRoutes.dataDeletion),
+                        body:
+                            'Disconnect social accounts or ask for the workspace to be erased.',
+                        onTap:
+                            () => AppNav.open(context, AppRoutes.dataDeletion),
                       ),
                     ],
                   ),

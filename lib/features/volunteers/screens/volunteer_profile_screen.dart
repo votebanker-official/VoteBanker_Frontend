@@ -68,11 +68,12 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
     if (volunteer == null) return;
     final saved = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => VolunteerFormScreen(
-          service: _service,
-          volunteer: volunteer,
-          teams: widget.teams,
-        ),
+        builder:
+            (_) => VolunteerFormScreen(
+              service: _service,
+              volunteer: volunteer,
+              teams: widget.teams,
+            ),
       ),
     );
     if (saved == true) await _load();
@@ -108,14 +109,14 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       });
       await _load();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.line('volSaved'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.line('volSaved'))));
     } on VolunteerException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.code)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.code)));
     }
   }
 
@@ -162,104 +163,145 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 900),
-                    child: _loading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _failed || volunteer == null
+                    child:
+                        _loading
+                            ? const Center(child: CircularProgressIndicator())
+                            : _failed || volunteer == null
                             ? Center(
-                                child: Text(
-                                  l10n.line('volLoadError'),
-                                  style: AppTextStyles.body(context),
-                                ),
-                              )
-                            : ListView(
-                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-                                children: [
-                                  AppCard(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          formatPersonName(volunteer.fullName),
-                                          style: AppTextStyles.headline(context),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        _InfoRow(l10n.line('volId'), volunteer.volunteerCode),
-                                        _InfoRow(l10n.line('volMobile'), volunteer.mobile),
-                                        _InfoRow(
-                                          l10n.line('volEmail'),
-                                          volunteer.email?.isNotEmpty == true
-                                              ? volunteer.email!
-                                              : '—',
-                                        ),
-                                        _InfoRow(l10n.line('volRole'), volunteer.role),
-                                        _InfoRow(
-                                          l10n.line('volTeam'),
-                                          volunteer.teamName ?? l10n.line('volUnassigned'),
-                                        ),
-                                        _InfoRow(l10n.line('volStatus'), volunteer.status),
-                                        _InfoRow(
-                                          l10n.line('volRegistered'),
-                                          _formatDate(volunteer.registeredAt),
-                                        ),
-                                        if (volunteer.skills?.isNotEmpty == true)
-                                          _InfoRow(l10n.line('volSkills'), volunteer.skills!),
-                                        if (volunteer.availability?.isNotEmpty == true)
-                                          _InfoRow(
-                                            l10n.line('volAvailability'),
-                                            volunteer.availability!,
-                                          ),
-                                        if (volunteer.notes?.isNotEmpty == true)
-                                          _InfoRow(l10n.line('volNotes'), volunteer.notes!),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(l10n.line('volTasks'), style: AppTextStyles.label(context)),
-                                  const SizedBox(height: 8),
-                                  if (_tasks.isEmpty)
-                                    Text(l10n.line('volNoTasks'), style: AppTextStyles.muted(context))
-                                  else
-                                    for (final task in _tasks)
-                                      Padding(
-                                        padding: const EdgeInsets.only(bottom: 8),
-                                        child: AppCard(
-                                          padding: const EdgeInsets.all(14),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(task.title, style: AppTextStyles.label(context)),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                '${task.status} · ${task.priority}',
-                                                style: AppTextStyles.muted(context),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    l10n.line('volActivity'),
-                                    style: AppTextStyles.label(context),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (_activity.isEmpty)
-                                    Text(
-                                      l10n.line('volNoActivity'),
-                                      style: AppTextStyles.muted(context),
-                                    )
-                                  else
-                                    for (final item in _activity)
-                                      Padding(
-                                        padding: const EdgeInsets.only(bottom: 8),
-                                        child: Text(
-                                          '${_formatDate(item.createdAt)} · ${item.action}'
-                                          '${item.detail == null || item.detail!.isEmpty ? '' : ' · ${item.detail}'}',
-                                          style: AppTextStyles.body(context),
-                                        ),
-                                      ),
-                                ],
+                              child: Text(
+                                l10n.line('volLoadError'),
+                                style: AppTextStyles.body(context),
                               ),
+                            )
+                            : ListView(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                12,
+                                16,
+                                28,
+                              ),
+                              children: [
+                                AppCard(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        formatPersonName(volunteer.fullName),
+                                        style: AppTextStyles.headline(context),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      _InfoRow(
+                                        l10n.line('volId'),
+                                        volunteer.volunteerCode,
+                                      ),
+                                      _InfoRow(
+                                        l10n.line('volMobile'),
+                                        volunteer.mobile,
+                                      ),
+                                      _InfoRow(
+                                        l10n.line('volEmail'),
+                                        volunteer.email?.isNotEmpty == true
+                                            ? volunteer.email!
+                                            : '—',
+                                      ),
+                                      _InfoRow(
+                                        l10n.line('volRole'),
+                                        volunteer.role,
+                                      ),
+                                      _InfoRow(
+                                        l10n.line('volTeam'),
+                                        volunteer.teamName ??
+                                            l10n.line('volUnassigned'),
+                                      ),
+                                      _InfoRow(
+                                        l10n.line('volStatus'),
+                                        volunteer.status,
+                                      ),
+                                      _InfoRow(
+                                        l10n.line('volRegistered'),
+                                        _formatDate(volunteer.registeredAt),
+                                      ),
+                                      if (volunteer.skills?.isNotEmpty == true)
+                                        _InfoRow(
+                                          l10n.line('volSkills'),
+                                          volunteer.skills!,
+                                        ),
+                                      if (volunteer.availability?.isNotEmpty ==
+                                          true)
+                                        _InfoRow(
+                                          l10n.line('volAvailability'),
+                                          volunteer.availability!,
+                                        ),
+                                      if (volunteer.notes?.isNotEmpty == true)
+                                        _InfoRow(
+                                          l10n.line('volNotes'),
+                                          volunteer.notes!,
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  l10n.line('volTasks'),
+                                  style: AppTextStyles.label(context),
+                                ),
+                                const SizedBox(height: 8),
+                                if (_tasks.isEmpty)
+                                  Text(
+                                    l10n.line('volNoTasks'),
+                                    style: AppTextStyles.muted(context),
+                                  )
+                                else
+                                  for (final task in _tasks)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: AppCard(
+                                        padding: const EdgeInsets.all(14),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              task.title,
+                                              style: AppTextStyles.label(
+                                                context,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '${task.status} · ${task.priority}',
+                                              style: AppTextStyles.muted(
+                                                context,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  l10n.line('volActivity'),
+                                  style: AppTextStyles.label(context),
+                                ),
+                                const SizedBox(height: 8),
+                                if (_activity.isEmpty)
+                                  Text(
+                                    l10n.line('volNoActivity'),
+                                    style: AppTextStyles.muted(context),
+                                  )
+                                else
+                                  for (final item in _activity)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Text(
+                                        '${_formatDate(item.createdAt)} · ${item.action}'
+                                        '${item.detail == null || item.detail!.isEmpty ? '' : ' · ${item.detail}'}',
+                                        style: AppTextStyles.body(context),
+                                      ),
+                                    ),
+                              ],
+                            ),
                   ),
                 ),
               ),

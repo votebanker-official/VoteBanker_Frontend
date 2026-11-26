@@ -50,9 +50,8 @@ class DomainResultCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, _) {
         final sideAction = compact;
-        final borderColor = selected
-            ? DomainPickerColors.blue
-            : DomainPickerColors.cardBorder;
+        final borderColor =
+            selected ? DomainPickerColors.blue : DomainPickerColors.cardBorder;
         final prices = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -170,10 +169,7 @@ class DomainResultCard extends StatelessWidget {
                       )
                     else ...[
                       prices,
-                      if (canSelect) ...[
-                        const SizedBox(height: 14),
-                        button,
-                      ],
+                      if (canSelect) ...[const SizedBox(height: 14), button],
                     ],
                   ],
                 ),
@@ -289,11 +285,7 @@ class _SelectButton extends StatelessWidget {
             TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
         ),
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
     );
   }

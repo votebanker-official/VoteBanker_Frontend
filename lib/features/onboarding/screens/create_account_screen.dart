@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/routing/app_router.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/widgets/language_selector.dart';
-import '../screens/otp_login_screen.dart';
+
 import '../state/onboarding_controller.dart';
 
 const _bg = Color(0xFFEAF4FF);
@@ -13,6 +14,12 @@ const _blue = Color(0xFF1677F2);
 const _fieldBorder = Color(0xFF9EC7FF);
 const _waveLight = Color(0xFFD9ECFF);
 const _waveMid = Color(0xFFCFE6FF);
+
+Color _accountNavy(BuildContext context) =>
+    context.palette.isDark ? context.palette.text : _navy;
+
+Color _accountBlue(BuildContext context) =>
+    context.palette.isDark ? context.palette.accent : _blue;
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -121,27 +128,34 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
     setState(() => _busy = true);
     try {
-      await AuthService.instance.sendOtp(phone);
+      await AuthService.instance.register(
+        email: _email.text.trim(),
+        mobile: phone,
+        password: _password.text,
+        confirmPassword: _confirmPassword.text,
+        termsAccepted: _termsAccepted,
+      );
       if (!mounted) return;
       final draft = OnboardingScope.of(context).draft;
       draft.email = _email.text.trim();
       draft.contactNumber = phone;
-      Navigator.of(context).pushReplacementNamed(
-        AppRoutes.otp,
-        arguments: OtpLoginArgs(
-          phone: phone,
-          codeSent: true,
-          signupEmail: _email.text.trim(),
-        ),
-      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.profile, (route) => false);
     } on AuthException catch (e) {
       if (mounted) setState(() => _submitError = e.message);
     } catch (_) {
       if (mounted) {
         setState(
-          () =>
-              _submitError =
-                  'Could not send verification code. Please try again.',
+          () => _submitError = 'Could not create account. Please try again.',
         );
       }
     } finally {
@@ -151,21 +165,25 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: palette.isDark ? palette.background : _bg,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const DecoratedBox(
+          DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFEAF4FF), Color(0xFFEAF4FF)],
+                colors:
+                    palette.isDark
+                        ? [palette.background, palette.background]
+                        : const [Color(0xFFEAF4FF), Color(0xFFEAF4FF)],
               ),
             ),
           ),
-          const Positioned.fill(child: _BottomWave()),
+          Positioned.fill(child: _BottomWave(palette: palette)),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -247,7 +265,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                           'Create Your Account',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            color: _blue,
+                                            color: _accountBlue(context),
                                             fontSize: headingSize,
                                             fontWeight: FontWeight.w800,
                                             height: 1.15,
@@ -258,7 +276,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                           'Join Vote Banker today',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                            color: const Color(0xFF5E7391),
+                                            color:
+                                                palette.isDark
+                                                    ? palette.textMuted
+                                                    : const Color(0xFF5E7391),
                                             fontSize: subtitleSize,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -319,9 +340,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                                           .visibility_off_outlined
                                                       : Icons
                                                           .visibility_outlined,
-                                                  color: const Color(
-                                                    0xFF4A78C9,
-                                                  ),
+                                                  color: palette.textMuted,
                                                 ),
                                                 tooltip:
                                                     _obscurePassword
@@ -361,9 +380,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                                           .visibility_off_outlined
                                                       : Icons
                                                           .visibility_outlined,
-                                                  color: const Color(
-                                                    0xFF4A78C9,
-                                                  ),
+                                                  color: palette.textMuted,
                                                 ),
                                                 tooltip:
                                                     _obscureConfirm
@@ -391,14 +408,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                                               _termsAccepted =
                                                                   v ?? false,
                                                         ),
-                                                activeColor: _blue,
+                                                activeColor: _accountBlue(
+                                                  context,
+                                                ),
                                                 materialTapTargetSize:
                                                     MaterialTapTargetSize
                                                         .shrinkWrap,
                                                 visualDensity:
                                                     VisualDensity.compact,
-                                                side: const BorderSide(
-                                                  color: Color(0xFF8FB8F0),
+                                                side: BorderSide(
+                                                  color: palette.border,
                                                   width: 1.3,
                                                 ),
                                                 shape: RoundedRectangleBorder(
@@ -419,9 +438,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                                                   !_termsAccepted,
                                                         ),
                                                 child: RichText(
-                                                  text: const TextSpan(
+                                                  text: TextSpan(
                                                     style: TextStyle(
-                                                      color: _navy,
+                                                      color: _accountNavy(
+                                                        context,
+                                                      ),
                                                       fontSize: 13.5,
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -435,7 +456,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                                         text:
                                                             'Terms & Conditions',
                                                         style: TextStyle(
-                                                          color: _blue,
+                                                          color: _accountBlue(
+                                                            context,
+                                                          ),
                                                           fontWeight:
                                                               FontWeight.w700,
                                                         ),
@@ -483,9 +506,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                             widthFactor: fieldWidthFactor,
                                             child: Row(
                                               children: [
-                                                const Expanded(
+                                                Expanded(
                                                   child: Divider(
-                                                    color: Color(0xFFD7E6F7),
+                                                    color: palette.border,
                                                     thickness: 1,
                                                   ),
                                                 ),
@@ -497,18 +520,18 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                                   child: Text(
                                                     'Or',
                                                     style: TextStyle(
-                                                      color: _navy.withValues(
-                                                        alpha: 0.55,
-                                                      ),
+                                                      color: _accountNavy(
+                                                        context,
+                                                      ).withValues(alpha: 0.55),
                                                       fontSize: 13.5,
                                                       fontWeight:
                                                           FontWeight.w600,
                                                     ),
                                                   ),
                                                 ),
-                                                const Expanded(
+                                                Expanded(
                                                   child: Divider(
-                                                    color: Color(0xFFD7E6F7),
+                                                    color: palette.border,
                                                     thickness: 1,
                                                   ),
                                                 ),
@@ -525,9 +548,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                             Text(
                                               'Already have an account? ',
                                               style: TextStyle(
-                                                color: _navy.withValues(
-                                                  alpha: 0.78,
-                                                ),
+                                                color: _accountNavy(
+                                                  context,
+                                                ).withValues(alpha: 0.78),
                                                 fontSize: 13.5,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -540,10 +563,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                                         context,
                                                         AppRoutes.login,
                                                       ),
-                                              child: const Text(
+                                              child: Text(
                                                 'Login',
                                                 style: TextStyle(
-                                                  color: _blue,
+                                                  color: _accountBlue(context),
                                                   fontSize: 13.5,
                                                   fontWeight: FontWeight.w800,
                                                 ),
@@ -567,7 +590,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             ),
           ),
           if (_busy)
-            const Positioned(
+            Positioned(
               left: 0,
               right: 0,
               top: 0,
@@ -575,8 +598,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 bottom: false,
                 child: LinearProgressIndicator(
                   minHeight: 3,
-                  color: _blue,
-                  backgroundColor: Color(0xFFDCEBFF),
+                  color: palette.accent,
+                  backgroundColor: palette.surfaceHighlight,
                 ),
               ),
             ),
@@ -587,15 +610,23 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 }
 
 class _BottomWave extends StatelessWidget {
-  const _BottomWave();
+  const _BottomWave({required this.palette});
+
+  final AppPalette palette;
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(child: CustomPaint(painter: _BottomWavePainter()));
+    return IgnorePointer(
+      child: CustomPaint(painter: _BottomWavePainter(palette)),
+    );
   }
 }
 
 class _BottomWavePainter extends CustomPainter {
+  const _BottomWavePainter(this.palette);
+
+  final AppPalette palette;
+
   @override
   void paint(Canvas canvas, Size size) {
     final path =
@@ -619,10 +650,13 @@ class _BottomWavePainter extends CustomPainter {
 
     final fill =
         Paint()
-          ..shader = const LinearGradient(
+          ..shader = LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [_waveLight, _waveMid],
+            colors:
+                palette.isDark
+                    ? [palette.backgroundRaised, palette.surfaceHighlight]
+                    : const [_waveLight, _waveMid],
           ).createShader(
             Rect.fromLTWH(
               0,
@@ -635,7 +669,8 @@ class _BottomWavePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _BottomWavePainter oldDelegate) =>
+      palette.isDark != oldDelegate.palette.isDark;
 }
 
 class _BrandLockup extends StatelessWidget {
@@ -659,7 +694,7 @@ class _BrandLockup extends StatelessWidget {
         Text(
           'VOTE BANKER',
           style: TextStyle(
-            color: const Color(0xFF0F5EDB),
+            color: _accountBlue(context),
             fontSize: titleSize,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.8,
@@ -678,6 +713,7 @@ class _FormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Container(
       padding: EdgeInsets.fromLTRB(
         isMobile ? 16 : 22,
@@ -686,7 +722,7 @@ class _FormCard extends StatelessWidget {
         isMobile ? 16 : 20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(isMobile ? 24 : 28),
         boxShadow: const [
           BoxShadow(
@@ -716,7 +752,7 @@ class _BackButton extends StatelessWidget {
     return IconButton(
       onPressed: onPressed,
       tooltip: 'Back',
-      icon: const Icon(Icons.arrow_back, color: Color(0xFF1677F2), size: 28),
+      icon: Icon(Icons.arrow_back, color: _accountBlue(context), size: 28),
       splashRadius: 22,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -749,9 +785,13 @@ class _SignupField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(24),
-      borderSide: const BorderSide(color: _fieldBorder, width: 1.2),
+      borderSide: BorderSide(
+        color: palette.isDark ? palette.border : _fieldBorder,
+        width: 1.2,
+      ),
     );
     return TextFormField(
       controller: controller,
@@ -760,22 +800,25 @@ class _SignupField extends StatelessWidget {
       textInputAction: textInputAction,
       validator: validator,
       onFieldSubmitted: onFieldSubmitted,
-      style: const TextStyle(
-        color: _navy,
+      style: TextStyle(
+        color: _accountNavy(context),
         fontSize: 15,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-          color: _navy.withValues(alpha: 0.42),
+          color:
+              palette.isDark
+                  ? palette.textMuted
+                  : _navy.withValues(alpha: 0.42),
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
-        prefixIcon: Icon(icon, color: _blue, size: 22),
+        prefixIcon: Icon(icon, color: _accountBlue(context), size: 22),
         suffixIcon: suffix,
         filled: true,
-        fillColor: const Color(0xFFF7FBFF),
+        fillColor: palette.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 15,
@@ -784,7 +827,7 @@ class _SignupField extends StatelessWidget {
         enabledBorder: border,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
-          borderSide: const BorderSide(color: _blue, width: 1.5),
+          borderSide: BorderSide(color: _accountBlue(context), width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
@@ -846,7 +889,7 @@ class _CreateAccountButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: enabled ? onPressed : null,
+          onTap: busy ? null : onPressed,
           borderRadius: BorderRadius.circular(30),
           child: SizedBox(
             height: 52,

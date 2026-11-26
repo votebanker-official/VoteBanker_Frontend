@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/routing/app_router.dart';
+import 'package:votebanker/app/theme/app_colors.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/core/widgets/global_footer.dart';
@@ -446,6 +447,98 @@ void main() {
     expect(find.byType(GlobalFooter).hitTestable(), findsOneWidget);
   });
 
+  testWidgets('footer updates across light, dark and mobile themes', (
+    tester,
+  ) async {
+    final controller = ThemeController();
+
+    for (final size in const [Size(1280, 900), Size(390, 1400)]) {
+      await _setSurface(tester, size);
+      await tester.pumpWidget(_themeApp(controller));
+      await tester.pumpAndSettle();
+
+      final lightPainter =
+          tester
+              .widget<CustomPaint>(find.byKey(const Key('global-footer')))
+              .painter!;
+      expect(
+        tester.widget<Text>(find.text('Quick Links')).style!.color,
+        GlobalFooter.navy,
+      );
+      expect(_footerLinkColor(tester, 'Privacy Policy'), GlobalFooter.navy);
+      expect(
+        tester.widget<Text>(find.text(GlobalFooter.copyrightLine)).style!.color,
+        GlobalFooter.text,
+      );
+      final legal = tester.widget<AnimatedContainer>(
+        find
+            .ancestor(
+              of: find.byKey(const Key('footer-link-privacy')),
+              matching: find.byType(AnimatedContainer),
+            )
+            .first,
+      );
+      expect((legal.decoration! as BoxDecoration).color, GlobalFooter.pill);
+
+      controller.value = ThemeMode.dark;
+      await tester.pumpAndSettle();
+
+      final darkPainter =
+          tester
+              .widget<CustomPaint>(find.byKey(const Key('global-footer')))
+              .painter!;
+      expect(darkPainter.shouldRepaint(lightPainter), isTrue);
+      expect(
+        tester.widget<Text>(find.text('Quick Links')).style!.color,
+        AppPalette.dark.text,
+      );
+      expect(
+        tester
+            .widget<Text>(
+              find.text(
+                'Empowering Modern Political Campaigns & Voter Outreach.',
+              ),
+            )
+            .style!
+            .color,
+        AppPalette.dark.textMuted,
+      );
+      expect(
+        tester.widget<Text>(find.text(GlobalFooter.copyrightLine)).style!.color,
+        AppPalette.dark.textMuted,
+      );
+      expect(_footerLinkColor(tester, 'Privacy Policy'), AppPalette.dark.text);
+      final darkLegal = tester.widget<AnimatedContainer>(
+        find
+            .ancestor(
+              of: find.byKey(const Key('footer-link-privacy')),
+              matching: find.byType(AnimatedContainer),
+            )
+            .first,
+      );
+      final darkDecoration = darkLegal.decoration! as BoxDecoration;
+      expect(darkDecoration.color, AppPalette.dark.surfaceSecondary);
+      expect(
+        (darkDecoration.border! as Border).top.color,
+        AppPalette.dark.border,
+      );
+      expect(tester.takeException(), isNull);
+
+      controller.value = ThemeMode.light;
+      await tester.pumpAndSettle();
+      final restoredPainter =
+          tester
+              .widget<CustomPaint>(find.byKey(const Key('global-footer')))
+              .painter!;
+      expect(restoredPainter.shouldRepaint(darkPainter), isTrue);
+      expect(
+        tester.widget<Text>(find.text('Quick Links')).style!.color,
+        GlobalFooter.navy,
+      );
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('desktop columns stay in order and mobile stacks', (
     tester,
   ) async {
@@ -759,4 +852,37 @@ class _RouteObserver extends NavigatorObserver {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
     _update(newRoute);
   }
+}
+
+Widget _themeApp(ThemeController controller) {
+  return ThemeScope(
+    controller: controller,
+    child: ValueListenableBuilder<ThemeMode>(
+      valueListenable: controller,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: mode,
+          home: const Scaffold(
+            body: Align(alignment: Alignment.topCenter, child: GlobalFooter()),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+Color? _footerLinkColor(WidgetTester tester, String label) {
+  return tester
+      .widget<AnimatedDefaultTextStyle>(
+        find
+            .ancestor(
+              of: find.text(label),
+              matching: find.byType(AnimatedDefaultTextStyle),
+            )
+            .first,
+      )
+      .style
+      .color;
 }

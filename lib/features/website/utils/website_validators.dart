@@ -19,7 +19,8 @@ abstract final class WebsiteValidators {
   static String? phone(String? value) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return null;
-    final normalized = AuthService.normalizePhone(text) ??
+    final normalized =
+        AuthService.normalizePhone(text) ??
         (RegExp(r'^\+?[0-9][0-9\s-]{6,18}$').hasMatch(text) ? text : null);
     if (normalized == null) {
       return 'Enter a valid phone number (${AppConfig.defaultCountryCode}…)';

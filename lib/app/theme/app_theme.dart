@@ -11,18 +11,20 @@ abstract final class AppTheme {
   static ThemeData _build(AppPalette p) {
     final brightness = p.isDark ? Brightness.dark : Brightness.light;
 
-    final colorScheme = (p.isDark ? const ColorScheme.dark() : const ColorScheme.light())
+    final colorScheme = (p.isDark
+            ? const ColorScheme.dark()
+            : const ColorScheme.light())
         .copyWith(
-      primary: p.accent,
-      onPrimary: Colors.white,
-      secondary: p.secondary,
-      onSecondary: const Color(0xFF04221E),
-      tertiary: p.campaign,
-      surface: p.surface,
-      onSurface: p.text,
-      error: p.danger,
-      onError: Colors.white,
-    );
+          primary: p.accent,
+          onPrimary: Colors.white,
+          secondary: p.secondary,
+          onSecondary: const Color(0xFF04221E),
+          tertiary: p.campaign,
+          surface: p.surface,
+          onSurface: p.text,
+          error: p.danger,
+          onError: Colors.white,
+        );
 
     final base = ThemeData(
       useMaterial3: true,
@@ -42,10 +44,9 @@ abstract final class AppTheme {
     ];
 
     final textTheme = _withFallback(
-      GoogleFonts.notoSansTextTheme(base.textTheme).apply(
-        bodyColor: p.text,
-        displayColor: p.text,
-      ),
+      GoogleFonts.notoSansTextTheme(
+        base.textTheme,
+      ).apply(bodyColor: p.text, displayColor: p.text),
       fallback,
     );
 
@@ -130,7 +131,9 @@ abstract final class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: p.accent,
           minimumSize: const Size(48, 48),
-          textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       snackBarTheme: SnackBarThemeData(

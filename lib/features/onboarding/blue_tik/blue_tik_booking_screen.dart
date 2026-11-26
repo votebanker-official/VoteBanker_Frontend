@@ -299,7 +299,10 @@ class _Form extends StatelessWidget {
             const SizedBox(height: 20),
             BlueTikPillButton(
               key: const Key('blue-tik-submit'),
-              label: saving ? l10n.line('blueTikSaving') : l10n.line('blueTikSubmit'),
+              label:
+                  saving
+                      ? l10n.line('blueTikSaving')
+                      : l10n.line('blueTikSubmit'),
               onPressed: saving ? () {} : onSubmit,
             ),
             if (saveFailed) ...[

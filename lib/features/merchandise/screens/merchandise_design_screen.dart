@@ -42,7 +42,8 @@ class MerchandiseDesignScreen extends StatefulWidget {
   final ValueChanged<int>? onQuantityChanged;
 
   @override
-  State<MerchandiseDesignScreen> createState() => _MerchandiseDesignScreenState();
+  State<MerchandiseDesignScreen> createState() =>
+      _MerchandiseDesignScreenState();
 }
 
 class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
@@ -125,9 +126,11 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       'size': _size,
       'color': _color,
       'contact_name': name,
-      'contact_phone': _phone.text.trim().isNotEmpty
-          ? _phone.text.trim()
-          : (OnboardingScope.maybeOf(context)?.draft.contactNumber.trim() ?? ''),
+      'contact_phone':
+          _phone.text.trim().isNotEmpty
+              ? _phone.text.trim()
+              : (OnboardingScope.maybeOf(context)?.draft.contactNumber.trim() ??
+                  ''),
       'contact_email': () {
         final sessionEmail = AuthService.instance.session?.email.trim() ?? '';
         if (sessionEmail.isNotEmpty) return sessionEmail;
@@ -168,9 +171,10 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       }
       setState(() {
         _saving = false;
-        _error = error.code == 'merchandise_not_ready'
-            ? l10n.line('merchNotReady')
-            : l10n.line('merchSaveError');
+        _error =
+            error.code == 'merchandise_not_ready'
+                ? l10n.line('merchNotReady')
+                : l10n.line('merchSaveError');
       });
     } catch (_) {
       if (!mounted) {
@@ -201,9 +205,9 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       }
       if (bytes.length > ProfileService.maxPhotoBytes ||
           ProfileService.photoContentType(bytes) == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.photoError)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.photoError)));
         return;
       }
       setState(() => _photoBytes = bytes);
@@ -211,9 +215,9 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.photoError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.photoError)));
     }
   }
 
@@ -253,9 +257,10 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
                 product: product,
                 line: _line.text,
                 photoBytes: _photoBytes,
-                partyName: AuthService.instance.isSignedIn
-                    ? (OnboardingScope.maybeOf(context)?.draft.party ?? '')
-                    : '',
+                partyName:
+                    AuthService.instance.isSignedIn
+                        ? (OnboardingScope.maybeOf(context)?.draft.party ?? '')
+                        : '',
                 size: _size,
                 color: _color,
                 quantity: _quantity,
@@ -354,7 +359,10 @@ class _ModePill extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final palette = context.palette;
     final controller = ThemeScope.of(context);
-    final label = palette.isDark ? l10n.line('merchLightMode') : l10n.line('merchDarkMode');
+    final label =
+        palette.isDark
+            ? l10n.line('merchLightMode')
+            : l10n.line('merchDarkMode');
     return Material(
       color: palette.surface,
       borderRadius: BorderRadius.circular(999),
@@ -372,12 +380,17 @@ class _ModePill extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                palette.isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                palette.isDark
+                    ? Icons.light_mode_outlined
+                    : Icons.dark_mode_outlined,
                 size: 18,
                 color: palette.text,
               ),
               const SizedBox(width: 8),
-              Text(label, style: AppTextStyles.label(context).copyWith(fontSize: 13)),
+              Text(
+                label,
+                style: AppTextStyles.label(context).copyWith(fontSize: 13),
+              ),
             ],
           ),
         ),
@@ -443,11 +456,20 @@ class _StepDot extends StatelessWidget {
           ),
           child: Text(
             '$number',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
           ),
         ),
         const SizedBox(height: 4),
-        Text(label, style: AppTextStyles.muted(context).copyWith(fontSize: 11, color: palette.textMuted)),
+        Text(
+          label,
+          style: AppTextStyles.muted(
+            context,
+          ).copyWith(fontSize: 11, color: palette.textMuted),
+        ),
       ],
     );
   }
@@ -531,7 +553,8 @@ class _FormCard extends StatelessWidget {
             const SizedBox(height: 14),
             AppTextField(
               controller: line,
-              label: '${l10n.line('merchCampaignLine')}  ${l10n.line('merchColorOptional')}',
+              label:
+                  '${l10n.line('merchCampaignLine')}  ${l10n.line('merchColorOptional')}',
               hint: l10n.line('merchCampaignHint'),
               textCapitalization: TextCapitalization.sentences,
               onChanged: onLine,
@@ -670,10 +693,10 @@ class _ColorLabel extends StatelessWidget {
     return Text.rich(
       TextSpan(
         text: colour,
-        style: AppTextStyles.label(context).copyWith(fontSize: 13, color: context.palette.textMuted),
-        children: [
-          TextSpan(text: '  $optional'),
-        ],
+        style: AppTextStyles.label(
+          context,
+        ).copyWith(fontSize: 13, color: context.palette.textMuted),
+        children: [TextSpan(text: '  $optional')],
       ),
     );
   }
@@ -698,7 +721,12 @@ class _SizeField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.label(context).copyWith(fontSize: 13, color: palette.textMuted)),
+        Text(
+          label,
+          style: AppTextStyles.label(
+            context,
+          ).copyWith(fontSize: 13, color: palette.textMuted),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value,
@@ -709,7 +737,10 @@ class _SizeField extends StatelessWidget {
           decoration: InputDecoration(
             filled: true,
             fillColor: palette.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 14,
+            ),
           ),
           items: [
             for (final option in options)
@@ -798,19 +829,20 @@ class _PrintPhotoPicker extends StatelessWidget {
               child: SizedBox(
                 width: 64,
                 height: 64,
-                child: hasPhoto
-                    ? Image.memory(
-                        photoBytes!,
-                        key: const ValueKey('merchPrintPhoto'),
-                        fit: BoxFit.cover,
-                      )
-                    : ColoredBox(
-                        color: palette.surfaceHighlight,
-                        child: Icon(
-                          Icons.add_a_photo_outlined,
-                          color: palette.textMuted,
+                child:
+                    hasPhoto
+                        ? Image.memory(
+                          photoBytes!,
+                          key: const ValueKey('merchPrintPhoto'),
+                          fit: BoxFit.cover,
+                        )
+                        : ColoredBox(
+                          color: palette.surfaceHighlight,
+                          child: Icon(
+                            Icons.add_a_photo_outlined,
+                            color: palette.textMuted,
+                          ),
                         ),
-                      ),
               ),
             ),
             const SizedBox(width: 12),
@@ -823,7 +855,9 @@ class _PrintPhotoPicker extends StatelessWidget {
                     key: const ValueKey('merchAddPhoto'),
                     onPressed: onPick,
                     icon: Icon(
-                      hasPhoto ? Icons.photo_camera_back_outlined : Icons.add_a_photo_outlined,
+                      hasPhoto
+                          ? Icons.photo_camera_back_outlined
+                          : Icons.add_a_photo_outlined,
                       size: 18,
                     ),
                     label: Text(
@@ -909,9 +943,13 @@ class _PreviewColumn extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF1A6F82),
               foregroundColor: Colors.white,
-              disabledBackgroundColor: const Color(0xFF1A6F82).withValues(alpha: 0.6),
+              disabledBackgroundColor: const Color(
+                0xFF1A6F82,
+              ).withValues(alpha: 0.6),
               minimumSize: const Size.fromHeight(52),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: onSave,
             icon: const Icon(Icons.edit_outlined, size: 18),
@@ -919,7 +957,12 @@ class _PreviewColumn extends StatelessWidget {
           ),
         if (error != null) ...[
           const SizedBox(height: 10),
-          Text(error!, style: AppTextStyles.body(context).copyWith(color: context.palette.danger)),
+          Text(
+            error!,
+            style: AppTextStyles.body(
+              context,
+            ).copyWith(color: context.palette.danger),
+          ),
         ],
       ],
     );

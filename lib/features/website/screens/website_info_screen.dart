@@ -55,16 +55,17 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
     if (result.connected && result.transcript != null) {
       setState(() {
         final current = _description.text.trim();
-        _description.text = current.isEmpty
-            ? result.transcript!
-            : '$current ${result.transcript!}';
+        _description.text =
+            current.isEmpty
+                ? result.transcript!
+                : '$current ${result.transcript!}';
         session.website.description = _description.text;
       });
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.line('voiceUnavailable'))),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.line('voiceUnavailable'))));
     _focus.requestFocus();
   }
 
@@ -92,19 +93,21 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
             WebsiteLanguageField(
               label: l10n.line('inputLanguageLabel'),
               value: website.inputLanguage,
-              onChanged: (code) => setState(() {
-                website.inputLanguage = code;
-                website.languagesReady = true;
-              }),
+              onChanged:
+                  (code) => setState(() {
+                    website.inputLanguage = code;
+                    website.languagesReady = true;
+                  }),
             ),
             const SizedBox(height: 14),
             WebsiteLanguageField(
               label: l10n.line('websiteLanguageLabel'),
               value: website.websiteLanguage,
-              onChanged: (code) => setState(() {
-                website.websiteLanguage = code;
-                website.languagesReady = true;
-              }),
+              onChanged:
+                  (code) => setState(() {
+                    website.websiteLanguage = code;
+                    website.languagesReady = true;
+                  }),
             ),
             const SizedBox(height: 18),
             Text(
@@ -139,7 +142,10 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
                     child: IconButton(
                       onPressed: _listen,
                       iconSize: 32,
-                      icon: Icon(Icons.mic_rounded, color: context.palette.accent),
+                      icon: Icon(
+                        Icons.mic_rounded,
+                        color: context.palette.accent,
+                      ),
                       tooltip: l10n.line('voiceInput'),
                     ),
                   ),

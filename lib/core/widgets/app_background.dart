@@ -47,7 +47,10 @@ class AppBackground extends StatelessWidget {
           Positioned(
             top: 90,
             left: 60,
-            child: _Glow(color: palette.campaign.withValues(alpha: 0.12), diameter: 180),
+            child: _Glow(
+              color: palette.campaign.withValues(alpha: 0.12),
+              diameter: 180,
+            ),
           ),
           Positioned.fill(child: child),
         ],
@@ -63,10 +66,11 @@ class _GridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
 
     final step = 36.0;
     for (var x = 0.0; x < size.width; x += step) {
@@ -78,7 +82,8 @@ class _GridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _GridPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _GridPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _Glow extends StatelessWidget {
@@ -95,9 +100,7 @@ class _Glow extends StatelessWidget {
         height: diameter,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color, color.withValues(alpha: 0)],
-          ),
+          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/services/auth_browser.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/onboarding_progress_service.dart';
 import '../core/services/theme_controller.dart';
 import '../core/widgets/global_footer.dart';
 import '../features/merchandise/merchandise_intent.dart';
@@ -80,18 +81,26 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
         if (!AuthService.instance.isSignedIn) return;
         final pendingMerch = await MerchandiseIntent.peek();
         final pendingBlue = await BlueTikIntent.peek();
-        final returning =
-            pendingMerch != null ||
-            pendingBlue != null ||
+        final returningToProfile =
             AuthService.instance.openProfileAfterLogin ||
             _initialRoute == AppRoutes.profile;
-        if (!returning || !mounted) return;
+        final shouldResume =
+            pendingMerch != null ||
+            pendingBlue != null ||
+            returningToProfile ||
+            AuthService.instance.isSignedIn;
+        if (!shouldResume || !mounted) return;
+        final resume =
+            await OnboardingProgressService.instance.resolveResumeRoute();
+        if (!mounted) return;
         final destination =
             pendingMerch != null
                 ? AppRoutes.campaignTemplates
                 : pendingBlue != null
                 ? AppRoutes.blueTik
-                : AppRoutes.profile;
+                : returningToProfile
+                ? AppRoutes.profile
+                : resume;
         replaceBrowserPath(destination);
         final navigator = _navigatorKey.currentState;
         if (navigator == null) return;

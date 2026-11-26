@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -6,18 +5,24 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/routing/app_routes.dart';
+import '../../app/theme/app_colors.dart';
 import '../constants/app_assets.dart';
 
 /// Shared VoteBanker footer. One instance is mounted by [AppFooterShell].
 class GlobalFooter extends StatelessWidget {
-  const GlobalFooter({this.routeName, this.onNavigate, super.key});
+  const GlobalFooter({
+    this.routeName,
+    this.onNavigate,
+    this.compact = false,
+    super.key,
+  });
 
   final String? routeName;
   final ValueChanged<String>? onNavigate;
+  final bool compact;
 
   static const columnBreakpoint = 1080.0;
 
@@ -92,6 +97,7 @@ class GlobalFooter extends StatelessWidget {
     String? routeName,
     bool showWebFooter = true,
     bool showMobileNavigation = true,
+    bool compactFooter = false,
   }) {
     if (context.findAncestorWidgetOfExactType<AppFooterShell>() != null) {
       return child;
@@ -107,6 +113,7 @@ class GlobalFooter extends StatelessWidget {
       routeName: route,
       showWebFooter: displayWebFooter,
       showMobileNavigation: displayMobileNavigation,
+      compactFooter: compactFooter,
       child: child,
     );
   }
@@ -201,13 +208,15 @@ class GlobalFooter extends StatelessWidget {
       );
     }
 
+    final palette = _footerPalette(context);
     final bottom = MediaQuery.paddingOf(context).bottom;
     return CustomPaint(
       key: const Key('global-footer'),
-      painter: const _FooterWavePainter(),
+      painter: _FooterWavePainter(palette),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
+          final compactLayout = compact && width >= 720;
           final pad =
               width >= 1200
                   ? 32.0
@@ -219,13 +228,26 @@ class GlobalFooter extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(pad, 22, pad, 18),
-                child: _FooterBody(width: width),
+                padding: EdgeInsets.fromLTRB(
+                  pad,
+                  compactLayout ? 12 : 22,
+                  pad,
+                  compactLayout ? 10 : 18,
+                ),
+                child: _FooterBody(width: width, compact: compactLayout),
               ),
-              const ColoredBox(color: teal, child: SizedBox(height: 1)),
+              ColoredBox(
+                color: _footerTeal(context),
+                child: const SizedBox(height: 1),
+              ),
               Padding(
-                padding: EdgeInsets.fromLTRB(pad, 14, pad, 14 + bottom),
-                child: _BottomBar(wide: width >= 1100),
+                padding: EdgeInsets.fromLTRB(
+                  pad,
+                  compactLayout ? 10 : 14,
+                  pad,
+                  (compactLayout ? 10 : 14) + bottom,
+                ),
+                child: _BottomBar(wide: width >= 1100, compact: compactLayout),
               ),
             ],
           );
@@ -243,6 +265,7 @@ class AppFooterShell extends StatefulWidget {
     this.routeName,
     this.showWebFooter = true,
     this.showMobileNavigation = false,
+    this.compactFooter = false,
     super.key,
   });
 
@@ -250,9 +273,42 @@ class AppFooterShell extends StatefulWidget {
   final String? routeName;
   final bool showWebFooter;
   final bool showMobileNavigation;
+  final bool compactFooter;
 
   @override
   State<AppFooterShell> createState() => _AppFooterShellState();
+}
+
+AppPalette _footerPalette(BuildContext context) {
+  return Theme.of(context).extension<AppPalette>() ??
+      (Theme.of(context).brightness == Brightness.dark
+          ? AppPalette.dark
+          : AppPalette.light);
+}
+
+Color _footerNavy(BuildContext context) {
+  final palette = _footerPalette(context);
+  return palette.isDark ? palette.text : GlobalFooter.navy;
+}
+
+Color _footerText(BuildContext context) {
+  final palette = _footerPalette(context);
+  return palette.isDark ? palette.textMuted : GlobalFooter.text;
+}
+
+Color _footerTeal(BuildContext context) {
+  final palette = _footerPalette(context);
+  return palette.isDark ? palette.secondary : GlobalFooter.teal;
+}
+
+Color _footerPill(BuildContext context) {
+  final palette = _footerPalette(context);
+  return palette.isDark ? palette.surfaceSecondary : GlobalFooter.pill;
+}
+
+Color _footerBorder(BuildContext context, Color lightColor) {
+  final palette = _footerPalette(context);
+  return palette.isDark ? palette.border : lightColor;
 }
 
 class _AppFooterShellState extends State<AppFooterShell> {
@@ -396,7 +452,7 @@ class _AppFooterShellState extends State<AppFooterShell> {
       return widget.child;
     }
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
@@ -406,11 +462,6 @@ class _AppFooterShellState extends State<AppFooterShell> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!context.mounted) return;
             _sync();
-            // #region agent log
-            if (kIsWeb) {
-              _logFooterPlacement(context, width, height, pageExtent, _long);
-            }
-            // #endregion
           });
           return SizedBox(
             width: width,
@@ -430,7 +481,7 @@ class _AppFooterShellState extends State<AppFooterShell> {
                     ),
                     footer: KeyedSubtree(
                       key: _footerKey,
-                      child: const GlobalFooter(),
+                      child: GlobalFooter(compact: widget.compactFooter),
                     ),
                   ),
                 ),
@@ -762,9 +813,10 @@ class RenderPageWithFooter extends RenderBox
 }
 
 class _FooterBody extends StatelessWidget {
-  const _FooterBody({required this.width});
+  const _FooterBody({required this.width, required this.compact});
 
   final double width;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -787,19 +839,19 @@ class _FooterBody extends StatelessWidget {
       links: GlobalFooter._companyLinks,
       touch: touch,
     );
-    final follow = _FollowColumn(center: touch);
+    final follow = _FollowColumn(center: touch, compact: compact);
     if (width >= GlobalFooter.columnBreakpoint) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Expanded(flex: 5, child: _BrandBlock()),
-          const SizedBox(width: 18),
+          Expanded(flex: 5, child: _BrandBlock(compact: compact)),
+          SizedBox(width: compact ? 12 : 18),
           Expanded(flex: 3, child: quick),
-          const SizedBox(width: 12),
+          SizedBox(width: compact ? 8 : 12),
           Expanded(flex: 3, child: support),
-          const SizedBox(width: 12),
+          SizedBox(width: compact ? 8 : 12),
           Expanded(flex: 3, child: company),
-          const SizedBox(width: 12),
+          SizedBox(width: compact ? 8 : 12),
           Expanded(flex: 4, child: follow),
         ],
       );
@@ -834,45 +886,51 @@ class _FooterBody extends StatelessWidget {
 }
 
 class _BrandBlock extends StatelessWidget {
-  const _BrandBlock();
+  const _BrandBlock({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _Logo(),
-        SizedBox(width: 14),
-        _BrandDivider(),
-        SizedBox(width: 14),
-        Expanded(child: _BrandCopy()),
+        _Logo(size: compact ? 56 : 72),
+        const SizedBox(width: 14),
+        _BrandDivider(height: compact ? 56 : 72),
+        const SizedBox(width: 14),
+        Expanded(child: _BrandCopy(compact: compact)),
       ],
     );
   }
 }
 
 class _BrandDivider extends StatelessWidget {
-  const _BrandDivider();
+  const _BrandDivider({required this.height});
+
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
+    return SizedBox(
       width: 1,
-      height: 72,
-      child: ColoredBox(color: Color(0xFFD3E3F4)),
+      height: height,
+      child: ColoredBox(color: _footerBorder(context, const Color(0xFFD3E3F4))),
     );
   }
 }
 
 class _Logo extends StatelessWidget {
-  const _Logo();
+  const _Logo({required this.size});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     return Image.asset(
       AppAssets.logo,
-      width: 72,
-      height: 72,
+      width: size,
+      height: size,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.high,
       semanticLabel: 'VoteBanker',
@@ -881,14 +939,21 @@ class _Logo extends StatelessWidget {
 }
 
 class _BrandCopy extends StatelessWidget {
-  const _BrandCopy();
+  const _BrandCopy({this.compact = false});
+
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final family = Theme.of(context).textTheme.bodyMedium?.fontFamily;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final titleSize = constraints.maxWidth >= 220 ? 18.0 : 16.0;
+        final titleSize =
+            compact
+                ? 16.0
+                : constraints.maxWidth >= 220
+                ? 18.0
+                : 16.0;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -897,30 +962,30 @@ class _BrandCopy extends StatelessWidget {
               softWrap: true,
               style: TextStyle(
                 fontFamily: family,
-                color: GlobalFooter.navy,
+                color: _footerNavy(context),
                 fontSize: titleSize,
                 fontWeight: FontWeight.w800,
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: compact ? 5 : 8),
             Text(
               'Empowering Modern Political Campaigns & Voter Outreach.',
               softWrap: true,
               style: TextStyle(
                 fontFamily: family,
-                color: GlobalFooter.text,
-                fontSize: 13,
+                color: _footerText(context),
+                fontSize: compact ? 12 : 13,
                 fontWeight: FontWeight.w400,
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: compact ? 6 : 10),
             Container(
               width: 52,
               height: 3,
               decoration: BoxDecoration(
-                color: GlobalFooter.teal,
+                color: _footerTeal(context),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -960,9 +1025,10 @@ class _LinkColumn extends StatelessWidget {
 }
 
 class _FollowColumn extends StatelessWidget {
-  const _FollowColumn({required this.center});
+  const _FollowColumn({required this.center, required this.compact});
 
   final bool center;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -976,16 +1042,19 @@ class _FollowColumn extends StatelessWidget {
           title: 'Follow Us',
           family: family,
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: compact ? 8 : 14),
         LayoutBuilder(
           builder: (context, constraints) {
             final available =
                 constraints.maxWidth.isFinite ? constraints.maxWidth : 320.0;
-            final size = math.min(65.0, math.max(44.0, (available - 36) / 4));
+            final size = math.min(
+              compact ? 48.0 : 65.0,
+              math.max(compact ? 38.0 : 44.0, (available - 36) / 4),
+            );
             final icons = Wrap(
               alignment: center ? WrapAlignment.center : WrapAlignment.start,
-              spacing: 12,
-              runSpacing: 12,
+              spacing: compact ? 8 : 12,
+              runSpacing: compact ? 8 : 12,
               children: [
                 _SocialButton(
                   name: 'Facebook',
@@ -1056,14 +1125,16 @@ class _SectionHeading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        ExcludeSemantics(child: Icon(icon, size: 18, color: GlobalFooter.teal)),
+        ExcludeSemantics(
+          child: Icon(icon, size: 18, color: _footerTeal(context)),
+        ),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
             title,
             style: TextStyle(
               fontFamily: family,
-              color: GlobalFooter.navy,
+              color: _footerNavy(context),
               fontSize: 15,
               fontWeight: FontWeight.w800,
               height: 1.2,
@@ -1076,9 +1147,10 @@ class _SectionHeading extends StatelessWidget {
 }
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.wide});
+  const _BottomBar({required this.wide, required this.compact});
 
   final bool wide;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -1087,16 +1159,16 @@ class _BottomBar extends StatelessWidget {
       GlobalFooter.copyrightLine,
       style: TextStyle(
         fontFamily: family,
-        color: GlobalFooter.text,
+        color: _footerText(context),
         fontSize: 12.5,
         height: 1.35,
       ),
     );
-    final legal = _LegalLinks(family: family);
+    final legal = _LegalLinks(family: family, compact: compact);
     if (!wide) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [copy, const SizedBox(height: 10), legal],
+        children: [copy, SizedBox(height: compact ? 8 : 10), legal],
       );
     }
     return Row(
@@ -1114,28 +1186,32 @@ class _BottomBar extends StatelessWidget {
 }
 
 class _LegalLinks extends StatelessWidget {
-  const _LegalLinks({required this.family});
+  const _LegalLinks({required this.family, this.compact = false});
 
   final String? family;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 10,
-      runSpacing: 8,
+      spacing: compact ? 7 : 10,
+      runSpacing: compact ? 6 : 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         for (var i = 0; i < GlobalFooter._legalLinks.length; i++) ...[
           if (i > 0)
-            const SizedBox(
+            SizedBox(
               width: 1,
               height: 18,
-              child: ColoredBox(color: Color(0xFFB9D7E6)),
+              child: ColoredBox(
+                color: _footerBorder(context, const Color(0xFFB9D7E6)),
+              ),
             ),
           _FooterLink(
             dest: GlobalFooter._legalLinks[i],
             family: family,
             pill: true,
+            compact: compact,
           ),
         ],
       ],
@@ -1158,12 +1234,14 @@ class _FooterLink extends StatefulWidget {
     required this.family,
     this.touch = false,
     this.pill = false,
+    this.compact = false,
   });
 
   final _FooterDest dest;
   final String? family;
   final bool touch;
   final bool pill;
+  final bool compact;
 
   @override
   State<_FooterLink> createState() => _FooterLinkState();
@@ -1176,11 +1254,14 @@ class _FooterLinkState extends State<_FooterLink> {
   @override
   Widget build(BuildContext context) {
     final linked = widget.dest.route != null;
+    final palette = _footerPalette(context);
     final color =
-        widget.pill
-            ? (_hover || _focus ? const Color(0xFF0B2454) : GlobalFooter.navy)
-            : (_hover || _focus ? GlobalFooter.teal : GlobalFooter.navy);
-    final iconColor = widget.pill ? color : GlobalFooter.teal;
+        widget.pill && (_hover || _focus) && !palette.isDark
+            ? const Color(0xFF0B2454)
+            : _hover || _focus
+            ? _footerTeal(context)
+            : _footerNavy(context);
+    final iconColor = widget.pill ? color : _footerTeal(context);
     final label = AnimatedDefaultTextStyle(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
@@ -1197,11 +1278,11 @@ class _FooterLinkState extends State<_FooterLink> {
       mainAxisSize: widget.pill ? MainAxisSize.min : MainAxisSize.max,
       children: [
         if (!widget.pill)
-          const ExcludeSemantics(
+          ExcludeSemantics(
             child: Icon(
               Icons.chevron_right_rounded,
               size: 16,
-              color: GlobalFooter.teal,
+              color: _footerTeal(context),
             ),
           ),
         if (widget.dest.icon != null) ...[
@@ -1221,10 +1302,20 @@ class _FooterLinkState extends State<_FooterLink> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
         decoration: BoxDecoration(
-          color: widget.pill ? GlobalFooter.pill : Colors.transparent,
+          color:
+              widget.pill
+                  ? _hover && palette.isDark
+                      ? palette.surfaceHighlight
+                      : _footerPill(context)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(widget.pill ? 999 : 6),
           border: Border.all(
-            color: _focus ? GlobalFooter.teal : Colors.transparent,
+            color:
+                _focus
+                    ? _footerTeal(context)
+                    : palette.isDark && widget.pill
+                    ? palette.border
+                    : Colors.transparent,
             width: 1.5,
           ),
         ),
@@ -1247,7 +1338,10 @@ class _FooterLinkState extends State<_FooterLink> {
           child: Padding(
             padding:
                 widget.pill
-                    ? const EdgeInsets.symmetric(horizontal: 12, vertical: 7)
+                    ? EdgeInsets.symmetric(
+                      horizontal: widget.compact ? 9 : 12,
+                      vertical: widget.compact ? 5 : 7,
+                    )
                     : EdgeInsets.symmetric(
                       vertical: widget.touch ? 8 : 4,
                       horizontal: 4,
@@ -1345,11 +1439,20 @@ class _SvgMark extends StatelessWidget {
 }
 
 class _FooterWavePainter extends CustomPainter {
-  const _FooterWavePainter();
+  _FooterWavePainter(AppPalette palette)
+    : _background = palette.isDark ? palette.background : GlobalFooter.canvas,
+      _wash =
+          palette.isDark ? palette.surfaceSecondary : const Color(0xFFE4F3FB),
+      _crest =
+          palette.isDark ? palette.backgroundRaised : const Color(0xFFF7FBFF);
+
+  final Color _background;
+  final Color _wash;
+  final Color _crest;
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = GlobalFooter.canvas);
+    canvas.drawRect(Offset.zero & size, Paint()..color = _background);
     final wash =
         Path()
           ..moveTo(0, size.height * 0.62)
@@ -1368,7 +1471,7 @@ class _FooterWavePainter extends CustomPainter {
           ..lineTo(size.width, size.height)
           ..lineTo(0, size.height)
           ..close();
-    canvas.drawPath(wash, Paint()..color = const Color(0xFFE4F3FB));
+    canvas.drawPath(wash, Paint()..color = _wash);
     final crest =
         Path()
           ..moveTo(0, size.height * 0.78)
@@ -1381,11 +1484,16 @@ class _FooterWavePainter extends CustomPainter {
           ..lineTo(size.width, size.height)
           ..lineTo(0, size.height)
           ..close();
-    canvas.drawPath(crest, Paint()..color = const Color(0xFFF7FBFF));
+    canvas.drawPath(crest, Paint()..color = _crest);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return oldDelegate is! _FooterWavePainter ||
+        oldDelegate._background != _background ||
+        oldDelegate._wash != _wash ||
+        oldDelegate._crest != _crest;
+  }
 }
 
 const _instagramGradient = LinearGradient(
@@ -1413,67 +1521,3 @@ const _instagramSvg = '''
   <circle cx="32.2" cy="15.8" r="1.7" fill="#fff"/>
 </svg>
 ''';
-
-// #region agent log
-void _logFooterPlacement(
-  BuildContext context,
-  double maxWidth,
-  double maxHeight,
-  double pageExtent,
-  bool long,
-) {
-  try {
-    final shell = context.findRenderObject();
-    if (shell is! RenderBox || !shell.hasSize) return;
-    RenderBox? footer;
-    void walk(Element element) {
-      if (element.widget.key == const Key('global-footer') &&
-          element.renderObject is RenderBox) {
-        footer = element.renderObject! as RenderBox;
-      }
-      if (footer == null) element.visitChildren(walk);
-    }
-
-    context.visitChildElements(walk);
-    final footerBox = footer;
-    if (footerBox == null || !footerBox.hasSize) return;
-    final shellOrigin = shell.localToGlobal(Offset.zero);
-    final footerOrigin = footerBox.localToGlobal(Offset.zero);
-    final dx = footerOrigin.dx - shellOrigin.dx;
-    final dy = footerOrigin.dy - shellOrigin.dy;
-    http
-        .post(
-          Uri.parse(
-            'http://127.0.0.1:7337/ingest/75959716-472f-4d0f-8b88-2b7d19c8618c',
-          ),
-          headers: const {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '133bb1',
-          },
-          body: jsonEncode({
-            'sessionId': '133bb1',
-            'runId': 'post-fix',
-            'hypothesisId': 'A',
-            'location': 'global_footer.dart:AppFooterShell',
-            'message': 'footer placement',
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-            'data': {
-              'maxWidth': maxWidth,
-              'maxHeight': maxHeight,
-              'pageExtent': pageExtent,
-              'long': long,
-              'shellWidth': shell.size.width,
-              'footerWidth': footerBox.size.width,
-              'footerDx': dx,
-              'footerDy': dy,
-              'beside': dx.abs() > 1,
-              'below': dy > 0 && dx.abs() <= 1,
-              'fullWidth': (footerBox.size.width - shell.size.width).abs() < 1,
-            },
-          }),
-        )
-        .then((_) {}, onError: (_) {});
-  } catch (_) {}
-}
-
-// #endregion

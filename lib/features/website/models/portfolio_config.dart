@@ -28,21 +28,23 @@ class PortfolioConfig {
   }
 
   Map<String, dynamic> toJson() => {
-        'templateId': templateId,
-        'templates': {
-          for (final entry in templates.entries) entry.key: entry.value.toJson(),
-        },
-      };
+    'templateId': templateId,
+    'templates': {
+      for (final entry in templates.entries) entry.key: entry.value.toJson(),
+    },
+  };
 
   static PortfolioConfig fromJson(Map<String, dynamic> json) {
     final config = PortfolioConfig();
-    final templateId = WebsiteTemplates.normalize(json['templateId'] as String?);
+    final templateId = WebsiteTemplates.normalize(
+      json['templateId'] as String?,
+    );
     config.templateId = templateId;
     final templates = json['templates'];
     if (templates is Map) {
       for (final id in templateIds) {
-        final raw = templates[id] ??
-            templates[WebsiteTemplates.legacyPortfolioId(id)];
+        final raw =
+            templates[id] ?? templates[WebsiteTemplates.legacyPortfolioId(id)];
         if (raw is Map) {
           config.templates[id] = PortfolioDesign.fromJson(
             Map<String, dynamic>.from(raw),
@@ -112,8 +114,7 @@ class PortfolioDesign {
       primaryColor: colors.$1,
       accentColor: colors.$2,
       fontKey: normalized == WebsiteTemplates.official ? 'serif' : 'system',
-      layoutKey:
-          normalized == WebsiteTemplates.community ? 'stacked' : 'split',
+      layoutKey: normalized == WebsiteTemplates.community ? 'stacked' : 'split',
     );
   }
 
@@ -136,20 +137,20 @@ class PortfolioDesign {
   }
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'tagline': tagline,
-        'about': about,
-        'vision': vision,
-        'achievements': achievements,
-        'news': news,
-        'contact': contact,
-        'socialLinks': socialLinks,
-        'primaryColor': primaryColor,
-        'accentColor': accentColor,
-        'fontKey': fontKey,
-        'layoutKey': layoutKey,
-        'gallery': [for (final item in gallery) item.toJson()],
-      };
+    'title': title,
+    'tagline': tagline,
+    'about': about,
+    'vision': vision,
+    'achievements': achievements,
+    'news': news,
+    'contact': contact,
+    'socialLinks': socialLinks,
+    'primaryColor': primaryColor,
+    'accentColor': accentColor,
+    'fontKey': fontKey,
+    'layoutKey': layoutKey,
+    'gallery': [for (final item in gallery) item.toJson()],
+  };
 
   static PortfolioDesign fromJson(Map<String, dynamic> json) {
     final design = PortfolioDesign.forTemplate(WebsiteTemplates.professional);
@@ -178,11 +179,7 @@ class PortfolioDesign {
 }
 
 class PortfolioGalleryItem {
-  PortfolioGalleryItem({
-    required this.id,
-    this.caption = '',
-    this.imageBase64,
-  });
+  PortfolioGalleryItem({required this.id, this.caption = '', this.imageBase64});
 
   final String id;
   String caption;
@@ -201,10 +198,10 @@ class PortfolioGalleryItem {
       PortfolioGalleryItem(id: id, caption: caption, imageBase64: imageBase64);
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'caption': caption,
-        'imageBase64': imageBase64,
-      };
+    'id': id,
+    'caption': caption,
+    'imageBase64': imageBase64,
+  };
 
   static PortfolioGalleryItem fromJson(Map<String, dynamic> json) {
     return PortfolioGalleryItem(

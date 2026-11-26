@@ -60,7 +60,11 @@ class WebsiteBuilderPreview extends StatelessWidget {
                   ),
                 ),
               if (fullBleed)
-                LeaderPortfolioSite(draft: draft, compact: compact, scrollBody: false)
+                LeaderPortfolioSite(
+                  draft: draft,
+                  compact: compact,
+                  scrollBody: false,
+                )
               else
                 Expanded(
                   child: LeaderPortfolioSite(draft: draft, compact: compact),

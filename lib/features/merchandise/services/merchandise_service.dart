@@ -27,7 +27,7 @@ class MerchandiseCatalog {
 /// Talks only to the VOTE BANKER backend. Supabase keys stay on the server.
 class MerchandiseService {
   MerchandiseService({http.Client? client, this.baseUrls = const []})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final List<String> baseUrls;
@@ -39,7 +39,8 @@ class MerchandiseService {
     }
     const localApi = 'http://127.0.0.1:5000';
     final alreadyLocal = configured.any(
-      (base) => base.contains('127.0.0.1:5000') || base.contains('localhost:5000'),
+      (base) =>
+          base.contains('127.0.0.1:5000') || base.contains('localhost:5000'),
     );
     if (alreadyLocal) {
       return configured;
@@ -49,25 +50,31 @@ class MerchandiseService {
 
   Future<MerchandiseCatalog> loadCatalog() async {
     final response = await _send('GET', '/api/merchandise/products');
-    if (response == null || response.statusCode < 200 || response.statusCode >= 300) {
+    if (response == null ||
+        response.statusCode < 200 ||
+        response.statusCode >= 300) {
       throw const MerchandiseException('load_failed');
     }
     final body = _json(response);
     final rows = body['products'];
     return MerchandiseCatalog(
-      products: rows is List
-          ? [
-              for (final row in rows)
-                if (row is Map<String, dynamic>) MerchandiseProduct.fromJson(row),
-            ]
-          : const [],
+      products:
+          rows is List
+              ? [
+                for (final row in rows)
+                  if (row is Map<String, dynamic>)
+                    MerchandiseProduct.fromJson(row),
+              ]
+              : const [],
       storageReady: body['storageReady'] == true,
     );
   }
 
   Future<List<MerchandiseOrder>> loadOrders() async {
     final response = await _send('GET', '/api/merchandise/orders');
-    if (response == null || response.statusCode < 200 || response.statusCode >= 300) {
+    if (response == null ||
+        response.statusCode < 200 ||
+        response.statusCode >= 300) {
       return const [];
     }
     final rows = _json(response)['orders'];
@@ -133,11 +140,14 @@ class MerchandiseService {
           headers['Authorization'] = 'Bearer $token';
         }
         final uri = Uri.parse('$base$path');
-        final response = method == 'POST'
-            ? await _client
-                .post(uri, headers: headers, body: jsonEncode(payload))
-                .timeout(const Duration(seconds: 20))
-            : await _client.get(uri, headers: headers).timeout(const Duration(seconds: 20));
+        final response =
+            method == 'POST'
+                ? await _client
+                    .post(uri, headers: headers, body: jsonEncode(payload))
+                    .timeout(const Duration(seconds: 20))
+                : await _client
+                    .get(uri, headers: headers)
+                    .timeout(const Duration(seconds: 20));
         last = response;
         if (response.statusCode != 404) {
           return response;

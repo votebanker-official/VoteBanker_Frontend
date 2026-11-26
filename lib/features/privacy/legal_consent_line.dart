@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_colors.dart';
 import '../../app/routing/app_routes.dart';
 
 /// Consent line for sign-in, registration, and OTP. Privacy Policy is tappable.
@@ -13,8 +14,9 @@ class LegalConsentLine extends StatefulWidget {
 }
 
 class _LegalConsentLineState extends State<LegalConsentLine> {
-  late final TapGestureRecognizer _privacy = TapGestureRecognizer()
-    ..onTap = () => AppNav.open(context, AppRoutes.privacyPolicy);
+  late final TapGestureRecognizer _privacy =
+      TapGestureRecognizer()
+        ..onTap = () => AppNav.open(context, AppRoutes.privacyPolicy);
 
   @override
   void dispose() {
@@ -24,13 +26,14 @@ class _LegalConsentLineState extends State<LegalConsentLine> {
 
   @override
   Widget build(BuildContext context) {
-    const body = TextStyle(
-      color: Color(0xFF263B60),
+    final palette = context.palette;
+    final body = TextStyle(
+      color: palette.isDark ? palette.textMuted : const Color(0xFF263B60),
       fontSize: 12.5,
       height: 1.45,
     );
-    const link = TextStyle(
-      color: Color(0xFF1765C5),
+    final link = TextStyle(
+      color: palette.isDark ? palette.accent : const Color(0xFF1765C5),
       fontSize: 12.5,
       fontWeight: FontWeight.w700,
       height: 1.45,

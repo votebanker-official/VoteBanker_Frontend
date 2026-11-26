@@ -47,9 +47,9 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
     final reasons = builder.publishBlockingReasons();
     if (reasons.isNotEmpty) {
       setState(() => _publishError = reasons.first);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(reasons.first)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(reasons.first)));
       return;
     }
 
@@ -60,14 +60,15 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
     builder.status = WebsiteStatus.pendingPayment;
     await WebsiteBuilderStore.instance.saveNow(builder);
 
-    final attempt = await session.websiteServices.payment.startWebsitePurchase();
+    final attempt =
+        await session.websiteServices.payment.startWebsitePurchase();
     if (!mounted) return;
     setState(() => _busy = false);
 
     if (!attempt.connected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.line('paymentLater'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.line('paymentLater'))));
     }
     AppRouter.open(context, AppRoutes.websitePublish);
   }
@@ -126,10 +127,7 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
           style: AppTextStyles.headline(context),
         ),
         const SizedBox(height: 6),
-        Text(
-          l10n.line('purchaseBody'),
-          style: AppTextStyles.muted(context),
-        ),
+        Text(l10n.line('purchaseBody'), style: AppTextStyles.muted(context)),
         const SizedBox(height: 16),
         KeyedSubtree(
           key: const ValueKey('purchaseWebsitePreview'),
@@ -182,9 +180,8 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
               ChoiceChip(
                 label: Text(entry.$2),
                 selected: _method == entry.$1,
-                onSelected: busy
-                    ? null
-                    : (_) => setState(() => _method = entry.$1),
+                onSelected:
+                    busy ? null : (_) => setState(() => _method = entry.$1),
               ),
           ],
         ),
@@ -216,9 +213,8 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
         const SizedBox(height: 10),
         SecondaryButton(
           label: l10n.line('continueEditing'),
-          onPressed: busy
-              ? () {}
-              : () => AppRouter.open(context, AppRoutes.website),
+          onPressed:
+              busy ? () {} : () => AppRouter.open(context, AppRoutes.website),
         ),
       ],
     );

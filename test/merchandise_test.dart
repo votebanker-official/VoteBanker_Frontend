@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/routing/app_routes.dart';
+import 'package:votebanker/app/theme/app_colors.dart';
+import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 import 'package:votebanker/features/merchandise/models/merchandise_pricing.dart';
@@ -17,6 +19,101 @@ import 'package:votebanker/features/merchandise/screens/merchandise_screen.dart'
 import 'package:votebanker/features/merchandise/services/merchandise_service.dart';
 
 void main() {
+  testWidgets('campaign template colors follow light and dark themes', (
+    tester,
+  ) async {
+    for (final size in [const Size(1280, 900), const Size(390, 800)]) {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      final theme = ThemeController();
+      addTearDown(theme.dispose);
+      await tester.pumpWidget(
+        _app(
+          CampaignTemplatesScreen(
+            products: [campaignTemplateProducts.first],
+            service: MerchandiseService(baseUrls: const ['http://127.0.0.1:9']),
+          ),
+          themeController: theme,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor,
+        const Color(0xFFF4F7FB),
+      );
+      final quantityLabel = tester.widget<Text>(find.text('Quantity'));
+      expect(quantityLabel.style?.color, const Color(0xFF64748B));
+
+      await tester.tap(find.byIcon(Icons.dark_mode_outlined));
+      await tester.pumpAndSettle();
+
+      final palette = AppPalette.dark;
+      expect(
+        tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor,
+        palette.background,
+      );
+      expect(
+        tester.widget<Text>(find.text('Quantity')).style?.color,
+        palette.textMuted,
+      );
+      expect(
+        tester.widget<Text>(find.text('Total Price')).style?.color,
+        palette.textMuted,
+      );
+      expect(
+        tester.widget<Text>(find.text('T-Shirt')).style?.color,
+        palette.text,
+      );
+      expect(
+        tester.widget<Text>(find.text('Wear Your Support')).style?.color,
+        palette.textMuted,
+      );
+      final quantityField = find.byType(DropdownButtonFormField<int>);
+      expect(
+        tester
+            .widget<Text>(find.text('50 pieces — ₹199/piece').first)
+            .style
+            ?.color,
+        palette.text,
+      );
+      expect(
+        tester
+            .widget<InputDecorator>(
+              find.descendant(
+                of: quantityField,
+                matching: find.byType(InputDecorator),
+              ),
+            )
+            .decoration
+            .fillColor,
+        palette.surface,
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const ValueKey('merchPriceTotal')))
+            .style
+            ?.color,
+        palette.accent,
+      );
+      expect(
+        tester.widget<Text>(find.text('₹199 per piece')).style?.color,
+        palette.secondary,
+      );
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.byIcon(Icons.light_mode_outlined));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor,
+        const Color(0xFFF4F7FB),
+      );
+      expect(tester.takeException(), isNull);
+    }
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
   testWidgets('the marketplace lists campaign merchandise', (tester) async {
     tester.view.physicalSize = const Size(1280, 2200);
     tester.view.devicePixelRatio = 1;
@@ -470,22 +567,35 @@ void main() {
   });
 }
 
-Widget _app(Widget home, {Map<String, WidgetBuilder> routes = const {}}) {
+Widget _app(
+  Widget home, {
+  Map<String, WidgetBuilder> routes = const {},
+  ThemeController? themeController,
+}) {
+  final theme = themeController ?? ThemeController();
   return ThemeScope(
-    controller: ThemeController(),
+    controller: theme,
     child: OnboardingScope(
       controller: OnboardingController(),
-      child: MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        routes: routes,
-        home: home,
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: theme,
+        builder: (context, themeMode, _) {
+          return MaterialApp(
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: themeMode,
+            locale: const Locale('en'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            routes: routes,
+            home: home,
+          );
+        },
       ),
     ),
   );

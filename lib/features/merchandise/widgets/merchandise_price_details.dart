@@ -31,10 +31,17 @@ class MerchandisePriceDetails extends StatelessWidget {
         border: Border.all(color: const Color(0xFFFED7AA)),
       ),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: compact ? 8 : 12),
-        child: totalOnly
-            ? _TotalOnly(quote: resolved.configured ? resolved : null, compact: compact)
-            : resolved.configured
+        padding: EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: compact ? 8 : 12,
+        ),
+        child:
+            totalOnly
+                ? _TotalOnly(
+                  quote: resolved.configured ? resolved : null,
+                  compact: compact,
+                )
+                : resolved.configured
                 ? _Configured(quote: resolved, compact: compact)
                 : _Missing(quantity: quantity, compact: compact),
       ),
@@ -64,11 +71,16 @@ class _TotalOnly extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: Text(
-            configured ? formatMerchandisePrice(quote!.lineTotalPaise!) : 'Price is not configured',
+            configured
+                ? formatMerchandisePrice(quote!.lineTotalPaise!)
+                : 'Price is not configured',
             key: configured ? const ValueKey('merchPriceTotal') : null,
             textAlign: TextAlign.end,
             style: TextStyle(
-              color: configured ? const Color(0xFF1E3A8A) : const Color(0xFF9A3412),
+              color:
+                  configured
+                      ? const Color(0xFF1E3A8A)
+                      : const Color(0xFF9A3412),
               fontSize: configured ? (compact ? 22 : 28) : (compact ? 13 : 15),
               fontWeight: FontWeight.w800,
             ),
@@ -80,10 +92,7 @@ class _TotalOnly extends StatelessWidget {
 }
 
 class _Configured extends StatelessWidget {
-  const _Configured({
-    required this.quote,
-    required this.compact,
-  });
+  const _Configured({required this.quote, required this.compact});
 
   final MerchandiseQuote quote;
   final bool compact;
@@ -94,7 +103,11 @@ class _Configured extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _line('Quantity', '${quote.quantity} pieces', compact),
-        _line('Price per piece', formatMerchandisePrice(quote.unitPricePaise!), compact),
+        _line(
+          'Price per piece',
+          formatMerchandisePrice(quote.unitPricePaise!),
+          compact,
+        ),
         const SizedBox(height: 6),
         Text(
           formatMerchandisePrice(quote.lineTotalPaise!),
@@ -112,10 +125,7 @@ class _Configured extends StatelessWidget {
 }
 
 class _Missing extends StatelessWidget {
-  const _Missing({
-    required this.quantity,
-    required this.compact,
-  });
+  const _Missing({required this.quantity, required this.compact});
 
   final int quantity;
   final bool compact;
