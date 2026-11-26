@@ -18,6 +18,7 @@ abstract final class AppRoutes {
   static const authCallback = '/auth/callback';
   static const otp = '/otp';
   static const profile = '/profile';
+  static const myPortfolio = '/my-portfolio';
   static const additionalProfile = '/profile/additional';
   static const domain = '/domain';
   static const website = '/website';
@@ -42,6 +43,8 @@ abstract final class AppRoutes {
   static const socialIntegration = '/social-integration';
   static const ready = '/ready';
   static const dashboard = '/dashboard';
+  static const campaignManagement = '/campaign-management';
+  static const mobileNavigationArgument = 'mobile-navigation';
   static const administrations = '/administrations';
   static const admin = '/admin';
   static const adminClient = '/admin/client';
@@ -63,6 +66,8 @@ abstract final class AppRoutes {
   /// screens are omitted on purpose.
   static const globalFooterRoutes = <String>{
     dashboard,
+    campaignManagement,
+    myPortfolio,
     merchandise,
     team,
     volunteers,
@@ -81,8 +86,35 @@ abstract final class AppRoutes {
     contactSupport,
   };
 
+  static const mobileNavigationRoutes = <String>{
+    dashboard,
+    vrmRecords,
+    website,
+    campaignManagement,
+    myPortfolio,
+  };
+
   static bool showsGlobalFooter(String route) =>
       globalFooterRoutes.contains(route);
+
+  static bool showsMobileNavigation(String? route) {
+    if (route == null) return false;
+    final path = Uri.parse(route).path;
+    return mobileNavigationRoutes.contains(path) ||
+        globalFooterRoutes.contains(path);
+  }
+
+  static int? mobileNavigationIndex(String? route) {
+    if (route == null) return null;
+    return switch (Uri.parse(route).path) {
+      dashboard => 0,
+      vrmRecords => 1,
+      website => 2,
+      campaignManagement => 3,
+      myPortfolio => 4,
+      _ => null,
+    };
+  }
 }
 
 abstract final class AppNav {

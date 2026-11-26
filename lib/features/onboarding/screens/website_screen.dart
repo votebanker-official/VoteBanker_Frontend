@@ -145,6 +145,8 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             (context) => GlobalFooter.wrapIfDisplayed(
               context,
               WebsiteBuilderScreen(continueOnboarding: continueOnboarding),
+              routeName: AppRoutes.website,
+              showMobileNavigation: false,
             ),
       ),
     );

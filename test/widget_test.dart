@@ -260,6 +260,7 @@ void main() {
     // Profile skip must leave an empty profile (no fetched/cached leader data).
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('My Website'), findsOneWidget);
+    expect(find.byKey(const Key('mobile-bottom-nav')), findsNothing);
     final websiteContext = tester.element(find.text('My Website'));
     expect(OnboardingScope.of(websiteContext).draft.fullName, isEmpty);
 

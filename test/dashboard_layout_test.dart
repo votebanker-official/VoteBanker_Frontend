@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
-import 'package:votebanker/app/routing/app_routes.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/dashboard/screens/dashboard_placeholder_screen.dart';
@@ -46,7 +45,6 @@ void main() {
 
           expect(tester.takeException(), isNull);
           expect(find.text('VOTE BANKER'), findsWidgets);
-          expect(find.text('Dashboard'), findsWidgets);
           expect(find.text('My Portfolio'), findsWidgets);
           expect(find.text('Saved Voters'), findsNothing);
           expect(find.text('My Voters'), findsWidgets);

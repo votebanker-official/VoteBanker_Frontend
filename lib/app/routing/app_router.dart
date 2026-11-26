@@ -13,6 +13,8 @@ import '../../features/admin/admin_client_screen.dart';
 import '../../features/admin/admin_panel_screen.dart';
 import '../../features/dashboard/screens/administrations_screen.dart';
 import '../../features/dashboard/screens/dashboard_placeholder_screen.dart';
+import '../../features/campaigns/screens/campaign_management_screen.dart';
+import '../../features/profile/screens/my_portfolio_screen.dart';
 import '../../features/merchandise/screens/campaign_templates_screen.dart';
 import '../../features/merchandise/screens/merchandise_screen.dart';
 import '../../features/letter_generator/letter_generator_screen.dart';
@@ -108,6 +110,8 @@ abstract final class AppRouter {
       AppRoutes.additionalProfile => const AdditionalProfileScreen(),
       AppRoutes.domain => const DomainSearchScreen(),
       AppRoutes.website => const WebsiteScreen(),
+      AppRoutes.myPortfolio => const MyPortfolioScreen(),
+      AppRoutes.campaignManagement => const CampaignManagementScreen(),
       AppRoutes.websiteInfo => const WebsiteInfoScreen(),
       AppRoutes.websiteQuestions => const WebsiteQuestionsScreen(),
       AppRoutes.websiteSections => const WebsiteSectionsScreen(),
@@ -159,7 +163,13 @@ abstract final class AppRouter {
       reverseTransitionDuration: const Duration(milliseconds: 180),
       pageBuilder: (context, animation, secondaryAnimation) {
         if (!showFooter) return page;
-        return GlobalFooter.wrapIfDisplayed(context, page);
+        return GlobalFooter.wrapIfDisplayed(
+          context,
+          page,
+          routeName: normalized,
+          showWebFooter: showFooter,
+          showMobileNavigation: false,
+        );
       },
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         return FadeTransition(opacity: animation, child: child);
