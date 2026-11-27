@@ -101,6 +101,8 @@ abstract final class AppRoutes {
   static bool showsMobileNavigation(String? route) {
     if (route == null) return false;
     final path = Uri.parse(route).path;
+    // The dashboard fills the screen. Its header and sidebar keep navigation.
+    if (path == dashboard) return false;
     return mobileNavigationRoutes.contains(path) ||
         globalFooterRoutes.contains(path);
   }

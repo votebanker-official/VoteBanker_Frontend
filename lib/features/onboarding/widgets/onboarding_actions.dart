@@ -61,7 +61,21 @@ class OnboardingActions extends StatelessWidget {
           },
         ),
         if (onSkip != null)
-          TextButton(onPressed: onSkip, child: Text(skipLabel ?? '')),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: onSkip,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                minimumSize: const Size(0, 44),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(skipLabel ?? ''),
+            ),
+          ),
       ],
     );
   }

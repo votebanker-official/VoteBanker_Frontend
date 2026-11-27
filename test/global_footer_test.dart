@@ -48,7 +48,7 @@ void main() {
       );
       expect(
         find.byKey(const Key('mobile-bottom-nav')),
-        findsOneWidget,
+        route == AppRoutes.dashboard ? findsNothing : findsOneWidget,
         reason: route,
       );
       expect(tester.takeException(), isNull, reason: route);
@@ -74,7 +74,7 @@ void main() {
     (tester) async {
       await _setSurface(tester, const Size(390, 844));
       await tester.pumpWidget(
-        _app(AppRoutes.dashboard, platform: TargetPlatform.android),
+        _app(AppRoutes.vrmRecords, platform: TargetPlatform.android),
       );
       await tester.pumpAndSettle();
 
@@ -101,18 +101,18 @@ void main() {
 
       expect(
         tester
-            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-voters')))
+            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-home')))
             .color,
         const Color(0xFF64748B),
       );
       expect(
         tester
-            .getSize(find.byKey(const Key('mobile-nav-underline-voters')))
+            .getSize(find.byKey(const Key('mobile-nav-underline-home')))
             .width,
         0,
       );
       final activeUnderline = find.byKey(
-        const Key('mobile-nav-underline-home'),
+        const Key('mobile-nav-underline-voters'),
       );
       expect(tester.getSize(activeUnderline).width, closeTo(68, 1));
       expect(
@@ -124,7 +124,7 @@ void main() {
 
       await _setSurface(tester, const Size(320, 568));
       await tester.pumpWidget(
-        _app(AppRoutes.dashboard, platform: TargetPlatform.android),
+        _app(AppRoutes.settings, platform: TargetPlatform.android),
       );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('mobile-bottom-nav')), findsOneWidget);
@@ -132,23 +132,29 @@ void main() {
       expect(tester.takeException(), isNull);
 
       await tester.pumpWidget(
-        _app(AppRoutes.dashboard, platform: TargetPlatform.iOS),
+        _app(AppRoutes.settings, platform: TargetPlatform.iOS),
       );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('mobile-bottom-nav')), findsOneWidget);
 
       await _setSurface(tester, const Size(1280, 900));
       await tester.pumpWidget(
-        _app(AppRoutes.dashboard, platform: TargetPlatform.android),
+        _app(AppRoutes.settings, platform: TargetPlatform.android),
       );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('mobile-bottom-nav')), findsOneWidget);
 
       await _setSurface(tester, const Size(1024, 900));
-      await tester.pumpWidget(_app(AppRoutes.dashboard));
+      await tester.pumpWidget(_app(AppRoutes.settings));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('mobile-bottom-nav')), findsOneWidget);
       expect(find.byKey(const Key('mobile-app-shell')), findsOneWidget);
+
+      await tester.pumpWidget(_app(AppRoutes.dashboard));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('mobile-bottom-nav')), findsNothing);
+      expect(find.text('Home'), findsNothing);
+      expect(find.text('Voters'), findsNothing);
     },
   );
 
@@ -159,7 +165,7 @@ void main() {
       final themeController = ThemeController();
       await tester.pumpWidget(
         _app(
-          AppRoutes.dashboard,
+          AppRoutes.vrmRecords,
           platform: TargetPlatform.android,
           themeController: themeController,
         ),
@@ -178,7 +184,7 @@ void main() {
       );
       expect(
         tester
-            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-home')))
+            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-voters')))
             .color,
         const Color(0xFF246BFD),
       );
@@ -206,20 +212,20 @@ void main() {
       );
       expect(
         tester
-            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-home')))
+            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-voters')))
             .color,
         const Color(0xFF3B82F6),
       );
       expect(
         tester
-            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-voters')))
+            .widget<Icon>(find.byKey(const Key('mobile-nav-icon-home')))
             .color,
         const Color(0xFF9CA3AF),
       );
       expect(
         (tester
                     .widget<AnimatedContainer>(
-                      find.byKey(const Key('mobile-nav-underline-home')),
+                      find.byKey(const Key('mobile-nav-underline-voters')),
                     )
                     .decoration!
                 as BoxDecoration)
@@ -259,7 +265,7 @@ void main() {
       }
 
       for (final route in AppRoutes.mobileNavigationRoutes.where(
-        (route) => route != AppRoutes.website,
+        (route) => route != AppRoutes.website && route != AppRoutes.dashboard,
       )) {
         await tester.pumpWidget(_app(route, platform: TargetPlatform.android));
         await tester.pumpAndSettle();
@@ -280,14 +286,14 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           find.byKey(const Key('mobile-bottom-nav')),
-          findsOneWidget,
+          route == AppRoutes.dashboard ? findsNothing : findsOneWidget,
           reason: route,
         );
         expect(tester.takeException(), isNull, reason: route);
       }
 
+      expect(AppRoutes.showsMobileNavigation(AppRoutes.dashboard), isFalse);
       for (final route in const [
-        AppRoutes.dashboard,
         AppRoutes.vrmRecords,
         AppRoutes.website,
         AppRoutes.campaignManagement,
@@ -306,7 +312,7 @@ void main() {
     final observer = _RouteObserver();
     await tester.pumpWidget(
       _app(
-        AppRoutes.dashboard,
+        AppRoutes.settings,
         platform: TargetPlatform.android,
         navigatorObserver: observer,
       ),
@@ -334,10 +340,7 @@ void main() {
     await tester.tap(find.byKey(const Key('mobile-nav-home')));
     await tester.pumpAndSettle();
     expect(observer.currentRoute, AppRoutes.dashboard);
-    expect(
-      tester.getSize(find.byKey(const Key('mobile-nav-underline-home'))).width,
-      closeTo(68, 1),
-    );
+    expect(find.byKey(const Key('mobile-bottom-nav')), findsNothing);
   });
 
   testWidgets('campaign and profile tabs open their dedicated screens', (

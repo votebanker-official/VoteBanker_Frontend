@@ -16,6 +16,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/utils/person_name.dart';
 import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../website/services/portfolio_store.dart';
@@ -1014,6 +1015,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: CircularSkipButton(
+                                  onPressed: _skipForNow,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
                               SizedBox(
                                 height: wide ? 148 : 124,
                                 child: ClipRRect(
@@ -1254,12 +1262,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                                   ),
                                 ),
                               ),
-                              Center(
-                                child: TextButton(
-                                  onPressed: _skipForNow,
-                                  child: Text(l10n.skipForNow),
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -1416,7 +1418,9 @@ class _ProfileTopBar extends StatelessWidget {
           ),
           const ThemeToggle(),
           const SizedBox(width: 8),
-          const LanguageSelector(),
+          LanguageSelector(
+            maxWidth: MediaQuery.sizeOf(context).width < 420 ? 96 : 168,
+          ),
           const SizedBox(width: 10),
           CircleAvatar(
             radius: 18,

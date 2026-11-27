@@ -92,7 +92,7 @@ void main() {
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
 
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
     await tester.enterText(
       find.byType(TextField).hitTestable().first,
       'Arjun Verma',
@@ -134,7 +134,7 @@ void main() {
       await tester.pumpWidget(VoteBankerApp(controller: controller));
       await tester.pumpAndSettle();
 
-      await _tapLabel(tester, 'Skip for now');
+      await _tapLabel(tester, 'Skip');
       // Allow background SharedPreferences clears from skip to finish.
       await tester.pump();
 
@@ -183,10 +183,10 @@ void main() {
       await tester.pumpWidget(VoteBankerApp(controller: controller));
       await tester.pumpAndSettle();
 
-      await _tapLabel(tester, 'Skip for now');
+      await _tapLabel(tester, 'Skip');
       expect(find.text('Leader Profile'), findsOneWidget);
 
-      await _tapLabel(tester, 'Skip for now');
+      await _tapLabel(tester, 'Skip');
       await tester.pump();
 
       expect(find.text('My Website'), findsOneWidget);
@@ -364,11 +364,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Leader Profile'), findsOneWidget);
 
     // Profile skip must leave an empty profile (no fetched/cached leader data).
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('My Website'), findsOneWidget);
     expect(find.byKey(const Key('mobile-bottom-nav')), findsNothing);
     final websiteContext = tester.element(find.text('My Website'));
@@ -422,14 +422,14 @@ void main() {
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.text('Speech Generator'), findsWidgets);
-    await _tapLabel(tester, 'Skip Now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Social Media Setup'), findsOneWidget);
 
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Get Your Blue Tik'), findsOneWidget);
-    await _tapLabel(tester, 'Skip Now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Get Your Voter Lists'), findsWidgets);
-    await _tapLabel(tester, 'Skip Now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Create Your Campaign Merchandise'), findsOneWidget);
     expect(find.text('Design & Order'), findsWidgets);
     expect(find.text('Dashboard'), findsNothing);
@@ -442,12 +442,13 @@ void main() {
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
 
-    await _tapLabel(tester, 'Skip for now');
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('My Website'), findsOneWidget);
     expect(find.text(enTranslations['portfolioGetWebsite']!), findsNothing);
     expect(find.byKey(const ValueKey('customizeTemplate')), findsNothing);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('continueTemplate')));
     await tester.tap(find.byKey(const ValueKey('continueTemplate')));
     await tester.pumpAndSettle();
     expect(find.text('Tell us about your website'), findsOneWidget);
@@ -466,10 +467,10 @@ void main() {
     await _chooseLanguage(tester, 'മലയാളം');
     expect(find.text(enTranslations['loginWelcome']!), findsOneWidget);
 
-    await _tapLabel(tester, mlTranslations['skipForNow']!);
+    await _tapLabel(tester, 'Skip');
     expect(find.text(mlTranslations['basicProfile']!), findsOneWidget);
 
-    await _tapLabel(tester, mlTranslations['skipForNow']!);
+    await _tapLabel(tester, 'Skip');
     expect(find.text(mlTranslations['portfolioMyWebsite']!), findsOneWidget);
     expect(tester.takeException(), isNull);
 

@@ -13,6 +13,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/onboarding_progress_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/utils/person_name.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../website/services/portfolio_store.dart';
@@ -264,7 +265,11 @@ class _LoginScreenState extends State<LoginScreen> {
             final desktop = width > 1024;
             final tablet = width >= 601 && width <= 1024;
             if (!desktop && !tablet) {
-              return _MobileLoginBody(busy: _busy, child: _mobileForm(l10n));
+              return _MobileLoginBody(
+                busy: _busy,
+                onSkip: _busy ? null : _skipForNow,
+                child: _mobileForm(l10n),
+              );
             }
             return Stack(
               children: [
@@ -295,6 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   showBrand: false,
                                 ),
                                 l10n: l10n,
+                                onSkip: _busy ? null : _skipForNow,
                               )
                               : _TabletLogin(
                                 form: _form(
@@ -303,6 +309,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   showBrand: false,
                                 ),
                                 l10n: l10n,
+                                onSkip: _busy ? null : _skipForNow,
                               ),
                     ),
                   ],
@@ -524,11 +531,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
           const LegalConsentLine(),
-          const SizedBox(height: 4),
-          TextButton(
-            onPressed: _busy ? null : _skipForNow,
-            child: Text(l10n.skipForNow),
-          ),
         ],
       ),
     );
@@ -752,17 +754,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
-          TextButton(
-            onPressed: _busy ? null : _skipForNow,
-            child: Text(
-              l10n.skipForNow,
-              style: TextStyle(
-                color: _loginBlue(context),
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -770,10 +761,15 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class _DesktopLogin extends StatelessWidget {
-  const _DesktopLogin({required this.form, required this.l10n});
+  const _DesktopLogin({
+    required this.form,
+    required this.l10n,
+    required this.onSkip,
+  });
 
   final Widget form;
   final AppLocalizations l10n;
+  final VoidCallback? onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -801,7 +797,17 @@ class _DesktopLogin extends StatelessWidget {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
-                  child: _LoginCard(child: form),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: CircularSkipButton(onPressed: onSkip),
+                      ),
+                      const SizedBox(height: 8),
+                      _LoginCard(child: form),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -813,10 +819,15 @@ class _DesktopLogin extends StatelessWidget {
 }
 
 class _TabletLogin extends StatelessWidget {
-  const _TabletLogin({required this.form, required this.l10n});
+  const _TabletLogin({
+    required this.form,
+    required this.l10n,
+    required this.onSkip,
+  });
 
   final Widget form;
   final AppLocalizations l10n;
+  final VoidCallback? onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -844,7 +855,17 @@ class _TabletLogin extends StatelessWidget {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
-                  child: _LoginCard(child: form),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: CircularSkipButton(onPressed: onSkip),
+                      ),
+                      const SizedBox(height: 8),
+                      _LoginCard(child: form),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1247,10 +1268,15 @@ class _RoundSocial extends StatelessWidget {
 }
 
 class _MobileLoginBody extends StatelessWidget {
-  const _MobileLoginBody({required this.child, required this.busy});
+  const _MobileLoginBody({
+    required this.child,
+    required this.busy,
+    required this.onSkip,
+  });
 
   final Widget child;
   final bool busy;
+  final VoidCallback? onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -1283,6 +1309,11 @@ class _MobileLoginBody extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
                 child: Column(
                   children: [
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: CircularSkipButton(onPressed: onSkip),
+                    ),
+                    const SizedBox(height: 8),
                     const _BrandLockup(),
                     const SizedBox(height: 16),
                     const _MobileCompanyBanner(),

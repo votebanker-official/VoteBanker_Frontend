@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/global_footer.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../website/models/website_builder_draft.dart';
@@ -232,37 +233,29 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(
-            height: 48,
-            child: Stack(
-              alignment: Alignment.center,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 4, 12, 0),
+            child: Row(
               children: [
-                Text(
-                  l10n.portfolioMyWebsite,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.headline(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.2),
+                IconButton(
+                  tooltip: l10n.back,
+                  onPressed:
+                      () =>
+                          AppRouter.back(context, AppRoutes.additionalProfile),
+                  icon: const Icon(Icons.arrow_back),
                 ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    tooltip: l10n.back,
-                    onPressed:
-                        () => AppRouter.back(
-                          context,
-                          AppRoutes.additionalProfile,
-                        ),
-                    icon: const Icon(Icons.arrow_back),
+                Expanded(
+                  child: Text(
+                    l10n.portfolioMyWebsite,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.headline(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.2),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed:
-                        () => AppRouter.open(context, AppRoutes.speechPreview),
-                    child: Text(l10n.portfolioSkip),
-                  ),
+                CircularSkipButton(
+                  onPressed:
+                      () => AppRouter.open(context, AppRoutes.speechPreview),
                 ),
               ],
             ),

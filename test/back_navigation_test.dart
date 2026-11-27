@@ -73,7 +73,7 @@ void main() {
     expect(find.text('YouTube'), findsOneWidget);
     expect(find.text('Email'), findsNothing);
     expect(find.text('Save & Continue'), findsOneWidget);
-    expect(find.text('Skip for now'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();

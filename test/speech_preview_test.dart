@@ -209,12 +209,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final skip = find.byKey(const Key('speech-preview-skip'));
-    final language = find.byIcon(Icons.language);
-    expect(
-      tester.getTopLeft(skip).dx,
-      lessThan(tester.getTopLeft(language).dx),
-    );
-    expect(tester.getSize(skip).height, greaterThanOrEqualTo(48));
+    final back = find.byKey(const Key('speech-preview-back'));
+    expect(tester.getTopLeft(skip).dy, greaterThan(tester.getTopLeft(back).dy));
+    expect(tester.getSize(skip).shortestSide, greaterThanOrEqualTo(48));
 
     await tester.tap(find.byKey(const Key('speech-preview-listen')));
     await tester.pump();

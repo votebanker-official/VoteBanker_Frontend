@@ -5,6 +5,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/onboarding_header.dart';
 import '../../onboarding/state/onboarding_controller.dart';
 import '../../onboarding/widgets/onboarding_actions.dart';
@@ -84,6 +85,14 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: CircularSkipButton(
+                onPressed:
+                    () => AppRouter.open(context, AppRoutes.speechPreview),
+              ),
+            ),
+            const SizedBox(height: 8),
             OnboardingHeader(
               compact: true,
               title: l10n.line('websiteInfoTitle'),
@@ -167,8 +176,6 @@ class _WebsiteInfoScreenState extends State<WebsiteInfoScreen> {
               },
               primaryLabel: l10n.line('continueAction'),
               onPrimary: _continue,
-              skipLabel: l10n.skipForNow,
-              onSkip: () => AppRouter.open(context, AppRoutes.speechPreview),
             ),
           ],
         ),

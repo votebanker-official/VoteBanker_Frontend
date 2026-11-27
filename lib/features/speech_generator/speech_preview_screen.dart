@@ -6,6 +6,7 @@ import '../../app/theme/app_colors.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/utils/person_name.dart';
+import '../../core/widgets/circular_skip_button.dart';
 import '../../core/widgets/language_selector.dart';
 import '../../core/widgets/theme_toggle.dart';
 import '../onboarding/data/profile_languages.dart';
@@ -183,7 +184,7 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
             final wide = constraints.maxWidth >= 800;
             return Column(
               children: [
-                _TopBar(wide: wide, onSkip: _skip),
+                _TopBar(wide: wide),
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
@@ -196,18 +197,34 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 960),
-                        child: _PreviewCard(
-                          wide: wide,
-                          name: name,
-                          party: party,
-                          speech: speech,
-                          rtl: speechPreviewRtlLanguages.contains(language),
-                          playing: _playing,
-                          photoBytes: photoBytes,
-                          photoUrl: photoUrl,
-                          onCopy: () => _copy(speech),
-                          onListen: () => _toggleSpeech(speech, language),
-                          onGenerate: _openSpeech,
+                        child: Column(
+                          children: [
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: CircularSkipButton(
+                                key: const Key('speech-preview-skip'),
+                                onPressed: _skip,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: _PreviewCard(
+                                wide: wide,
+                                name: name,
+                                party: party,
+                                speech: speech,
+                                rtl: speechPreviewRtlLanguages.contains(
+                                  language,
+                                ),
+                                playing: _playing,
+                                photoBytes: photoBytes,
+                                photoUrl: photoUrl,
+                                onCopy: () => _copy(speech),
+                                onListen: () => _toggleSpeech(speech, language),
+                                onGenerate: _openSpeech,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -223,10 +240,9 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.wide, required this.onSkip});
+  const _TopBar({required this.wide});
 
   final bool wide;
-  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -255,43 +271,11 @@ class _TopBar extends StatelessWidget {
             )
           else
             const Spacer(),
-          _SkipNowButton(onPressed: onSkip),
-          const SizedBox(width: 8),
           LanguageSelector(maxWidth: wide ? 168 : 120),
           const SizedBox(width: 8),
           const ThemeToggle(),
         ],
       ),
-    );
-  }
-}
-
-class _SkipNowButton extends StatelessWidget {
-  const _SkipNowButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final foreground =
-        palette.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
-    return TextButton(
-      key: const Key('speech-preview-skip'),
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: foreground,
-        backgroundColor: palette.surfaceSecondary,
-        minimumSize: const Size(0, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-          side: BorderSide(color: palette.border),
-        ),
-      ),
-      child: const Text('Skip Now'),
     );
   }
 }

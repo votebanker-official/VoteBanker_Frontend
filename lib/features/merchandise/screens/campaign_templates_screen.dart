@@ -10,6 +10,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../onboarding/blue_tik/blue_tik_models.dart';
 import '../merchandise_intent.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../onboarding/data/political_party.dart';
@@ -372,6 +373,11 @@ class _ProductShowcase extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 1040),
               child: Column(
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: CircularSkipButton(onPressed: onSkip),
+                  ),
+                  const SizedBox(height: 4),
                   Text.rich(
                     TextSpan(
                       style: TextStyle(
@@ -487,27 +493,6 @@ class _ProductShowcase extends StatelessWidget {
                           ),
                         ],
                       ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor:
-                          palette.isDark
-                              ? palette.textMuted
-                              : const Color(0xFF64748B),
-                      textStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      minimumSize: const Size(0, 28),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: onSkip,
-                    child: const Text('Skip now'),
-                  ),
                 ],
               ),
             ),

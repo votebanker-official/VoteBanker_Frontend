@@ -4,6 +4,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/services/auth_browser.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 
@@ -28,12 +29,7 @@ class VoterListsScreen extends StatelessWidget {
             final wide = constraints.maxWidth >= 800;
             return Column(
               children: [
-                _TopBar(
-                  wide: wide,
-                  onSkip:
-                      () =>
-                          AppRouter.open(context, AppRoutes.campaignTemplates),
-                ),
+                _TopBar(wide: wide),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.fromLTRB(
@@ -46,21 +42,38 @@ class VoterListsScreen extends StatelessWidget {
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 720),
-                        child: _IntroCard(
-                          wide: wide,
-                          onOpen: () {
-                            final target =
-                                recordsUrl ?? AppConfig.vrmRecordsUrl;
-                            if (target.trim().isEmpty) {
-                              AppRouter.open(context, AppRoutes.vrmRecords);
-                            } else {
-                              openVoterRecords(
-                                context,
-                                target,
-                                redirect: redirect,
-                              );
-                            }
-                          },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: CircularSkipButton(
+                                key: const Key('voter-lists-skip'),
+                                onPressed:
+                                    () => AppRouter.open(
+                                      context,
+                                      AppRoutes.campaignTemplates,
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _IntroCard(
+                              wide: wide,
+                              onOpen: () {
+                                final target =
+                                    recordsUrl ?? AppConfig.vrmRecordsUrl;
+                                if (target.trim().isEmpty) {
+                                  AppRouter.open(context, AppRoutes.vrmRecords);
+                                } else {
+                                  openVoterRecords(
+                                    context,
+                                    target,
+                                    redirect: redirect,
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -107,10 +120,9 @@ void _showOpenError(BuildContext context) {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.wide, required this.onSkip});
+  const _TopBar({required this.wide});
 
   final bool wide;
-  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -140,8 +152,6 @@ class _TopBar extends StatelessWidget {
             )
           else
             const Spacer(),
-          _SkipNowButton(onPressed: onSkip),
-          const SizedBox(width: 8),
           SizedBox(
             width: wide ? 168 : 104,
             child: LanguageSelector(maxWidth: wide ? 168 : 104),
@@ -150,40 +160,6 @@ class _TopBar extends StatelessWidget {
           const ThemeToggle(),
         ],
       ),
-    );
-  }
-}
-
-class _SkipNowButton extends StatelessWidget {
-  const _SkipNowButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final foreground =
-        palette.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF1E3A8A);
-    return TextButton(
-      key: const Key('voter-lists-skip'),
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: foreground,
-        backgroundColor:
-            palette.isDark ? palette.surfaceSecondary : const Color(0xFFEFF6FF),
-        minimumSize: const Size(0, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        overlayColor: const Color(0x332563EB),
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-          side: BorderSide(
-            color: palette.isDark ? palette.border : const Color(0xFFBFDBFE),
-          ),
-        ),
-      ),
-      child: const Text('Skip Now'),
     );
   }
 }

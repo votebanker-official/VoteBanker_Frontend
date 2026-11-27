@@ -8,6 +8,7 @@ import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/secondary_button.dart';
 import '../../onboarding/state/onboarding_controller.dart';
@@ -482,6 +483,20 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (widget.continueOnboarding && _step == _totalSteps)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: CircularSkipButton(
+                    onPressed: () {
+                      _syncDraft();
+                      unawaited(WebsiteBuilderStore.instance.saveNow(_draft));
+                      AppRouter.open(context, AppRoutes.speechPreview);
+                    },
+                  ),
+                ),
+              ),
             BuilderProgressBar(
               step: _step,
               total: _totalSteps,
@@ -520,17 +535,6 @@ class _WebsiteBuilderScreenState extends State<WebsiteBuilderScreen> {
                 ),
               ],
             ),
-            if (widget.continueOnboarding && _step == _totalSteps) ...[
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () {
-                  _syncDraft();
-                  unawaited(WebsiteBuilderStore.instance.saveNow(_draft));
-                  AppRouter.open(context, AppRoutes.speechPreview);
-                },
-                child: Text(l10n.skipForNow),
-              ),
-            ],
           ],
         ),
       ),

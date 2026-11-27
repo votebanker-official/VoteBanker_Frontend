@@ -5,6 +5,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../models/domain_suggestion.dart';
@@ -257,6 +258,11 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: CircularSkipButton(onPressed: _skipDomain),
+                            ),
+                            const SizedBox(height: 8),
                             Text(
                               l10n.domainTitle,
                               style: TextStyle(
@@ -391,13 +397,11 @@ class _DomainSearchScreenState extends State<DomainSearchScreen> {
                 _DomainFooter(
                   backLabel: l10n.back,
                   continueLabel: l10n.domainContinue,
-                  skipLabel: l10n.skipForNow,
                   onBack: () {
                     _commit();
                     AppRouter.back(context, AppRoutes.website);
                   },
                   onContinue: _continueToPurchase,
-                  onSkip: _skipDomain,
                 ),
               ],
             );
@@ -710,18 +714,14 @@ class _DomainFooter extends StatelessWidget {
   const _DomainFooter({
     required this.backLabel,
     required this.continueLabel,
-    required this.skipLabel,
     required this.onBack,
     required this.onContinue,
-    required this.onSkip,
   });
 
   final String backLabel;
   final String continueLabel;
-  final String skipLabel;
   final VoidCallback onBack;
   final VoidCallback onContinue;
-  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -757,31 +757,11 @@ class _DomainFooter extends StatelessWidget {
                       filled: true,
                       onPressed: onContinue,
                     );
-                    final skip = TextButton(
-                      onPressed: onSkip,
-                      style: TextButton.styleFrom(
-                        foregroundColor: DomainPickerColors.blue,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        minimumSize: const Size(48, 48),
-                      ),
-                      child: Text(
-                        skipLabel,
-                        maxLines: 2,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: DomainPickerColors.blue,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    );
                     if (compact) {
                       return Row(
                         children: [
                           Expanded(child: back),
-                          const SizedBox(width: 6),
-                          Expanded(child: skip),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 10),
                           Expanded(child: next),
                         ],
                       );
@@ -789,7 +769,7 @@ class _DomainFooter extends StatelessWidget {
                     return Row(
                       children: [
                         SizedBox(width: 148, child: back),
-                        Expanded(child: Center(child: skip)),
+                        const Spacer(),
                         SizedBox(width: 176, child: next),
                       ],
                     );

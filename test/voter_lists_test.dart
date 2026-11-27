@@ -39,12 +39,13 @@ void main() {
       expect(button.width, greaterThan(300));
 
       final skip = find.byKey(const Key('voter-lists-skip'));
+      final back = find.byTooltip('Back');
       final language = find.byIcon(Icons.language);
       expect(
-        tester.getTopLeft(skip).dx,
-        lessThan(tester.getTopLeft(language).dx),
+        tester.getTopLeft(skip).dy,
+        greaterThan(tester.getTopLeft(back).dy),
       );
-      expect(tester.getSize(skip).height, greaterThanOrEqualTo(48));
+      expect(tester.getSize(skip).shortestSide, greaterThanOrEqualTo(48));
 
       await tester.tap(find.byKey(const Key('voter-lists-open')));
       await tester.pumpAndSettle();
