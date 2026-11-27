@@ -175,7 +175,7 @@ class _Header extends StatelessWidget {
               ),
               const ThemeToggle(),
               const SizedBox(width: 8),
-              const Flexible(child: LanguageSelector()),
+              const LanguageSelector(),
             ],
           ),
         ),

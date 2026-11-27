@@ -6,6 +6,7 @@ import 'package:votebanker/app/routing/app_router.dart';
 import 'package:votebanker/app/theme/app_colors.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/auth_service.dart';
+import 'package:votebanker/core/widgets/language_selector.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/onboarding/data/profile_languages.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
@@ -209,7 +210,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final skip = find.byKey(const Key('speech-preview-skip'));
-    final language = find.byIcon(Icons.language);
+    final language = find.byType(LanguageSelector);
     expect(
       tester.getTopLeft(skip).dx,
       lessThan(tester.getTopLeft(language).dx),

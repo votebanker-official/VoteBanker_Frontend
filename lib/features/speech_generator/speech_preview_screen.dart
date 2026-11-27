@@ -230,6 +230,19 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gap = wide ? 8.0 : 6.0;
+    final controls = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SkipNowButton(onPressed: onSkip),
+        SizedBox(width: gap),
+        wide
+            ? const LanguageSelector(horizontalPadding: 8)
+            : const LanguageSelector(),
+        SizedBox(width: gap),
+        const ThemeToggle(),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 12, 0),
       child: Row(
@@ -253,13 +266,20 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
             )
-          else
-            const Spacer(),
-          _SkipNowButton(onPressed: onSkip),
-          const SizedBox(width: 8),
-          LanguageSelector(maxWidth: wide ? 168 : 120),
-          const SizedBox(width: 8),
-          const ThemeToggle(),
+          else ...[
+            const SizedBox(width: 4),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: controls,
+                ),
+              ),
+            ),
+          ],
+          if (wide) controls,
         ],
       ),
     );

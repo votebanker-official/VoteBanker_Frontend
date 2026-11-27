@@ -1127,7 +1127,7 @@ Future<void> _setSurface(WidgetTester tester, Size size) async {
 }
 
 Future<void> _chooseLanguage(WidgetTester tester, String nativeName) async {
-  await tester.tap(find.byIcon(Icons.language));
+  await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
   final item = find.textContaining(nativeName);
   await tester.scrollUntilVisible(

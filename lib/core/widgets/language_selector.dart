@@ -7,9 +7,19 @@ import '../../features/onboarding/data/profile_languages.dart';
 import '../../features/onboarding/state/onboarding_controller.dart';
 
 class LanguageSelector extends StatelessWidget {
-  const LanguageSelector({this.maxWidth = 168, super.key});
+  const LanguageSelector({
+    this.maxWidth = 168,
+    this.compact = false,
+    this.horizontalPadding,
+    super.key,
+  });
 
   final double maxWidth;
+
+  final bool compact;
+
+  /// Overrides the pill's side inset. Null keeps the shared default.
+  final double? horizontalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +28,13 @@ class LanguageSelector extends StatelessWidget {
     final code = Localizations.localeOf(context).languageCode;
     final palette = context.palette;
     final current = _languageFor(code);
+    final labelStyle = AppTextStyles.label(context).copyWith(fontSize: 13);
+    final arrowSize = compact ? 16.0 : 18.0;
+    final sideInset = horizontalPadding ?? (compact ? 10.0 : 12.0);
+    final textBudget = (maxWidth - sideInset * 2 - arrowSize - 6).clamp(
+      72.0,
+      maxWidth,
+    );
 
     return PopupMenuButton<String>(
       tooltip: l10n.language,
@@ -44,8 +61,14 @@ class LanguageSelector extends StatelessWidget {
         ];
       },
       child: Container(
-        constraints: BoxConstraints(minHeight: 48, maxWidth: maxWidth),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        constraints: BoxConstraints(
+          minHeight: compact ? 36 : 48,
+          maxWidth: maxWidth,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: sideInset,
+          vertical: compact ? 6 : 8,
+        ),
         decoration: BoxDecoration(
           color: palette.surfaceSecondary,
           borderRadius: BorderRadius.circular(999),
@@ -53,18 +76,20 @@ class LanguageSelector extends StatelessWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.language, size: 18, color: palette.accent),
-            const SizedBox(width: 8),
-            Flexible(
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: textBudget),
               child: Text(
                 current.nativeName,
+                textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.label(context).copyWith(fontSize: 13),
+                style: labelStyle,
               ),
             ),
-            Icon(Icons.expand_more, size: 18, color: palette.textMuted),
+            const SizedBox(width: 4),
+            Icon(Icons.expand_more, size: arrowSize, color: palette.textMuted),
           ],
         ),
       ),

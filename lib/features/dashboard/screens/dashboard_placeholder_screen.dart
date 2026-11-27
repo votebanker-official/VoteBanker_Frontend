@@ -431,7 +431,7 @@ class _TopBar extends StatelessWidget {
                     const SizedBox(width: 8),
                     const ThemeToggle(),
                     const SizedBox(width: 8),
-                    const Flexible(child: LanguageSelector()),
+                    const LanguageSelector(),
                   ],
                 ),
               ],
