@@ -425,7 +425,7 @@ void main() {
     expect(find.text('Social Media Setup'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
-    expect(find.text('Get Your Blue Tik'), findsOneWidget);
+    expect(find.text('Get Your Blue Tick Assistance'), findsOneWidget);
     await _tapLabel(tester, 'Skip Now');
     expect(find.text('Get Your Voter Lists'), findsWidgets);
     await _tapLabel(tester, 'Skip Now');
