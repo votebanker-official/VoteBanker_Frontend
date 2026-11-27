@@ -546,37 +546,58 @@ class _Header extends StatelessWidget {
                         ],
                   ),
                 const SizedBox(width: 8),
-                InkWell(
-                  onTap: () => onSelect(nav.length - 1),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: palette.primary,
-                      borderRadius: BorderRadius.circular(20),
+                if (compact)
+                  Flexible(
+                    child: _JoinChip(
+                      label: joinLabel,
+                      onTap: () => onSelect(nav.length - 1),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      child: Text(
-                        joinLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
+                  )
+                else
+                  _JoinChip(
+                    label: joinLabel,
+                    onTap: () => onSelect(nav.length - 1),
                   ),
-                ),
               ],
             ),
           ),
         ),
         Container(height: 3, color: palette.accent),
       ],
+    );
+  }
+}
+
+class _JoinChip extends StatelessWidget {
+  const _JoinChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = PartyTheme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: palette.primary,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -605,6 +626,7 @@ class _Hero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!wide) return _compactHero(context);
     final palette = PartyTheme.of(context);
     final photo = SizedBox(
       key: const ValueKey('websiteHeroPhoto'),
@@ -750,6 +772,166 @@ class _Hero extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Compact phone hero. Desktop keeps the wide row above.
+  Widget _compactHero(BuildContext context) {
+    final palette = PartyTheme.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 360;
+        final photoWidth = narrow ? 110.0 : 124.0;
+        final photoHeight = narrow ? 142.0 : 154.0;
+        final photo = SizedBox(
+          key: const ValueKey('websiteHeroPhoto'),
+          width: photoWidth,
+          height: photoHeight,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child:
+                draft.profilePhoto.hasImage
+                    ? _Media(draft.profilePhoto, alignment: Alignment.topCenter)
+                    : ColoredBox(
+                      color:
+                          palette.darkHero
+                              ? Colors.white24
+                              : const Color(0xFFCBD5E1),
+                      child: Icon(
+                        Icons.person,
+                        size: 40,
+                        color: palette.darkHero ? Colors.white : Colors.white,
+                      ),
+                    ),
+          ),
+        );
+        final details = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (partyName.isNotEmpty)
+              Row(
+                children: [
+                  _PartyMark(partyName: partyName, diameter: narrow ? 32 : 36),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      partyName,
+                      key: const ValueKey('websitePartyName'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: narrow ? 15 : 17,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (slogan.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                slogan,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: narrow ? 12 : 13,
+                  height: 1.25,
+                ),
+              ),
+            ],
+            if (displayName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                displayName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: narrow ? 14 : 15,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                  color: palette.onHero,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Sample role · Public representative · Sample constituency',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.3,
+                  color: palette.onHero.withValues(alpha: 0.85),
+                ),
+              ),
+            ],
+          ],
+        );
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [palette.hero, palette.primary, palette.accent],
+            ),
+          ),
+          child: Stack(
+            children: [
+              if (palette.id == 'NPP')
+                const Positioned(left: 0, right: 0, bottom: 0, child: _Hill()),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1120),
+                    child: Column(
+                      key: const ValueKey('hero-layout-column'),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: details),
+                            const SizedBox(width: 12),
+                            photo,
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _ActionButton(
+                              label: knowMore,
+                              onPressed: onKnowMore,
+                              filled: true,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                            ),
+                            _ActionButton(
+                              label: joinLabel,
+                              filled: false,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -1574,11 +1756,13 @@ class _ActionButton extends StatelessWidget {
     required this.label,
     this.onPressed,
     required this.filled,
+    this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool filled;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -1593,7 +1777,7 @@ class _ActionButton extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: padding,
           child: Text(
             label,
             style: TextStyle(
@@ -1627,20 +1811,22 @@ class _PartyMark extends StatelessWidget {
 }
 
 class _Media extends StatelessWidget {
-  const _Media(this.ref);
+  const _Media(this.ref, {this.alignment = Alignment.center});
 
   final MediaRef ref;
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
     final bytes = ref.bytes;
     if (bytes != null) {
-      return Image.memory(bytes, fit: BoxFit.cover);
+      return Image.memory(bytes, fit: BoxFit.cover, alignment: alignment);
     }
     if (ref.url.trim().isNotEmpty) {
       return Image.network(
         ref.url,
         fit: BoxFit.cover,
+        alignment: alignment,
         errorBuilder:
             (_, __, ___) => const ColoredBox(
               color: Color(0xFFE5E7EB),
