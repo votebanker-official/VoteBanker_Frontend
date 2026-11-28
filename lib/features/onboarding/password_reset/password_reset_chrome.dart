@@ -159,6 +159,7 @@ class ResetField extends StatelessWidget {
     this.onSubmitted,
     this.onChanged,
     this.errorText,
+    this.prefixText,
     super.key,
   });
 
@@ -172,6 +173,7 @@ class ResetField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final ValueChanged<String>? onChanged;
   final String? errorText;
+  final String? prefixText;
 
   @override
   Widget build(BuildContext context) {
@@ -191,6 +193,12 @@ class ResetField extends StatelessWidget {
         filled: true,
         fillColor: palette.surface,
         prefixIcon: Icon(icon, color: resetMutedFor(context), size: 20),
+        prefixText: prefixText,
+        prefixStyle: TextStyle(
+          color: resetNavyFor(context),
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
         suffixIcon: suffix,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
         enabledBorder: OutlineInputBorder(

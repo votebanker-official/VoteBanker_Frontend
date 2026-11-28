@@ -1,12 +1,41 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../../core/services/auth_service.dart';
 import 'password_reset_chrome.dart';
 
-class ResetSuccessScreen extends StatelessWidget {
+class ResetSuccessScreen extends StatefulWidget {
   const ResetSuccessScreen({super.key});
 
   @override
+  State<ResetSuccessScreen> createState() => _ResetSuccessScreenState();
+}
+
+class _ResetSuccessScreenState extends State<ResetSuccessScreen> {
+  Timer? _redirectTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _redirectTimer = Timer(const Duration(seconds: 4), _goToLogin);
+  }
+
+  @override
+  void dispose() {
+    _redirectTimer?.cancel();
+    super.dispose();
+  }
+
+  void _goToLogin() {
+    if (mounted) goToLogin(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final sessionRevocationFailed =
+        AuthService.instance.passwordResetSessionRevocationFailed;
+    final authSyncPending = AuthService.instance.passwordResetAuthSyncPending;
     return PasswordResetScaffold(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -41,7 +70,11 @@ class ResetSuccessScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Your password has been updated. You can now login with your new password.',
+            sessionRevocationFailed
+                ? 'Your password was changed, but other sessions could not be closed. Please sign in with your new password.'
+                : authSyncPending
+                ? 'Your password was saved. Sign in with your new password to finish syncing your account.'
+                : 'Your password has been updated. You can now login with your new password.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: resetNavyFor(context),
@@ -51,9 +84,11 @@ class ResetSuccessScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 22),
-          ResetPrimaryButton(
-            label: 'Go to Login',
-            onPressed: () => goToLogin(context),
+          ResetPrimaryButton(label: 'Go to Login', onPressed: _goToLogin),
+          const SizedBox(height: 8),
+          Text(
+            'Redirecting to Login...',
+            style: TextStyle(color: resetMutedFor(context), fontSize: 12),
           ),
         ],
       ),

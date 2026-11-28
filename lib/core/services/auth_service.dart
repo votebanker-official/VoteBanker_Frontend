@@ -40,7 +40,7 @@ class AuthSession {
   final int? expiresAt;
 }
 
-/// Talks to the VoteBanker backend for phone-OTP sign in.
+/// Talks to the VoteBanker backend for authentication and password recovery.
 class AuthService {
   AuthService._();
 
@@ -67,8 +67,20 @@ class AuthService {
   bool openProfileAfterLogin = false;
 
   String? _pendingPostLoginRoute;
+  String? _passwordRecoveryAccessToken;
+  String? _passwordRecoveryRefreshToken;
+  String? _phonePasswordResetToken;
+  String? _passwordRecoveryError;
+  bool passwordResetSessionRevocationFailed = false;
+  bool passwordResetAuthSyncPending = false;
 
   bool get isSignedIn => session != null;
+  bool get hasPendingPasswordRecovery =>
+      _passwordRecoveryAccessToken != null &&
+      _passwordRecoveryRefreshToken != null;
+  bool get hasPendingPasswordReset =>
+      hasPendingPasswordRecovery || _phonePasswordResetToken != null;
+  String? get passwordRecoveryError => _passwordRecoveryError;
 
   void rememberPostLoginRoute(String route) {
     _pendingPostLoginRoute = route;
@@ -80,6 +92,112 @@ class AuthService {
     _pendingPostLoginRoute = null;
     final savedRoute = takeSessionValue('vb_post_login_route');
     return route ?? savedRoute;
+  }
+
+  void capturePasswordRecovery({Uri? location}) {
+    final currentLocation = location ?? browserLocation();
+    final fragment = Uri.parse('?${currentLocation.fragment}').queryParameters;
+    if (fragment['type'] != 'recovery') return;
+
+    final accessToken = fragment['access_token'];
+    final refreshToken = fragment['refresh_token'];
+    if (accessToken != null &&
+        accessToken.isNotEmpty &&
+        refreshToken != null &&
+        refreshToken.isNotEmpty) {
+      _phonePasswordResetToken = null;
+      _passwordRecoveryAccessToken = accessToken;
+      _passwordRecoveryRefreshToken = refreshToken;
+      _passwordRecoveryError = null;
+      return;
+    }
+
+    _passwordRecoveryError = 'This reset link is invalid or has expired.';
+  }
+
+  Future<void> requestPasswordReset(String email) async {
+    await _post('/api/auth/password-reset/request', {'email': email.trim()});
+  }
+
+  Future<void> sendPasswordResetOtp(String phone) async {
+    await _post('/api/auth/otp/send', {
+      'phone': phone,
+      'channel': 'sms',
+      'purpose': 'password_reset',
+    });
+  }
+
+  Future<void> verifyPasswordResetOtp({
+    required String phone,
+    required String code,
+  }) async {
+    final body = await _post('/api/auth/otp/verify', {
+      'phone': phone,
+      'code': code,
+      'purpose': 'password_reset',
+    });
+    final token = body['reset_token'];
+    if (token is! String || token.isEmpty) {
+      throw const AuthException(
+        'invalid_reset_link',
+        'The verification could not be completed. Request a new code.',
+      );
+    }
+    _phonePasswordResetToken = token;
+    _passwordRecoveryError = null;
+  }
+
+  Future<void> completePasswordReset({
+    required String password,
+    required String confirmPassword,
+  }) async {
+    passwordResetAuthSyncPending = false;
+    final accessToken = _passwordRecoveryAccessToken;
+    final refreshToken = _passwordRecoveryRefreshToken;
+    final phoneResetToken = _phonePasswordResetToken;
+    if ((accessToken == null || refreshToken == null) &&
+        phoneResetToken == null) {
+      throw const AuthException(
+        'invalid_reset_link',
+        'This reset link is invalid or has expired. Request a new one.',
+      );
+    }
+
+    try {
+      final result = await _post('/api/auth/password-reset/complete', {
+        if (phoneResetToken != null) 'reset_token': phoneResetToken,
+        if (phoneResetToken == null) 'access_token': accessToken,
+        if (phoneResetToken == null) 'refresh_token': refreshToken,
+        'password': password,
+        'confirm_password': confirmPassword,
+      });
+      passwordResetAuthSyncPending = result['auth_sync_pending'] == true;
+    } on AuthException catch (error) {
+      if (error.code == 'invalid_reset_link' ||
+          error.code == 'reset_link_expired' ||
+          error.code == 'password_reset_session_revoke_failed') {
+        passwordResetSessionRevocationFailed =
+            error.code == 'password_reset_session_revoke_failed';
+        _clearPasswordRecovery();
+        replaceBrowserPath(browserLocation().path);
+        if (passwordResetSessionRevocationFailed) {
+          await _clearLocalSession();
+        }
+      }
+      rethrow;
+    }
+
+    passwordResetSessionRevocationFailed = false;
+    _clearPasswordRecovery();
+    await _clearLocalSession();
+    replaceBrowserPath(browserLocation().path);
+  }
+
+  void _clearPasswordRecovery() {
+    _passwordRecoveryAccessToken = null;
+    _passwordRecoveryRefreshToken = null;
+    _phonePasswordResetToken = null;
+    _passwordRecoveryError = null;
   }
 
   String get signedInEmail {
@@ -433,6 +551,16 @@ class AuthService {
         // Signing out locally still succeeds when the activity call cannot reach the API.
       }
     }
+    await _clearSavedSession();
+  }
+
+  Future<void> _clearLocalSession() async {
+    session = null;
+    _notifySessionCleared();
+    await _clearSavedSession();
+  }
+
+  Future<void> _clearSavedSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final key in [
@@ -538,6 +666,16 @@ class AuthService {
         return 'Password must include at least one letter and one number.';
       case 'password_mismatch':
         return 'Passwords do not match.';
+      case 'invalid_reset_link':
+      case 'reset_link_expired':
+        return 'This reset link is invalid or has expired. Request a new one.';
+      case 'password_reset_sms_unavailable':
+        return 'Phone recovery is temporarily unavailable. Please use email or try again later.';
+      case 'password_reset_unavailable':
+        return 'Password reset is temporarily unavailable. Please try again later.';
+      case 'password_reset_session_revoke_failed':
+        return 'Your password was changed, but the reset session could not be closed. '
+            'Please sign in with your new password.';
       case 'terms_required':
         return 'Please accept the Terms & Conditions.';
       case 'email_already_registered':

@@ -1,3 +1,5 @@
+import '../../../core/config/app_config.dart';
+
 enum OtpChannel { sms, email, whatsapp }
 
 /// Identifier collected on the first screen and carried through the flow.
@@ -51,7 +53,12 @@ class PasswordResetRequest {
     final local =
         digits.length >= 10 ? digits.substring(digits.length - 10) : digits;
     if (local.length < 4) return local;
-    return '+91 ${local.substring(0, 2)}*** **${local.substring(local.length - 3)}';
+    return '${AppConfig.defaultCountryCode} ${local.substring(0, 2)}*** **${local.substring(local.length - 3)}';
+  }
+
+  String get phoneNumber {
+    final digits = identifier.replaceAll(RegExp(r'\D'), '');
+    return '${AppConfig.defaultCountryCode}$digits';
   }
 
   String destinationFor(OtpChannel value) {

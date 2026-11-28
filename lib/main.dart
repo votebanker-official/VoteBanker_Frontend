@@ -11,6 +11,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   usePathUrlStrategy();
   AuthService.instance.captureSocialReturn();
+  AuthService.instance.capturePasswordRecovery();
   try {
     await AppTheme.preloadFonts().timeout(const Duration(seconds: 8));
   } catch (_) {

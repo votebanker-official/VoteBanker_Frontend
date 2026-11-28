@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../app/routing/app_router.dart';
+import '../../../core/services/auth_service.dart';
 import 'password_reset_chrome.dart';
 import 'password_reset_request.dart';
 
@@ -24,6 +25,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   Timer? _timer;
   int _remaining = _seconds;
   String? _error;
+  bool _busy = false;
+  bool _resending = false;
 
   @override
   void initState() {
@@ -87,12 +90,75 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     setState(() => _error = null);
   }
 
-  void _verify() {
+  Future<void> _verify() async {
+    if (_busy) return;
+    if (widget.request.isEmail || widget.request.channel != OtpChannel.sms) {
+      setState(() {
+        _error = 'Choose Email Address or Phone Number on the previous screen.';
+      });
+      return;
+    }
     if (_code.length != 6) {
       setState(() => _error = 'Enter the 6-digit OTP.');
       return;
     }
-    AppRouter.open(context, AppRoutes.resetPassword, arguments: widget.request);
+
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance.verifyPasswordResetOtp(
+        phone: widget.request.phoneNumber,
+        code: _code,
+      );
+      if (!mounted) return;
+      _timer?.cancel();
+      AppRouter.open(
+        context,
+        AppRoutes.resetPassword,
+        arguments: widget.request,
+      );
+    } on AuthException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Could not verify the code. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _resend() async {
+    if (_resending ||
+        widget.request.isEmail ||
+        widget.request.channel != OtpChannel.sms) {
+      return;
+    }
+    setState(() {
+      _resending = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance.sendPasswordResetOtp(
+        widget.request.phoneNumber,
+      );
+      if (!mounted) return;
+      for (final box in _boxes) {
+        box.clear();
+      }
+      _nodes.first.requestFocus();
+      _startTimer();
+    } on AuthException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Could not resend the code. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _resending = false);
+    }
   }
 
   @override
@@ -110,7 +176,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           ResetHeading(
             title: 'Verify OTP',
             subtitle:
-                'Enter the 6-digit OTP sent by $_channelLabel to $destination',
+                'If your number is registered, enter the 6-digit OTP sent by $_channelLabel to $destination',
           ),
           const SizedBox(height: 22),
           Row(
@@ -167,15 +233,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                 style: TextStyle(color: resetMutedFor(context), fontSize: 13),
               )
               : TextButton(
-                onPressed: () {
-                  for (final box in _boxes) {
-                    box.clear();
-                  }
-                  _nodes.first.requestFocus();
-                  _startTimer();
-                },
+                onPressed: _resending ? null : _resend,
                 child: Text(
-                  'Resend OTP',
+                  _resending ? 'Sending...' : 'Resend OTP',
                   style: TextStyle(
                     color: resetBlueFor(context),
                     fontWeight: FontWeight.w700,
@@ -183,10 +243,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                 ),
               ),
           const SizedBox(height: 8),
-          ResetPrimaryButton(label: 'Verify', onPressed: _verify),
+          ResetPrimaryButton(
+            label: _busy ? 'Verifying...' : 'Verify',
+            onPressed: _busy ? null : _verify,
+          ),
           ResetTextLink(
-            label: 'Change OTP channel',
-            onPressed: () => AppRouter.back(context, AppRoutes.resetChannel),
+            label: 'Choose another recovery method',
+            onPressed: () => AppRouter.open(context, AppRoutes.forgotPassword),
           ),
           TextButton(
             onPressed: () => goToLogin(context),

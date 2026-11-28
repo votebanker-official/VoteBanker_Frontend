@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/routing/app_router.dart';
+import '../../../core/services/auth_service.dart';
 import 'password_reset_chrome.dart';
 import 'password_reset_request.dart';
 
@@ -15,6 +16,9 @@ class OtpChannelScreen extends StatefulWidget {
 
 class _OtpChannelScreenState extends State<OtpChannelScreen> {
   late OtpChannel _channel;
+  String? _error;
+  bool _busy = false;
+  bool _sent = false;
 
   @override
   void initState() {
@@ -23,12 +27,46 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
         widget.request.isEmail ? OtpChannel.email : widget.request.channel;
   }
 
-  void _send() {
-    AppRouter.open(
-      context,
-      AppRoutes.resetOtp,
-      arguments: widget.request.withChannel(_channel),
-    );
+  Future<void> _send() async {
+    if (_busy) return;
+    if (!widget.request.isEmail && _channel != OtpChannel.sms) {
+      setState(() {
+        _error = 'Phone password recovery is available by SMS only.';
+      });
+      return;
+    }
+
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      if (widget.request.isEmail) {
+        await AuthService.instance.requestPasswordReset(
+          widget.request.identifier,
+        );
+        if (mounted) setState(() => _sent = true);
+      } else {
+        await AuthService.instance.sendPasswordResetOtp(
+          widget.request.phoneNumber,
+        );
+        if (mounted) {
+          AppRouter.open(
+            context,
+            AppRoutes.resetOtp,
+            arguments: widget.request.withChannel(OtpChannel.sms),
+          );
+        }
+      }
+    } on AuthException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Could not start recovery. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -66,7 +104,7 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             title: 'Via Email',
             subtitle:
                 request.isEmail
-                    ? 'Get OTP on ${request.maskedEmail}'
+                    ? 'Get a reset link at ${request.maskedEmail}'
                     : 'Add an email address to use email',
             onTap: () => setState(() => _channel = OtpChannel.email),
           ),
@@ -84,7 +122,37 @@ class _OtpChannelScreenState extends State<OtpChannelScreen> {
             onTap: () => setState(() => _channel = OtpChannel.whatsapp),
           ),
           const SizedBox(height: 20),
-          ResetPrimaryButton(label: 'Send OTP', onPressed: _send),
+          if (_sent) ...[
+            Text(
+              'If an account exists for this email, a password reset link has been sent.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: resetNavyFor(context),
+                fontSize: 14,
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (_error != null) ...[
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: resetDanger, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+          ],
+          ResetPrimaryButton(
+            label:
+                _busy
+                    ? 'Sending...'
+                    : widget.request.isEmail
+                    ? _sent
+                        ? 'Send Another Link'
+                        : 'Send Reset Link'
+                    : 'Send OTP',
+            onPressed: _busy ? null : _send,
+          ),
           ResetTextLink(
             label: 'Back to Login',
             onPressed: () => goToLogin(context),
