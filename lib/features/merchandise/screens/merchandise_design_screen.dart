@@ -16,7 +16,10 @@ import '../../../core/widgets/app_background.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../onboarding/state/onboarding_controller.dart';
+import '../merchandise_identity.dart';
 import '../merchandise_intent.dart';
+import '../models/merchandise_design.dart';
+import '../widgets/personalized_merchandise.dart';
 import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
@@ -59,12 +62,20 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
   var _saving = false;
   var _saved = false;
   var _seeded = false;
+  var _printTarget = PrintTarget.photo;
   String? _error;
 
   @override
   void initState() {
     super.initState();
     _size = widget.product.sizes.isEmpty ? '' : widget.product.sizes.first;
+    MerchandiseIdentityController.instance.addListener(_onIdentity);
+    MerchandiseDesignStore.instance.addListener(_onIdentity);
+    MerchandiseIdentityController.instance.refresh();
+  }
+
+  void _onIdentity() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -94,6 +105,8 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
 
   @override
   void dispose() {
+    MerchandiseIdentityController.instance.removeListener(_onIdentity);
+    MerchandiseDesignStore.instance.removeListener(_onIdentity);
     _line.dispose();
     _name.dispose();
     _phone.dispose();
@@ -136,7 +149,7 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
         if (sessionEmail.isNotEmpty) return sessionEmail;
         return OnboardingScope.maybeOf(context)?.draft.email.trim() ?? '';
       }(),
-      'notes': _notes.text.trim(),
+      'notes': _orderNotes(),
       if (_photoBytes != null) 'campaign_photo': base64Encode(_photoBytes!),
     };
 
@@ -159,11 +172,27 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
         _saved = true;
       });
       final quote = quoteMerchandise(widget.product.priceSlabs, _quantity);
+      final identity = MerchandiseIdentityController.instance;
       await showMerchandiseBookingConfirmation(
         context,
         productName: widget.product.name,
         quantity: _quantity,
         totalPaise: quote.configured ? quote.lineTotalPaise : null,
+        detail:
+            identity.hasPhoto
+                ? 'Your profile photo is printed in place of the original artwork.'
+                : null,
+        preview:
+            identity.hasPhoto
+                ? PersonalizedMerchandiseView(
+                  slug: widget.product.slug,
+                  photo: identity.photo,
+                  partyName: identity.hasParty ? identity.partyName : '',
+                  design: MerchandiseDesignStore.instance.of(
+                    widget.product.slug,
+                  ),
+                )
+                : null,
       );
     } on MerchandiseException catch (error) {
       if (!mounted) {
@@ -185,6 +214,18 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
         _error = l10n.line('merchSaveError');
       });
     }
+  }
+
+  String _orderNotes() {
+    final typed = _notes.text.trim();
+    final identity = MerchandiseIdentityController.instance;
+    if (!identity.hasPhoto) return typed;
+    final tag =
+        MerchandiseDesignStore.instance.of(widget.product.slug).encode();
+    if (typed.isEmpty) return tag;
+    if (typed.contains('vbdesign')) return typed;
+    final combined = '$typed $tag';
+    return combined.length <= 400 ? combined : tag;
   }
 
   Future<void> _pickPhoto() async {
@@ -253,14 +294,20 @@ class _MerchandiseDesignScreenState extends State<MerchandiseDesignScreen> {
                 onPickPhoto: _pickPhoto,
                 onRemovePhoto: () => setState(() => _photoBytes = null),
               );
+              final identity = MerchandiseIdentityController.instance;
               final preview = _PreviewColumn(
                 product: product,
                 line: _line.text,
-                photoBytes: _photoBytes,
-                partyName:
-                    AuthService.instance.isSignedIn
-                        ? (OnboardingScope.maybeOf(context)?.draft.party ?? '')
-                        : '',
+                partyName: identity.hasParty ? identity.partyName : '',
+                profilePhoto: identity.photo,
+                printTarget: _printTarget,
+                onSelectPrint:
+                    (target) => setState(() => _printTarget = target),
+                onDesignChanged: (design) {
+                  MerchandiseDesignStore.instance.update(product.slug, design);
+                },
+                onResetDesign:
+                    () => MerchandiseDesignStore.instance.reset(product.slug),
                 size: _size,
                 color: _color,
                 quantity: _quantity,
@@ -887,8 +934,12 @@ class _PreviewColumn extends StatelessWidget {
   const _PreviewColumn({
     required this.product,
     required this.line,
-    required this.photoBytes,
     this.partyName = '',
+    this.profilePhoto,
+    this.printTarget = PrintTarget.photo,
+    this.onSelectPrint,
+    this.onDesignChanged,
+    this.onResetDesign,
     required this.size,
     required this.color,
     required this.quantity,
@@ -900,8 +951,12 @@ class _PreviewColumn extends StatelessWidget {
 
   final MerchandiseProduct product;
   final String line;
-  final Uint8List? photoBytes;
   final String partyName;
+  final Uint8List? profilePhoto;
+  final PrintTarget printTarget;
+  final ValueChanged<PrintTarget>? onSelectPrint;
+  final ValueChanged<ProductDesign>? onDesignChanged;
+  final VoidCallback? onResetDesign;
   final String size;
   final String color;
   final int quantity;
@@ -913,14 +968,30 @@ class _PreviewColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final identity = MerchandiseIdentityController.instance;
+    final personalized = identity.signedIn && identity.hasPhoto;
+    final design = MerchandiseDesignStore.instance.of(product.slug);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (identity.signedIn && identity.loaded && !identity.hasPhoto)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: Text(
+              'Add your profile photo on your profile to print it on this product.',
+            ),
+          ),
         MerchandiseLivePreview(
           product: product,
           line: line,
-          photoBytes: photoBytes,
           partyName: partyName,
+          profilePhoto: profilePhoto,
+          design: design,
+          interactive: personalized,
+          selected: printTarget,
+          onSelect: onSelectPrint,
+          onChanged: personalized ? onDesignChanged : null,
+          onReset: personalized ? onResetDesign : null,
           hint: l10n.line('merchCampaignHint'),
           size: size,
           color: color,

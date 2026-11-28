@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/services/auth_service.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_text_styles.dart';
@@ -11,7 +10,8 @@ import '../../dashboard/widgets/dashboard_sidebar.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../onboarding/data/political_party.dart';
-import '../../onboarding/state/onboarding_controller.dart';
+import '../merchandise_identity.dart';
+import '../models/merchandise_design.dart';
 import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
@@ -44,6 +44,20 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
     } else {
       _load();
     }
+    MerchandiseIdentityController.instance.addListener(_onPersonalization);
+    MerchandiseDesignStore.instance.addListener(_onPersonalization);
+    MerchandiseIdentityController.instance.refresh();
+  }
+
+  void _onPersonalization() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    MerchandiseIdentityController.instance.removeListener(_onPersonalization);
+    MerchandiseDesignStore.instance.removeListener(_onPersonalization);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -71,10 +85,13 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
     final l10n = AppLocalizations.of(context);
     final catalog = _catalog;
 
-    final draft = OnboardingScope.maybeOf(context)?.draft;
-    final signedIn = AuthService.instance.isSignedIn;
-    final party = signedIn ? PartyOption.findByName(draft?.party ?? '') : null;
-    final photo = signedIn ? draft?.photoBytes : null;
+    final identity = MerchandiseIdentityController.instance;
+    final signedIn = identity.signedIn;
+    final party =
+        signedIn && identity.hasParty
+            ? PartyOption.findByName(identity.partyName)
+            : null;
+    final photo = signedIn ? identity.photo : null;
     final products =
         (catalog == null || catalog.products.isEmpty)
             ? campaignTemplateProducts

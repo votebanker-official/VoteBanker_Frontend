@@ -8,12 +8,16 @@ class MerchandiseBookingConfirmation extends StatelessWidget {
     required this.productName,
     required this.quantity,
     this.totalPaise,
+    this.detail,
+    this.preview,
     super.key,
   });
 
   final String productName;
   final int quantity;
   final int? totalPaise;
+  final String? detail;
+  final Widget? preview;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +52,14 @@ class MerchandiseBookingConfirmation extends StatelessWidget {
               ),
             ),
           ],
+          if (detail != null && detail!.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(detail!, style: text.bodyMedium),
+          ],
+          if (preview != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(height: 160, width: 160, child: preview),
+          ],
         ],
       ),
       actions: [
@@ -65,6 +77,8 @@ Future<void> showMerchandiseBookingConfirmation(
   required String productName,
   required int quantity,
   int? totalPaise,
+  String? detail,
+  Widget? preview,
 }) {
   return showDialog<void>(
     context: context,
@@ -74,6 +88,8 @@ Future<void> showMerchandiseBookingConfirmation(
         productName: productName,
         quantity: quantity,
         totalPaise: totalPaise,
+        detail: detail,
+        preview: preview,
       );
     },
   );

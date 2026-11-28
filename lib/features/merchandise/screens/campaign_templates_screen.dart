@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -9,12 +10,14 @@ import '../../../app/routing/app_router.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../onboarding/blue_tik/blue_tik_models.dart';
+import '../merchandise_identity.dart';
 import '../merchandise_intent.dart';
+import '../models/merchandise_design.dart';
+import '../widgets/personalized_merchandise.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../onboarding/data/political_party.dart';
 import '../../onboarding/state/onboarding_controller.dart';
-import '../../onboarding/widgets/party_symbol.dart';
 import '../models/merchandise_pricing.dart';
 import '../models/merchandise_product.dart';
 import '../services/merchandise_service.dart';
@@ -54,6 +57,13 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
       _products = supplied;
     }
     _refresh();
+    MerchandiseIdentityController.instance.addListener(_onPersonalization);
+    MerchandiseDesignStore.instance.addListener(_onPersonalization);
+    MerchandiseIdentityController.instance.refresh();
+  }
+
+  void _onPersonalization() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _resumePendingOrder() async {
@@ -71,6 +81,8 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
 
   @override
   void dispose() {
+    MerchandiseIdentityController.instance.removeListener(_onPersonalization);
+    MerchandiseDesignStore.instance.removeListener(_onPersonalization);
     _pages.dispose();
     super.dispose();
   }
@@ -200,6 +212,13 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
         );
         return;
       }
+      final identity = MerchandiseIdentityController.instance;
+      final design = MerchandiseDesignStore.instance.of(product.slug);
+      String? printPhoto;
+      if (identity.hasPhoto) {
+        final encoded = base64Encode(identity.photo!);
+        if (encoded.length <= 900000) printPhoto = encoded;
+      }
       await _service.placeOrder({
         'product_slug': product.slug,
         'quantity': confirmed.quantity,
@@ -207,6 +226,8 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
         'contact_phone': buyer.phone,
         'contact_email': buyer.email,
         'campaign_line': buyer.party,
+        if (identity.hasPhoto) 'notes': design.encode(),
+        if (printPhoto != null) 'campaign_photo': printPhoto,
       });
       await MerchandiseIntent.clear();
       if (!mounted) return;
@@ -215,6 +236,19 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
         productName: product.name,
         quantity: confirmed.quantity,
         totalPaise: confirmed.lineTotalPaise,
+        detail:
+            identity.hasPhoto
+                ? 'Your profile photo is printed in place of the original artwork.'
+                : null,
+        preview:
+            identity.hasPhoto
+                ? PersonalizedMerchandiseView(
+                  slug: product.slug,
+                  photo: identity.photo,
+                  partyName: identity.hasParty ? identity.partyName : '',
+                  design: design,
+                )
+                : null,
       );
       if (!mounted) return;
       setState(() {
@@ -244,10 +278,17 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final draft = OnboardingScope.maybeOf(context)?.draft;
-    final signedIn = AuthService.instance.isSignedIn;
-    final party = signedIn ? PartyOption.findByName(draft?.party ?? '') : null;
-    final photo = signedIn ? draft?.photoBytes : null;
+    final identity = MerchandiseIdentityController.instance;
+    final signedIn = identity.signedIn;
+    final party =
+        signedIn && identity.hasParty
+            ? PartyOption.findByName(identity.partyName)
+            : null;
+    final photo = signedIn ? identity.photo : null;
+    final prompt =
+        signedIn && identity.loaded && !identity.hasPhoto
+            ? 'Add your profile photo on your profile to print it on this product.'
+            : null;
 
     return Scaffold(
       backgroundColor:
@@ -285,6 +326,7 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
                         product: product,
                         party: party,
                         photo: photo,
+                        prompt: prompt,
                         index: index,
                         total: _products.length,
                         booked: _booked.contains(product.slug),
@@ -332,6 +374,7 @@ class _ProductShowcase extends StatelessWidget {
     required this.onSkip,
     this.party,
     this.photo,
+    this.prompt,
     this.onPrevious,
     this.onNext,
   });
@@ -339,6 +382,7 @@ class _ProductShowcase extends StatelessWidget {
   final MerchandiseProduct product;
   final PartyOption? party;
   final Uint8List? photo;
+  final String? prompt;
   final int index;
   final int total;
   final bool booked;
@@ -414,6 +458,7 @@ class _ProductShowcase extends StatelessWidget {
                       product: product,
                       party: party,
                       photo: photo,
+                      prompt: prompt,
                       onPrevious: onPrevious,
                       onNext: onNext,
                     ),
@@ -615,6 +660,7 @@ class _ProductStage extends StatelessWidget {
     required this.product,
     this.party,
     this.photo,
+    this.prompt,
     this.onPrevious,
     this.onNext,
   });
@@ -622,6 +668,7 @@ class _ProductStage extends StatelessWidget {
   final MerchandiseProduct product;
   final PartyOption? party;
   final Uint8List? photo;
+  final String? prompt;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
@@ -648,31 +695,46 @@ class _ProductStage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 12),
               child: SizedBox.expand(
                 key: ValueKey('merchProductArt-${product.slug}'),
-                child: Image.asset(
-                  _merchandiseAsset(product.slug),
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.medium,
+                child: PersonalizedMerchandiseView(
+                  slug: product.slug,
+                  photo: photo,
+                  partyName: party?.name ?? '',
+                  design: MerchandiseDesignStore.instance.of(product.slug),
                 ),
               ),
             ),
           ),
         ),
-        if (party != null)
+        if (prompt != null)
           Positioned(
-            left: 16,
-            top: 16,
-            child: PartySymbol(party!.name, diameter: 36),
-          ),
-        if (photo != null && photo!.isNotEmpty)
-          Positioned(
-            right: 16,
+            left: 24,
+            right: 24,
             bottom: 16,
-            child: ClipOval(
-              child: Image.memory(
-                photo!,
-                width: 40,
-                height: 40,
-                fit: BoxFit.cover,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color:
+                    palette.isDark
+                        ? palette.surface.withValues(alpha: 0.92)
+                        : const Color(0xF2FFFFFF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                child: Text(
+                  prompt!,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        palette.isDark ? palette.text : const Color(0xFF334155),
+                  ),
+                ),
               ),
             ),
           ),
@@ -1272,24 +1334,6 @@ class CampaignTemplateCard extends StatelessWidget {
   }
 }
 
-String _merchandiseAsset(String slug) {
-  const files = {
-    't-shirt': 'assets/images/merchandise/merch-tshirt.jpg',
-    'scarf': 'assets/images/merchandise/merch-scarf.jpg',
-    'flag': 'assets/images/merchandise/merch-flag.jpg',
-    'badge': 'assets/images/merchandise/merch-badge.jpg',
-    'cap': 'assets/images/merchandise/merch-cap.jpg',
-    'mug': 'assets/images/merchandise/merch-mug.jpg',
-    'poster': 'assets/images/merchandise/merch-poster.jpg',
-    'sticker': 'assets/images/merchandise/merch-sticker.jpg',
-    'keychain': 'assets/images/merchandise/merch-keychain.jpg',
-    'pen': 'assets/images/merchandise/merch-pen.jpg',
-    'bag': 'assets/images/merchandise/merch-bag.jpg',
-    'gift-box': 'assets/images/merchandise/merch-gift.jpg',
-  };
-  return files[slug] ?? 'assets/images/merchandise/merch-tshirt.jpg';
-}
-
 String _taglineFor(MerchandiseProduct product) {
   const lines = {
     't-shirt': 'Wear Your Support',
@@ -1334,43 +1378,12 @@ class _ProductArt extends StatelessWidget {
           colors: [Color(0xFFFFF7ED), Color(0xFFFFFFFF), Color(0xFFECFDF3)],
         ),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Image.asset(
-              _asset(slug),
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.medium,
-            ),
-          ),
-          if (party != null)
-            Positioned(
-              left: 6,
-              top: 6,
-              child: PartySymbol(
-                party!.name,
-                diameter: (size * 0.18).clamp(24, 64),
-              ),
-            ),
-          if (photo != null && photo!.isNotEmpty)
-            Positioned(
-              right: 6,
-              bottom: 6,
-              child: ClipOval(
-                child: Image.memory(
-                  photo!,
-                  width: (size * 0.2).clamp(28, 72),
-                  height: (size * 0.2).clamp(28, 72),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-        ],
+      child: PersonalizedMerchandiseView(
+        slug: slug,
+        photo: photo,
+        partyName: party?.name ?? '',
+        design: MerchandiseDesignStore.instance.of(slug),
       ),
     );
   }
-
-  String _asset(String slug) => _merchandiseAsset(slug);
 }
