@@ -15,6 +15,7 @@ import 'package:votebanker/app/localization/translations/ml.dart';
 import 'package:votebanker/app/localization/translations/ta.dart';
 import 'package:votebanker/app/localization/translations/te.dart';
 import 'package:votebanker/core/services/auth_service.dart';
+import 'package:votebanker/core/widgets/language_selector.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/onboarding/services/domain_service.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
@@ -80,7 +81,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(MaterialApp), findsOneWidget);
-    final context = tester.element(find.byIcon(Icons.language));
+    final context = tester.element(find.byType(LanguageSelector));
     expect(MaterialLocalizations.of(context), isNotNull);
     expect(Localizations.localeOf(context).languageCode, 'sat');
   });
@@ -244,7 +245,7 @@ void main() {
 
     // The toggle sits to the left of the language selector.
     final toggle = find.byIcon(Icons.dark_mode_outlined);
-    final language = find.byIcon(Icons.language);
+    final language = find.byType(LanguageSelector);
     expect(toggle, findsOneWidget);
     expect(
       tester.getCenter(toggle).dx,
@@ -425,9 +426,9 @@ void main() {
     await _tapLabel(tester, 'Skip');
     expect(find.text('Social Media Setup'), findsOneWidget);
 
-    await _tapLabel(tester, 'Skip');
-    expect(find.text('Get Your Blue Tik'), findsOneWidget);
-    await _tapLabel(tester, 'Skip');
+    await _tapLabel(tester, 'Skip for now');
+    expect(find.text('Get Your Blue Tick Assistance'), findsOneWidget);
+    await _tapLabel(tester, 'Skip Now');
     expect(find.text('Get Your Voter Lists'), findsWidgets);
     await _tapLabel(tester, 'Skip');
     expect(find.text('Create Your Campaign Merchandise'), findsOneWidget);
@@ -524,7 +525,7 @@ Future<void> _setSurface(WidgetTester tester, Size size) async {
 }
 
 Future<void> _chooseLanguage(WidgetTester tester, String nativeName) async {
-  await tester.tap(find.byIcon(Icons.language));
+  await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
   final item = find.textContaining(nativeName);
   await tester.scrollUntilVisible(

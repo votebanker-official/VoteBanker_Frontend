@@ -536,7 +536,7 @@ const enTranslations = <String, String>{
   'socialLater':
       'Social plans and connections will be added later. Continuing for now.',
   'blueTikLead': 'Get Your',
-  'blueTikAccent': 'Blue Tik',
+  'blueTikAccent': 'Blue Tick Assistance',
   'blueTikSubtitle':
       'Verify your social accounts and build more trust with your followers.',
   'blueTikVerifiedOn': 'Get Verified on {platform}',

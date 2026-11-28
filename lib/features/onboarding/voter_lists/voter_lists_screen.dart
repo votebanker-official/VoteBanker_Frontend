@@ -29,7 +29,12 @@ class VoterListsScreen extends StatelessWidget {
             final wide = constraints.maxWidth >= 800;
             return Column(
               children: [
-                _TopBar(wide: wide),
+                _TopBar(
+                  wide: wide,
+                  onSkip:
+                      () =>
+                          AppRouter.open(context, AppRoutes.campaignTemplates),
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.fromLTRB(
@@ -42,38 +47,21 @@ class VoterListsScreen extends StatelessWidget {
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 720),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: CircularSkipButton(
-                                key: const Key('voter-lists-skip'),
-                                onPressed:
-                                    () => AppRouter.open(
-                                      context,
-                                      AppRoutes.campaignTemplates,
-                                    ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _IntroCard(
-                              wide: wide,
-                              onOpen: () {
-                                final target =
-                                    recordsUrl ?? AppConfig.vrmRecordsUrl;
-                                if (target.trim().isEmpty) {
-                                  AppRouter.open(context, AppRoutes.vrmRecords);
-                                } else {
-                                  openVoterRecords(
-                                    context,
-                                    target,
-                                    redirect: redirect,
-                                  );
-                                }
-                              },
-                            ),
-                          ],
+                        child: _IntroCard(
+                          wide: wide,
+                          onOpen: () {
+                            final target =
+                                recordsUrl ?? AppConfig.vrmRecordsUrl;
+                            if (target.trim().isEmpty) {
+                              AppRouter.open(context, AppRoutes.vrmRecords);
+                            } else {
+                              openVoterRecords(
+                                context,
+                                target,
+                                redirect: redirect,
+                              );
+                            }
+                          },
                         ),
                       ),
                     ),
@@ -120,13 +108,27 @@ void _showOpenError(BuildContext context) {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.wide});
+  const _TopBar({required this.wide, required this.onSkip});
 
   final bool wide;
+  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final gap = wide ? 8.0 : 6.0;
+    final controls = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularSkipButton(onPressed: onSkip),
+        SizedBox(width: gap),
+        wide
+            ? const LanguageSelector(horizontalPadding: 8)
+            : const LanguageSelector(),
+        SizedBox(width: gap),
+        const ThemeToggle(),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 12, 0),
       child: Row(
@@ -150,14 +152,20 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
             )
-          else
-            const Spacer(),
-          SizedBox(
-            width: wide ? 168 : 104,
-            child: LanguageSelector(maxWidth: wide ? 168 : 104),
-          ),
-          const SizedBox(width: 8),
-          const ThemeToggle(),
+          else ...[
+            const SizedBox(width: 4),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: controls,
+                ),
+              ),
+            ),
+          ],
+          if (wide) controls,
         ],
       ),
     );

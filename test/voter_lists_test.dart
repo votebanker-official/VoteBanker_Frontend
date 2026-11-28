@@ -6,6 +6,7 @@ import 'package:votebanker/app/routing/app_router.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/config/app_config.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
+import 'package:votebanker/core/widgets/language_selector.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 import 'package:votebanker/features/onboarding/voter_lists/voter_lists_screen.dart';
 
@@ -39,13 +40,14 @@ void main() {
       expect(button.width, greaterThan(300));
 
       final skip = find.byKey(const Key('voter-lists-skip'));
-      final back = find.byTooltip('Back');
-      final language = find.byIcon(Icons.language);
+      final language = find.byType(LanguageSelector);
+      final theme = find.byIcon(Icons.dark_mode_outlined);
       expect(
-        tester.getTopLeft(skip).dy,
-        greaterThan(tester.getTopLeft(back).dy),
+        tester.getTopLeft(language).dx,
+        lessThan(tester.getTopLeft(theme).dx),
       );
-      expect(tester.getSize(skip).shortestSide, greaterThanOrEqualTo(48));
+      _expectFullLanguageLabel(tester, 'English');
+      expect(tester.getSize(skip).height, greaterThanOrEqualTo(48));
 
       await tester.tap(find.byKey(const Key('voter-lists-open')));
       await tester.pumpAndSettle();
@@ -80,6 +82,18 @@ void main() {
     },
   );
 
+  testWidgets('mobile header keeps the full language name', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 740));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    _expectFullLanguageLabel(tester, 'English');
+    expect(find.byIcon(Icons.expand_more), findsOneWidget);
+    expect(find.byIcon(Icons.language), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('back returns to Blue Tik', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1200, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -93,6 +107,24 @@ void main() {
 }
 
 String? openedUrl;
+
+void _expectFullLanguageLabel(WidgetTester tester, String label) {
+  final finder = find.descendant(
+    of: find.byType(LanguageSelector),
+    matching: find.text(label),
+  );
+  expect(finder, findsOneWidget);
+  final text = tester.widget<Text>(finder);
+  final painter = TextPainter(
+    text: TextSpan(text: label, style: text.style),
+    textDirection: TextDirection.ltr,
+    maxLines: 1,
+  )..layout();
+  expect(
+    tester.getSize(finder).width,
+    greaterThanOrEqualTo(painter.width - 0.5),
+  );
+}
 
 Widget _app() {
   final themeController = ThemeController();

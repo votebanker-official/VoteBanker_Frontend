@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../../../app/localization/app_localizations.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_text_styles.dart';
-import '../../../core/widgets/circular_skip_button.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/profile_service.dart';
+import '../../../core/utils/person_name.dart';
 import '../../../core/widgets/global_footer.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../website/models/website_builder_draft.dart';
@@ -27,11 +29,18 @@ class WebsiteScreen extends StatefulWidget {
 }
 
 class _WebsiteScreenState extends State<WebsiteScreen> {
+  String? _headingUserId;
+  String? _headingProfileName;
+  bool _headingReady = false;
+  bool _headingInFlight = false;
+  int _headingRequest = 0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_bootstrap());
+      _syncHeading();
     });
   }
 
@@ -48,11 +57,82 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
     // preview does not wait on async draft restore.
     _ensureUnifiedTemplate(persist: false);
     _syncPartyFromProfile();
+    final auth = AuthService.instance.session;
+    final userId = auth?.userId;
+    final current =
+        userId != null &&
+        _headingUserId == userId &&
+        (_headingReady || _headingInFlight);
+    final guest = userId == null && _headingUserId == null && !_headingReady;
+    if (!current && !guest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _syncHeading();
+      });
+    }
   }
 
   void _syncPartyFromProfile() {
     final session = OnboardingScope.of(context);
     applyLeaderProfile(session.websiteBuilder, session.draft);
+  }
+
+  /// Loads the signed-in profile name for this user only. A late response from
+  /// a previous account is ignored.
+  void _syncHeading() {
+    final auth = AuthService.instance.session;
+    if (auth == null) {
+      _headingInFlight = false;
+      _headingRequest++;
+      if (_headingUserId != null ||
+          _headingReady ||
+          _headingProfileName != null) {
+        setState(() {
+          _headingUserId = null;
+          _headingReady = false;
+          _headingProfileName = null;
+        });
+      }
+      return;
+    }
+    if (_headingUserId == auth.userId && (_headingReady || _headingInFlight)) {
+      return;
+    }
+    final userId = auth.userId;
+    final request = ++_headingRequest;
+    setState(() {
+      _headingUserId = userId;
+      _headingReady = false;
+      _headingProfileName = null;
+      _headingInFlight = true;
+    });
+    unawaited(_loadHeadingProfile(userId, request));
+  }
+
+  Future<void> _loadHeadingProfile(String userId, int request) async {
+    final profile = await ProfileService.instance.fetchProfile();
+    if (!mounted || request != _headingRequest) return;
+    final current = AuthService.instance.session;
+    if (current == null || current.userId != userId) return;
+    final raw = profile == null ? '' : profile['full_name'];
+    setState(() {
+      _headingInFlight = false;
+      _headingReady = true;
+      _headingUserId = userId;
+      _headingProfileName = raw is String ? raw : '';
+    });
+  }
+
+  String _websiteHeading(AppLocalizations l10n) {
+    final auth = AuthService.instance.session;
+    final profileReady =
+        auth != null && _headingReady && _headingUserId == auth.userId;
+    return websiteBuilderHeading(
+      signedIn: auth != null,
+      profileName: profileReady ? (_headingProfileName ?? '') : null,
+      sessionName: auth?.fullName,
+      accountEmail: auth == null ? null : AuthService.instance.signedInEmail,
+      fallback: l10n.portfolioMyWebsite,
+    );
   }
 
   Future<void> _restorePortfolio() async {
@@ -233,29 +313,51 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 4, 12, 0),
-            child: Row(
+          SizedBox(
+            height: 48,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                IconButton(
-                  tooltip: l10n.back,
-                  onPressed:
-                      () =>
-                          AppRouter.back(context, AppRoutes.additionalProfile),
-                  icon: const Icon(Icons.arrow_back),
-                ),
-                Expanded(
-                  child: Text(
-                    l10n.portfolioMyWebsite,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.headline(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.2),
+                Positioned(
+                  left: 88,
+                  right: 88,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        _websiteHeading(l10n),
+                        key: const ValueKey('websiteBuilderHeading'),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        style: AppTextStyles.headline(context).copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                CircularSkipButton(
-                  onPressed:
-                      () => AppRouter.open(context, AppRoutes.speechPreview),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    tooltip: l10n.back,
+                    onPressed:
+                        () => AppRouter.back(
+                          context,
+                          AppRoutes.additionalProfile,
+                        ),
+                    icon: const Icon(Icons.arrow_back),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed:
+                        () => AppRouter.open(context, AppRoutes.speechPreview),
+                    child: Text(l10n.portfolioSkip),
+                  ),
                 ),
               ],
             ),

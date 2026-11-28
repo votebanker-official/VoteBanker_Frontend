@@ -6,8 +6,8 @@ import '../../app/theme/app_colors.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/utils/person_name.dart';
-import '../../core/widgets/circular_skip_button.dart';
 import '../../core/widgets/language_selector.dart';
+import '../../core/widgets/circular_skip_button.dart';
 import '../../core/widgets/theme_toggle.dart';
 import '../onboarding/data/profile_languages.dart';
 import '../onboarding/state/onboarding_controller.dart';
@@ -184,7 +184,7 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
             final wide = constraints.maxWidth >= 800;
             return Column(
               children: [
-                _TopBar(wide: wide),
+                _TopBar(wide: wide, onSkip: _skip),
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
@@ -197,34 +197,18 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 960),
-                        child: Column(
-                          children: [
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: CircularSkipButton(
-                                key: const Key('speech-preview-skip'),
-                                onPressed: _skip,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: _PreviewCard(
-                                wide: wide,
-                                name: name,
-                                party: party,
-                                speech: speech,
-                                rtl: speechPreviewRtlLanguages.contains(
-                                  language,
-                                ),
-                                playing: _playing,
-                                photoBytes: photoBytes,
-                                photoUrl: photoUrl,
-                                onCopy: () => _copy(speech),
-                                onListen: () => _toggleSpeech(speech, language),
-                                onGenerate: _openSpeech,
-                              ),
-                            ),
-                          ],
+                        child: _PreviewCard(
+                          wide: wide,
+                          name: name,
+                          party: party,
+                          speech: speech,
+                          rtl: speechPreviewRtlLanguages.contains(language),
+                          playing: _playing,
+                          photoBytes: photoBytes,
+                          photoUrl: photoUrl,
+                          onCopy: () => _copy(speech),
+                          onListen: () => _toggleSpeech(speech, language),
+                          onGenerate: _openSpeech,
                         ),
                       ),
                     ),
@@ -240,12 +224,26 @@ class _SpeechPreviewScreenState extends State<SpeechPreviewScreen> {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.wide});
+  const _TopBar({required this.wide, required this.onSkip});
 
   final bool wide;
+  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
+    final gap = wide ? 8.0 : 6.0;
+    final controls = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularSkipButton(onPressed: onSkip),
+        SizedBox(width: gap),
+        wide
+            ? const LanguageSelector(horizontalPadding: 8)
+            : const LanguageSelector(),
+        SizedBox(width: gap),
+        const ThemeToggle(),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 12, 0),
       child: Row(
@@ -269,11 +267,20 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
             )
-          else
-            const Spacer(),
-          LanguageSelector(maxWidth: wide ? 168 : 120),
-          const SizedBox(width: 8),
-          const ThemeToggle(),
+          else ...[
+            const SizedBox(width: 4),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: controls,
+                ),
+              ),
+            ),
+          ],
+          if (wide) controls,
         ],
       ),
     );

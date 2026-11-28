@@ -254,7 +254,7 @@ void _signIn() {
 }
 
 void _expectOfferCopy() {
-  expect(find.text('Get Your Blue Tik'), findsOneWidget);
+  expect(find.text('Get Your Blue Tick Assistance'), findsOneWidget);
   expect(
     find.text(
       'Verify your social accounts and build more trust with your followers.',
