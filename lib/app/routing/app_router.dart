@@ -111,7 +111,7 @@ abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final normalized = normalizeRouteName(settings.name);
     final page = switch (normalized) {
-      AppRoutes.authCallback => const LoginScreen(),
+      AppRoutes.login || AppRoutes.authCallback => const LoginScreen(),
       AppRoutes.signUp => const CreateAccountScreen(),
       AppRoutes.forgotPassword => const ForgotPasswordScreen(),
       AppRoutes.resetChannel => OtpChannelScreen(

@@ -6,6 +6,7 @@ import 'package:votebanker/app/routing/app_router.dart';
 import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/dashboard/screens/dashboard_placeholder_screen.dart';
+import 'package:votebanker/features/onboarding/screens/login_screen.dart';
 import 'package:votebanker/features/onboarding/screens/social_setup_screen.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 
@@ -36,6 +37,13 @@ void main() {
 
     expect(find.text('404'), findsOneWidget);
     expect(find.text('Page not found'), findsOneWidget);
+  });
+
+  testWidgets('root route opens the login page', (tester) async {
+    await tester.pumpWidget(_routed(AppRoutes.login));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
   });
 
   testWidgets('dashboard shows a back arrow on the root route', (tester) async {
