@@ -14,6 +14,10 @@ String? takeSessionValue(String key) {
   return value;
 }
 
+void saveSessionValue(String key, String value) {
+  window.sessionStorage.setItem(key, value);
+}
+
 void redirectBrowser(String url) {
   window.location.assign(url);
 }

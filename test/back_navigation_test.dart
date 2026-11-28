@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:votebanker/app/localization/app_localizations.dart';
 import 'package:votebanker/app/routing/app_router.dart';
+import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/dashboard/screens/dashboard_placeholder_screen.dart';
 import 'package:votebanker/features/onboarding/screens/social_setup_screen.dart';
@@ -10,6 +11,32 @@ import 'package:votebanker/features/onboarding/state/onboarding_controller.dart'
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('authenticated deep links remain the initial route', () {
+    expect(
+      AppRouter.initialRouteForPath(AppRoutes.voterLists, isSignedIn: true),
+      AppRoutes.voterLists,
+    );
+  });
+
+  test('guest deep links are retained for after login', () {
+    expect(
+      AppRouter.initialRouteForPath(
+        '${AppRoutes.voterLists}?source=direct',
+        isSignedIn: false,
+      ),
+      AppRoutes.login,
+    );
+    expect(AuthService.instance.takePostLoginRoute(), AppRoutes.voterLists);
+  });
+
+  testWidgets('unknown routes display a not found page', (tester) async {
+    await tester.pumpWidget(_routed('/not-a-valid-route'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('404'), findsOneWidget);
+    expect(find.text('Page not found'), findsOneWidget);
+  });
 
   testWidgets('dashboard shows a back arrow on the root route', (tester) async {
     await tester.pumpWidget(_app(const DashboardPlaceholderScreen()));
@@ -55,6 +82,27 @@ void main() {
     expect(_topBarBack, findsNothing);
     expect(find.byKey(const Key('dashboard-welcome-back')), findsOneWidget);
     expect(find.byType(DashboardPlaceholderScreen), findsOneWidget);
+  });
+
+  testWidgets('root dashboard back restores the previous onboarding pages', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_routed(AppRoutes.dashboard));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('dashboard-welcome-back')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('ready-back')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('ready-back')));
+    await tester.pumpAndSettle();
+    expect(find.text('Create Your Campaign Merchandise'), findsOneWidget);
+    expect(find.text('1 of 12'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('voter-lists-back')), findsOneWidget);
+    expect(find.byKey(const Key('voter-lists-title')), findsOneWidget);
   });
 
   testWidgets('social setup back returns without changing actions', (
