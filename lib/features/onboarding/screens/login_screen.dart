@@ -107,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       final resume =
           await OnboardingProgressService.instance.resolveResumeRoute();
-      final next = await routeAfterBlueTikSignIn(resume);
+      final pendingRoute = AuthService.instance.takePostLoginRoute();
+      final next = pendingRoute ?? await routeAfterBlueTikSignIn(resume);
       if (!mounted) return;
       replaceBrowserPath(next);
       Navigator.of(context).pushReplacementNamed(next);
@@ -228,7 +229,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       final resume =
           await OnboardingProgressService.instance.resolveResumeRoute();
-      final next = await routeAfterBlueTikSignIn(resume);
+      final pendingRoute = AuthService.instance.takePostLoginRoute();
+      final next = pendingRoute ?? await routeAfterBlueTikSignIn(resume);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(next);
     } on AuthException catch (e) {

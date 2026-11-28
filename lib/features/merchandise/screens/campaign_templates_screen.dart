@@ -265,7 +265,7 @@ class _CampaignTemplatesScreenState extends State<CampaignTemplatesScreen> {
                       IconButton(
                         tooltip: 'Back',
                         onPressed:
-                            () => AppRouter.back(context, AppRoutes.blueTik),
+                            () => AppRouter.back(context, AppRoutes.voterLists),
                         icon: const Icon(Icons.arrow_back),
                       ),
                       const Spacer(),

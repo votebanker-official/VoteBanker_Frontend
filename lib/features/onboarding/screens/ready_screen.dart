@@ -34,7 +34,9 @@ class ReadyScreen extends StatelessWidget {
                 IconButton(
                   key: const Key('ready-back'),
                   tooltip: l10n.back,
-                  onPressed: () => AppRouter.back(context, AppRoutes.blueTik),
+                  onPressed:
+                      () =>
+                          AppRouter.back(context, AppRoutes.campaignTemplates),
                   style: IconButton.styleFrom(
                     foregroundColor: context.palette.text,
                     fixedSize: const Size(48, 48),

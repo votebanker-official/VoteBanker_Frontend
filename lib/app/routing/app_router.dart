@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/services/auth_service.dart';
 import '../../core/services/onboarding_progress_service.dart';
 import '../../core/services/profile_service.dart';
 import '../../features/about/about_screen.dart';
@@ -68,6 +69,27 @@ String? _phoneArgument(Object? arguments) {
 }
 
 abstract final class AppRouter {
+  static const _publicRoutes = <String>{
+    AppRoutes.login,
+    AppRoutes.signUp,
+    AppRoutes.forgotPassword,
+    AppRoutes.resetChannel,
+    AppRoutes.resetOtp,
+    AppRoutes.resetPassword,
+    AppRoutes.resetSuccess,
+    AppRoutes.authCallback,
+    AppRoutes.otp,
+    AppRoutes.about,
+    AppRoutes.privacyPolicy,
+    AppRoutes.helpCenter,
+    AppRoutes.faqs,
+    AppRoutes.terms,
+    AppRoutes.dataDeletion,
+    AppRoutes.electionDisclaimer,
+    AppRoutes.refundPolicy,
+    AppRoutes.contactSupport,
+  };
+
   static String normalizeRouteName(String? name) {
     if (name == null || name.isEmpty) return AppRoutes.login;
     final path = Uri.parse(name).path;
@@ -77,10 +99,21 @@ abstract final class AppRouter {
         : path;
   }
 
+  static String initialRouteForPath(String path, {required bool isSignedIn}) {
+    final normalized = normalizeRouteName(path);
+    if (!isSignedIn &&
+        normalized != AppRoutes.login &&
+        !_publicRoutes.contains(normalized)) {
+      AuthService.instance.rememberPostLoginRoute(normalized);
+      return AppRoutes.login;
+    }
+    return normalized;
+  }
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final normalized = normalizeRouteName(settings.name);
     final page = switch (normalized) {
-      AppRoutes.authCallback => const LoginScreen(),
+      AppRoutes.login || AppRoutes.authCallback => const LoginScreen(),
       AppRoutes.signUp => const CreateAccountScreen(),
       AppRoutes.forgotPassword => const ForgotPasswordScreen(),
       AppRoutes.resetChannel => OtpChannelScreen(
@@ -157,7 +190,7 @@ abstract final class AppRouter {
       AppRoutes.electionDisclaimer => const ElectionDisclaimerScreen(),
       AppRoutes.refundPolicy => const RefundShippingScreen(),
       AppRoutes.contactSupport => const ContactSupportScreen(),
-      _ => const LoginScreen(),
+      _ => const _NotFoundScreen(),
     };
 
     final showFooter = AppRoutes.showsGlobalFooter(normalized);
@@ -211,5 +244,28 @@ abstract final class AppRouter {
     if (navigator.canPop()) {
       navigator.pop();
     }
+  }
+}
+
+class _NotFoundScreen extends StatelessWidget {
+  const _NotFoundScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('404', style: Theme.of(context).textTheme.displayMedium),
+            const SizedBox(height: 8),
+            Text(
+              'Page not found',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

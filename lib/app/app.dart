@@ -41,17 +41,21 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
   );
 
   String get _initialRoute {
-    final basePath = Uri.base.path;
-    if (basePath == AppRoutes.profile || basePath == AppRoutes.authCallback) {
-      return basePath;
-    }
-    final path =
+    final browserPath = browserLocation().path;
+    final platformPath =
         WidgetsBinding.instance.platformDispatcher.defaultRouteName
             .split('?')
             .first;
-    if (path == AppRoutes.profile || path == AppRoutes.authCallback)
-      return path;
-    return AppRoutes.login;
+    final requestedPath =
+        browserPath != AppRoutes.login
+            ? browserPath
+            : platformPath != AppRoutes.login
+            ? platformPath
+            : AppRoutes.login;
+    return AppRouter.initialRouteForPath(
+      requestedPath,
+      isSignedIn: AuthService.instance.isSignedIn,
+    );
   }
 
   void _openRoute(String route) {
@@ -75,10 +79,10 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
     // Restore UI language from a pre-seeded or previously saved draft.
     _controller.syncLocaleFromDraft();
     if (AuthService.instance.openProfileAfterLogin ||
-        _initialRoute == AppRoutes.profile ||
-        AuthService.instance.isSignedIn) {
+        (_initialRoute == AppRoutes.login && AuthService.instance.isSignedIn)) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!AuthService.instance.isSignedIn) return;
+        final pendingRoute = AuthService.instance.takePostLoginRoute();
         final pendingMerch = await MerchandiseIntent.peek();
         final pendingBlue = await BlueTikIntent.peek();
         final returningToProfile =
@@ -94,13 +98,14 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
             await OnboardingProgressService.instance.resolveResumeRoute();
         if (!mounted) return;
         final destination =
-            pendingMerch != null
+            pendingRoute ??
+            (pendingMerch != null
                 ? AppRoutes.campaignTemplates
                 : pendingBlue != null
                 ? AppRoutes.blueTik
                 : returningToProfile
                 ? AppRoutes.profile
-                : resume;
+                : resume);
         replaceBrowserPath(destination);
         final navigator = _navigatorKey.currentState;
         if (navigator == null) return;
