@@ -5,7 +5,9 @@ import '../services/theme_controller.dart';
 
 /// Round light/dark switch. Sits to the left of the language selector.
 class ThemeToggle extends StatelessWidget {
-  const ThemeToggle({super.key});
+  const ThemeToggle({this.diameter = 48, super.key});
+
+  final double diameter;
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +31,11 @@ class ThemeToggle extends StatelessWidget {
                   isDark ? ThemeMode.light : ThemeMode.dark,
                 ),
             child: SizedBox(
-              width: 48,
-              height: 48,
+              width: diameter,
+              height: diameter,
               child: Icon(
                 isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                size: 20,
+                size: diameter <= 36 ? 18 : 20,
                 color: palette.accent,
               ),
             ),

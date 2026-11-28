@@ -145,7 +145,8 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
       final resume =
           await OnboardingProgressService.instance.resolveResumeRoute();
       if (!mounted) return;
-      final nextRoute = await routeAfterBlueTikSignIn(resume);
+      final pendingRoute = AuthService.instance.takePostLoginRoute();
+      final nextRoute = pendingRoute ?? await routeAfterBlueTikSignIn(resume);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(nextRoute);
     } on AuthException catch (e) {

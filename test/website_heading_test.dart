@@ -8,6 +8,7 @@ import 'package:votebanker/app/routing/app_router.dart';
 import 'package:votebanker/app/theme/app_theme.dart';
 import 'package:votebanker/core/services/auth_service.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
+import 'package:votebanker/core/widgets/circular_skip_button.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
 
 void main() {
@@ -129,6 +130,33 @@ void main() {
 
     expect(find.text('Verylongfirstname.com'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('website skip keeps shared size and right alignment', (
+    tester,
+  ) async {
+    final controller = OnboardingController();
+    addTearDown(controller.dispose);
+
+    for (final size in const [Size(390, 844), Size(1280, 900)]) {
+      await _pumpWebsite(
+        tester,
+        controller,
+        size,
+        keyName: 'skip-${size.width}',
+      );
+
+      final skip = find.byType(CircularSkipButton);
+      expect(skip, findsOneWidget);
+      final rect = tester.getRect(skip);
+      expect(rect.size, const Size(76, 44));
+      expect(rect.right, size.width);
+      expect(tester.takeException(), isNull);
+    }
+
+    await tester.tap(find.byType(CircularSkipButton));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('speech-preview-back')), findsOneWidget);
   });
 }
 

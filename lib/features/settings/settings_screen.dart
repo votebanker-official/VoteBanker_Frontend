@@ -44,7 +44,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const ThemeToggle(),
                   const SizedBox(width: 8),
-                  const Flexible(child: LanguageSelector()),
+                  const LanguageSelector(),
                 ],
               ),
             ),

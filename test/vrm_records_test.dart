@@ -58,7 +58,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Skip Now'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
     await tester.tap(find.byKey(const Key('vrm-records-skip')));
     await tester.pumpAndSettle();
 

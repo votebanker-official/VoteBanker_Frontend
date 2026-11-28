@@ -4,6 +4,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/services/auth_browser.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 
@@ -115,6 +116,19 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final gap = wide ? 8.0 : 6.0;
+    final controls = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularSkipButton(onPressed: onSkip),
+        SizedBox(width: gap),
+        wide
+            ? const LanguageSelector(horizontalPadding: 8)
+            : const LanguageSelector(),
+        SizedBox(width: gap),
+        const ThemeToggle(),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 12, 0),
       child: Row(
@@ -138,52 +152,22 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
             )
-          else
-            const Spacer(),
-          _SkipNowButton(onPressed: onSkip),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: wide ? 168 : 104,
-            child: LanguageSelector(maxWidth: wide ? 168 : 104),
-          ),
-          const SizedBox(width: 8),
-          const ThemeToggle(),
+          else ...[
+            const SizedBox(width: 4),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: controls,
+                ),
+              ),
+            ),
+          ],
+          if (wide) controls,
         ],
       ),
-    );
-  }
-}
-
-class _SkipNowButton extends StatelessWidget {
-  const _SkipNowButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final foreground =
-        palette.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF1E3A8A);
-    return TextButton(
-      key: const Key('voter-lists-skip'),
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: foreground,
-        backgroundColor:
-            palette.isDark ? palette.surfaceSecondary : const Color(0xFFEFF6FF),
-        minimumSize: const Size(0, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        overlayColor: const Color(0x332563EB),
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-          side: BorderSide(
-            color: palette.isDark ? palette.border : const Color(0xFFBFDBFE),
-          ),
-        ),
-      ),
-      child: const Text('Skip Now'),
     );
   }
 }

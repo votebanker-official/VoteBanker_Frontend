@@ -6,6 +6,7 @@ import '../../../app/routing/app_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/utils/person_name.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../models/vrm_voter_record.dart';
 import '../services/vrm_service.dart';
 import '../../social_media/social_contact_links.dart';
@@ -219,6 +220,14 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: CircularSkipButton(
+                            key: const Key('vrm-records-skip'),
+                            onPressed: _skipToCampaignTemplates,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         _RecordsHeader(
                           title: l10n.cardVrm,
                           countLabel: l10n
@@ -227,10 +236,8 @@ class _VrmRecordsScreenState extends State<VrmRecordsScreen> {
                           subtitle: l10n.line('vrmRecordsBody'),
                           backTooltip: l10n.back,
                           refreshTooltip: l10n.line('vrmRefresh'),
-                          skipLabel: l10n.line('blueTikSkip'),
                           onBack: _leave,
                           onRefresh: _loading ? null : () => _load(),
-                          onSkip: _skipToCampaignTemplates,
                         ),
                         const SizedBox(height: 14),
                         _SearchBar(
@@ -978,10 +985,8 @@ class _RecordsHeader extends StatelessWidget {
     required this.subtitle,
     required this.backTooltip,
     required this.refreshTooltip,
-    required this.skipLabel,
     required this.onBack,
     required this.onRefresh,
-    required this.onSkip,
   });
 
   final String title;
@@ -989,10 +994,8 @@ class _RecordsHeader extends StatelessWidget {
   final String subtitle;
   final String backTooltip;
   final String refreshTooltip;
-  final String skipLabel;
   final VoidCallback onBack;
   final VoidCallback? onRefresh;
-  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
@@ -1061,15 +1064,6 @@ class _RecordsHeader extends StatelessWidget {
           child: Text(
             subtitle,
             style: TextStyle(color: _secondaryTextColor(context), fontSize: 14),
-          ),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            key: const Key('vrm-records-skip'),
-            onPressed: onSkip,
-            icon: const Icon(Icons.skip_next_rounded),
-            label: Text(skipLabel),
           ),
         ),
       ],

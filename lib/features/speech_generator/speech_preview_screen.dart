@@ -7,6 +7,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/utils/person_name.dart';
 import '../../core/widgets/language_selector.dart';
+import '../../core/widgets/circular_skip_button.dart';
 import '../../core/widgets/theme_toggle.dart';
 import '../onboarding/data/profile_languages.dart';
 import '../onboarding/state/onboarding_controller.dart';
@@ -230,6 +231,19 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gap = wide ? 8.0 : 6.0;
+    final controls = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularSkipButton(onPressed: onSkip),
+        SizedBox(width: gap),
+        wide
+            ? const LanguageSelector(horizontalPadding: 8)
+            : const LanguageSelector(),
+        SizedBox(width: gap),
+        const ThemeToggle(),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 4, 12, 0),
       child: Row(
@@ -253,45 +267,22 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
             )
-          else
-            const Spacer(),
-          _SkipNowButton(onPressed: onSkip),
-          const SizedBox(width: 8),
-          LanguageSelector(maxWidth: wide ? 168 : 120),
-          const SizedBox(width: 8),
-          const ThemeToggle(),
+          else ...[
+            const SizedBox(width: 4),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: controls,
+                ),
+              ),
+            ),
+          ],
+          if (wide) controls,
         ],
       ),
-    );
-  }
-}
-
-class _SkipNowButton extends StatelessWidget {
-  const _SkipNowButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final foreground =
-        palette.isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
-    return TextButton(
-      key: const Key('speech-preview-skip'),
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: foreground,
-        backgroundColor: palette.surfaceSecondary,
-        minimumSize: const Size(0, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-          side: BorderSide(color: palette.border),
-        ),
-      ),
-      child: const Text('Skip Now'),
     );
   }
 }

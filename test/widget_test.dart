@@ -15,6 +15,7 @@ import 'package:votebanker/app/localization/translations/ml.dart';
 import 'package:votebanker/app/localization/translations/ta.dart';
 import 'package:votebanker/app/localization/translations/te.dart';
 import 'package:votebanker/core/services/auth_service.dart';
+import 'package:votebanker/core/widgets/language_selector.dart';
 import 'package:votebanker/core/services/theme_controller.dart';
 import 'package:votebanker/features/onboarding/services/domain_service.dart';
 import 'package:votebanker/features/onboarding/state/onboarding_controller.dart';
@@ -80,7 +81,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(MaterialApp), findsOneWidget);
-    final context = tester.element(find.byIcon(Icons.language));
+    final context = tester.element(find.byType(LanguageSelector));
     expect(MaterialLocalizations.of(context), isNotNull);
     expect(Localizations.localeOf(context).languageCode, 'sat');
   });
@@ -92,7 +93,7 @@ void main() {
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
 
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
     await tester.enterText(
       find.byType(TextField).hitTestable().first,
       'Arjun Verma',
@@ -134,7 +135,7 @@ void main() {
       await tester.pumpWidget(VoteBankerApp(controller: controller));
       await tester.pumpAndSettle();
 
-      await _tapLabel(tester, 'Skip for now');
+      await _tapLabel(tester, 'Skip');
       // Allow background SharedPreferences clears from skip to finish.
       await tester.pump();
 
@@ -183,10 +184,10 @@ void main() {
       await tester.pumpWidget(VoteBankerApp(controller: controller));
       await tester.pumpAndSettle();
 
-      await _tapLabel(tester, 'Skip for now');
+      await _tapLabel(tester, 'Skip');
       expect(find.text('Leader Profile'), findsOneWidget);
 
-      await _tapLabel(tester, 'Skip for now');
+      await _tapLabel(tester, 'Skip');
       await tester.pump();
 
       expect(find.text('My Website'), findsOneWidget);
@@ -244,7 +245,7 @@ void main() {
 
     // The toggle sits to the left of the language selector.
     final toggle = find.byIcon(Icons.dark_mode_outlined);
-    final language = find.byIcon(Icons.language);
+    final language = find.byType(LanguageSelector);
     expect(toggle, findsOneWidget);
     expect(
       tester.getCenter(toggle).dx,
@@ -364,12 +365,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Leader Profile'), findsOneWidget);
 
     // Profile skip must leave an empty profile (no fetched/cached leader data).
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('My Website'), findsOneWidget);
+    expect(find.byKey(const Key('mobile-bottom-nav')), findsNothing);
     final websiteContext = tester.element(find.text('My Website'));
     expect(OnboardingScope.of(websiteContext).draft.fullName, isEmpty);
 
@@ -421,14 +423,14 @@ void main() {
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.text('Speech Generator'), findsWidgets);
-    await _tapLabel(tester, 'Skip Now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Social Media Setup'), findsOneWidget);
 
     await _tapLabel(tester, 'Skip for now');
     expect(find.text('Get Your Blue Tick Assistance'), findsOneWidget);
     await _tapLabel(tester, 'Skip Now');
     expect(find.text('Get Your Voter Lists'), findsWidgets);
-    await _tapLabel(tester, 'Skip Now');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('Create Your Campaign Merchandise'), findsOneWidget);
     expect(find.text('Design & Order'), findsWidgets);
     expect(find.text('Dashboard'), findsNothing);
@@ -441,12 +443,13 @@ void main() {
     await tester.pumpWidget(const VoteBankerApp());
     await tester.pumpAndSettle();
 
-    await _tapLabel(tester, 'Skip for now');
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
+    await _tapLabel(tester, 'Skip');
     expect(find.text('My Website'), findsOneWidget);
     expect(find.text(enTranslations['portfolioGetWebsite']!), findsNothing);
     expect(find.byKey(const ValueKey('customizeTemplate')), findsNothing);
 
+    await tester.ensureVisible(find.byKey(const ValueKey('continueTemplate')));
     await tester.tap(find.byKey(const ValueKey('continueTemplate')));
     await tester.pumpAndSettle();
     expect(find.text('Tell us about your website'), findsOneWidget);
@@ -465,10 +468,10 @@ void main() {
     await _chooseLanguage(tester, 'മലയാളം');
     expect(find.text(enTranslations['loginWelcome']!), findsOneWidget);
 
-    await _tapLabel(tester, mlTranslations['skipForNow']!);
+    await _tapLabel(tester, 'Skip');
     expect(find.text(mlTranslations['basicProfile']!), findsOneWidget);
 
-    await _tapLabel(tester, mlTranslations['skipForNow']!);
+    await _tapLabel(tester, 'Skip');
     expect(find.text(mlTranslations['portfolioMyWebsite']!), findsOneWidget);
     expect(tester.takeException(), isNull);
 
@@ -522,7 +525,7 @@ Future<void> _setSurface(WidgetTester tester, Size size) async {
 }
 
 Future<void> _chooseLanguage(WidgetTester tester, String nativeName) async {
-  await tester.tap(find.byIcon(Icons.language));
+  await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
   final item = find.textContaining(nativeName);
   await tester.scrollUntilVisible(

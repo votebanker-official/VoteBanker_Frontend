@@ -13,8 +13,15 @@ import '../constants/app_assets.dart';
 
 /// Shared VoteBanker footer. One instance is mounted by [AppFooterShell].
 class GlobalFooter extends StatelessWidget {
-  const GlobalFooter({this.compact = false, super.key});
+  const GlobalFooter({
+    this.routeName,
+    this.onNavigate,
+    this.compact = false,
+    super.key,
+  });
 
+  final String? routeName;
+  final ValueChanged<String>? onNavigate;
   final bool compact;
 
   static const columnBreakpoint = 1080.0;
@@ -40,14 +47,75 @@ class GlobalFooter extends StatelessWidget {
         MediaQuery.sizeOf(context).width >= mobileBreakpoint;
   }
 
+  static bool shouldDisplayMobileNavigation(
+    BuildContext context, {
+    String? routeName,
+    bool? mobileNavigationEnabled,
+  }) {
+    final platform = Theme.of(context).platform;
+    final nativeMobile =
+        !kIsWeb &&
+        (platform == TargetPlatform.android || platform == TargetPlatform.iOS);
+    final compactLayout = MediaQuery.sizeOf(context).width < mobileBreakpoint;
+    final route = routeName ?? ModalRoute.of(context)?.settings.name;
+    return (nativeMobile || compactLayout) &&
+        (mobileNavigationEnabled ?? AppRoutes.showsMobileNavigation(route));
+  }
+
+  static Widget mainAppLayout(
+    BuildContext context,
+    Widget child, {
+    String? routeName,
+    bool? mobileNavigationEnabled,
+    ValueChanged<String>? onNavigate,
+  }) {
+    final showNavigation = shouldDisplayMobileNavigation(
+      context,
+      routeName: routeName,
+      mobileNavigationEnabled: mobileNavigationEnabled,
+    );
+    if (showNavigation) {
+      return Scaffold(
+        key: const Key('mobile-app-shell'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: child,
+        bottomNavigationBar: GlobalFooter(
+          routeName: routeName,
+          onNavigate: onNavigate,
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [Expanded(child: child)],
+    );
+  }
+
   static Widget wrapIfDisplayed(
     BuildContext context,
     Widget child, {
+    String? routeName,
+    bool showWebFooter = true,
+    bool showMobileNavigation = true,
     bool compactFooter = false,
   }) {
-    return shouldDisplay(context)
-        ? AppFooterShell(compactFooter: compactFooter, child: child)
-        : child;
+    if (context.findAncestorWidgetOfExactType<AppFooterShell>() != null) {
+      return child;
+    }
+
+    final route = routeName ?? ModalRoute.of(context)?.settings.name;
+    final displayWebFooter = showWebFooter && shouldDisplay(context);
+    final displayMobileNavigation =
+        showMobileNavigation &&
+        shouldDisplayMobileNavigation(context, routeName: route);
+    if (!displayWebFooter && !displayMobileNavigation) return child;
+    return AppFooterShell(
+      routeName: route,
+      showWebFooter: displayWebFooter,
+      showMobileNavigation: displayMobileNavigation,
+      compactFooter: compactFooter,
+      child: child,
+    );
   }
 
   /// Official VoteBanker profiles. An empty value stays visible and does not
@@ -127,6 +195,19 @@ class GlobalFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (GlobalFooter.shouldDisplayMobileNavigation(
+      context,
+      routeName: routeName,
+    )) {
+      return _MobileNavigationBar(
+        activeIndex: AppRoutes.mobileNavigationIndex(
+          routeName ?? ModalRoute.of(context)?.settings.name,
+        ),
+        routeName: routeName ?? ModalRoute.of(context)?.settings.name,
+        onNavigate: onNavigate,
+      );
+    }
+
     final palette = _footerPalette(context);
     final bottom = MediaQuery.paddingOf(context).bottom;
     return CustomPaint(
@@ -176,6 +257,28 @@ class GlobalFooter extends StatelessWidget {
   }
 }
 
+/// Keeps the desktop footer after page content and reserves a fixed bottom
+/// navigation area on native mobile routes so content cannot be covered.
+class AppFooterShell extends StatefulWidget {
+  const AppFooterShell({
+    required this.child,
+    this.routeName,
+    this.showWebFooter = true,
+    this.showMobileNavigation = false,
+    this.compactFooter = false,
+    super.key,
+  });
+
+  final Widget child;
+  final String? routeName;
+  final bool showWebFooter;
+  final bool showMobileNavigation;
+  final bool compactFooter;
+
+  @override
+  State<AppFooterShell> createState() => _AppFooterShellState();
+}
+
 AppPalette _footerPalette(BuildContext context) {
   return Theme.of(context).extension<AppPalette>() ??
       (Theme.of(context).brightness == Brightness.dark
@@ -206,25 +309,6 @@ Color _footerPill(BuildContext context) {
 Color _footerBorder(BuildContext context, Color lightColor) {
   final palette = _footerPalette(context);
   return palette.isDark ? palette.border : lightColor;
-}
-
-/// Lays [child] out above [GlobalFooter] in one vertical scroll.
-///
-/// Short pages keep the footer on the bottom of the viewport. Long pages
-/// scroll through the content and then the full footer. The footer is never
-/// placed beside the page and is never height-capped.
-class AppFooterShell extends StatefulWidget {
-  const AppFooterShell({
-    required this.child,
-    this.compactFooter = false,
-    super.key,
-  });
-
-  final Widget child;
-  final bool compactFooter;
-
-  @override
-  State<AppFooterShell> createState() => _AppFooterShellState();
 }
 
 class _AppFooterShellState extends State<AppFooterShell> {
@@ -353,7 +437,20 @@ class _AppFooterShellState extends State<AppFooterShell> {
 
   @override
   Widget build(BuildContext context) {
-    if (!GlobalFooter.shouldDisplay(context)) return widget.child;
+    if (widget.showMobileNavigation &&
+        GlobalFooter.shouldDisplayMobileNavigation(
+          context,
+          routeName: widget.routeName,
+        )) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: widget.child,
+        bottomNavigationBar: GlobalFooter(routeName: widget.routeName),
+      );
+    }
+    if (!widget.showWebFooter || !GlobalFooter.shouldDisplay(context)) {
+      return widget.child;
+    }
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: LayoutBuilder(
@@ -395,6 +492,221 @@ class _AppFooterShellState extends State<AppFooterShell> {
       ),
     );
   }
+}
+
+class _MobileNavigationBar extends StatelessWidget {
+  const _MobileNavigationBar({
+    required this.activeIndex,
+    required this.routeName,
+    this.onNavigate,
+  });
+
+  final int? activeIndex;
+  final String? routeName;
+  final ValueChanged<String>? onNavigate;
+
+  static const _items = <_MobileNavigationItemData>[
+    _MobileNavigationItemData(
+      id: 'home',
+      label: 'Home',
+      icon: Icons.home_outlined,
+      route: AppRoutes.dashboard,
+    ),
+    _MobileNavigationItemData(
+      id: 'voters',
+      label: 'Voters',
+      icon: Icons.people_outline,
+      route: AppRoutes.vrmRecords,
+    ),
+    _MobileNavigationItemData(
+      id: 'website',
+      label: 'Website',
+      icon: Icons.language_outlined,
+      route: AppRoutes.website,
+    ),
+    _MobileNavigationItemData(
+      id: 'campaigns',
+      label: 'Campaigns',
+      icon: Icons.campaign_outlined,
+      route: AppRoutes.campaignManagement,
+    ),
+    _MobileNavigationItemData(
+      id: 'profile',
+      label: 'Profile',
+      icon: Icons.person_outline,
+      route: AppRoutes.myPortfolio,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).colorScheme.brightness == Brightness.dark;
+    final background = dark ? const Color(0xFF111827) : Colors.white;
+    final active = dark ? const Color(0xFF3B82F6) : const Color(0xFF246BFD);
+    final inactive = dark ? const Color(0xFF9CA3AF) : const Color(0xFF64748B);
+    final border = dark ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final horizontalMargin = (screenWidth * 0.03).clamp(10.0, 28.0).toDouble();
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(horizontalMargin, 6, horizontalMargin, 6),
+        child: AnimatedContainer(
+          key: const Key('mobile-bottom-nav'),
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          height:
+              (MediaQuery.sizeOf(context).width * 0.2)
+                  .clamp(92.0, 116.0)
+                  .toDouble(),
+          decoration: BoxDecoration(
+            color: background,
+            border: Border.all(color: border),
+            borderRadius: BorderRadius.circular(26),
+          ),
+          child: Row(
+            children: [
+              for (var index = 0; index < _items.length; index++)
+                Expanded(
+                  child: _MobileNavigationButton(
+                    item: _items[index],
+                    selected: activeIndex == index,
+                    activeColor: active,
+                    inactiveColor: inactive,
+                    onPressed: () {
+                      final destination = _items[index].route;
+                      if (destination == null || routeName == destination) {
+                        return;
+                      }
+                      if (onNavigate != null) {
+                        onNavigate!(destination);
+                      } else {
+                        AppNav.open(context, destination);
+                      }
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileNavigationButton extends StatelessWidget {
+  const _MobileNavigationButton({
+    required this.item,
+    required this.selected,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.onPressed,
+  });
+
+  final _MobileNavigationItemData item;
+  final bool selected;
+  final Color activeColor;
+  final Color inactiveColor;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? activeColor : inactiveColor;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final labelSize =
+            (constraints.maxWidth / 4.2).clamp(12.0, 21.0).toDouble();
+        final underlineWidth = math.min(68.0, constraints.maxWidth - 4);
+        return Semantics(
+          button: true,
+          selected: selected,
+          label: item.label,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              key: Key('mobile-nav-${item.id}'),
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(20),
+              splashColor: activeColor.withValues(alpha: 0.1),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TweenAnimationBuilder<Color?>(
+                    tween: ColorTween(end: color),
+                    duration: const Duration(milliseconds: 220),
+                    builder:
+                        (context, animatedColor, _) => Icon(
+                          item.icon,
+                          key: Key('mobile-nav-icon-${item.id}'),
+                          size: 28,
+                          color: animatedColor,
+                        ),
+                  ),
+                  const SizedBox(height: 7),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 220),
+                      style: TextStyle(
+                        color: color,
+                        fontSize: labelSize,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w500,
+                        height: 1.05,
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          item.label,
+                          key: Key('mobile-nav-label-${item.id}'),
+                          maxLines: 1,
+                          softWrap: false,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  SizedBox(
+                    height: 3,
+                    child: Center(
+                      child: AnimatedContainer(
+                        key: Key('mobile-nav-underline-${item.id}'),
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeInOut,
+                        width: selected ? underlineWidth : 0,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: selected ? activeColor : Colors.transparent,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MobileNavigationItemData {
+  const _MobileNavigationItemData({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.route,
+  });
+
+  final String id;
+  final String label;
+  final IconData icon;
+  final String? route;
 }
 
 class _PageWithFooter extends MultiChildRenderObjectWidget {

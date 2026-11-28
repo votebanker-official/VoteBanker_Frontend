@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../app/localization/app_localizations.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../app/routing/app_router.dart';
 import '../../../core/services/auth_service.dart';
 import '../../merchandise/merchandise_intent.dart';
@@ -100,7 +101,6 @@ class _BlueTikScreenState extends State<BlueTikScreen> {
                     child: _Sheet(
                       wide: wide,
                       disclaimer: l10n.line('blueTikDisclaimer'),
-                      skipLabel: l10n.line('blueTikSkip'),
                       onBack: () => AppNav.back(context, AppRoutes.social),
                       onSkip: () => AppNav.open(context, AppRoutes.voterLists),
                       onBook: open,
@@ -120,7 +120,6 @@ class _Sheet extends StatelessWidget {
   const _Sheet({
     required this.wide,
     required this.disclaimer,
-    required this.skipLabel,
     required this.onBack,
     required this.onSkip,
     required this.onBook,
@@ -128,7 +127,6 @@ class _Sheet extends StatelessWidget {
 
   final bool wide;
   final String disclaimer;
-  final String skipLabel;
   final VoidCallback onBack;
   final VoidCallback onSkip;
   final ValueChanged<BlueTikOffer> onBook;
@@ -158,9 +156,15 @@ class _Sheet extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: BlueTikBackButton(onPressed: onBack),
+            Row(
+              children: [
+                BlueTikBackButton(onPressed: onBack),
+                const Spacer(),
+                CircularSkipButton(
+                  key: const Key('blue-tik-skip'),
+                  onPressed: onSkip,
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             _Heading(wide: wide),
@@ -176,31 +180,6 @@ class _Sheet extends StatelessWidget {
               disclaimer,
               textAlign: TextAlign.center,
               style: TextStyle(color: tone.muted, fontSize: 12, height: 1.45),
-            ),
-            const SizedBox(height: 16),
-            Align(
-              child: SizedBox(
-                width: wide ? 240 : double.infinity,
-                height: 48,
-                child: OutlinedButton(
-                  key: const Key('blue-tik-skip'),
-                  onPressed: onSkip,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF1E6BF5),
-                    backgroundColor: tone.card,
-                    side: const BorderSide(
-                      color: Color(0xFFBFD6F5),
-                      width: 1.4,
-                    ),
-                    shape: const StadiumBorder(),
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
-                  ),
-                  child: Text(skipLabel),
-                ),
-              ),
             ),
           ],
         ),

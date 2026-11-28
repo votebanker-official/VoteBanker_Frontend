@@ -66,7 +66,21 @@ class AuthService {
   /// True after this page load redeemed a Facebook sign-in ticket.
   bool openProfileAfterLogin = false;
 
+  String? _pendingPostLoginRoute;
+
   bool get isSignedIn => session != null;
+
+  void rememberPostLoginRoute(String route) {
+    _pendingPostLoginRoute = route;
+    saveSessionValue('vb_post_login_route', route);
+  }
+
+  String? takePostLoginRoute() {
+    final route = _pendingPostLoginRoute;
+    _pendingPostLoginRoute = null;
+    final savedRoute = takeSessionValue('vb_post_login_route');
+    return route ?? savedRoute;
+  }
 
   String get signedInEmail {
     final current = session;

@@ -8,6 +8,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/profile_service.dart';
 import '../../../core/utils/person_name.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/global_footer.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../website/models/website_builder_draft.dart';
@@ -226,6 +227,8 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
             (context) => GlobalFooter.wrapIfDisplayed(
               context,
               WebsiteBuilderScreen(continueOnboarding: continueOnboarding),
+              routeName: AppRoutes.website,
+              showMobileNavigation: false,
             ),
       ),
     );
@@ -351,10 +354,9 @@ class _WebsiteScreenState extends State<WebsiteScreen> {
                 ),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: TextButton(
+                  child: CircularSkipButton(
                     onPressed:
                         () => AppRouter.open(context, AppRoutes.speechPreview),
-                    child: Text(l10n.portfolioSkip),
                   ),
                 ),
               ],

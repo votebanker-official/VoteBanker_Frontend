@@ -55,7 +55,6 @@ void main() {
 
           expect(tester.takeException(), isNull);
           expect(find.text('VOTE BANKER'), findsWidgets);
-          expect(find.text('Dashboard'), findsWidgets);
           expect(find.text('My Portfolio'), findsWidgets);
           expect(find.text('Saved Voters'), findsNothing);
           expect(find.text('My Voters'), findsWidgets);
@@ -151,8 +150,12 @@ void main() {
             valueListenable: controller,
             builder: (context, mode, _) {
               return MaterialApp(
-                theme: AppTheme.light(),
-                darkTheme: AppTheme.dark(),
+                theme: AppTheme.light().copyWith(
+                  platform: TargetPlatform.windows,
+                ),
+                darkTheme: AppTheme.dark().copyWith(
+                  platform: TargetPlatform.windows,
+                ),
                 themeMode: mode,
                 locale: const Locale('en'),
                 localizationsDelegates: const [

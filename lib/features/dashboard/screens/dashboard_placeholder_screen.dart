@@ -115,10 +115,6 @@ class _DashboardPlaceholderScreenState
                       ),
                     ),
                   ),
-          bottomNavigationBar:
-              wide
-                  ? null
-                  : _MobileNav(colors: colors, homeLabel: l10n.dashboard),
           body: SafeArea(
             child: Row(
               children: [
@@ -431,7 +427,7 @@ class _TopBar extends StatelessWidget {
                     const SizedBox(width: 8),
                     const ThemeToggle(),
                     const SizedBox(width: 8),
-                    const Flexible(child: LanguageSelector()),
+                    const LanguageSelector(),
                   ],
                 ),
               ],
@@ -987,87 +983,6 @@ class _PromoBanner extends StatelessWidget {
                     button,
                   ],
                 ),
-      ),
-    );
-  }
-}
-
-class _MobileNav extends StatelessWidget {
-  const _MobileNav({required this.colors, required this.homeLabel});
-
-  final DashboardColors colors;
-  final String homeLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final navAccent = colors.isDark ? colors.accent : const Color(0xFF2563EB);
-    final items = [
-      (Icons.home_rounded, homeLabel, true),
-      (Icons.bar_chart_rounded, l10n.cardAnalytics, false),
-      (Icons.add, '', false),
-      (Icons.notifications_none, l10n.line('dashNavNotifications'), false),
-      (Icons.person_outline, l10n.cardProfile, false),
-    ];
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.topBar,
-        border: Border(top: BorderSide(color: colors.border)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: [
-              for (final item in items)
-                Expanded(
-                  child:
-                      item.$2.isEmpty
-                          ? Center(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: navAccent,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Padding(
-                                padding: EdgeInsets.all(8),
-                                child: Icon(
-                                  Icons.add,
-                                  color: Colors.white,
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                          )
-                          : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                item.$1,
-                                size: 22,
-                                color: item.$3 ? navAccent : colors.muted,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                item.$2,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: item.$3 ? navAccent : colors.muted,
-                                  fontSize: 11,
-                                  fontWeight:
-                                      item.$3
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                ),
-            ],
-          ),
-        ),
       ),
     );
   }

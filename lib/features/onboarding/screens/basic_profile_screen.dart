@@ -16,6 +16,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/utils/person_name.dart';
 import '../../../core/services/selfie_capture.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../../website/services/portfolio_store.dart';
@@ -1014,6 +1015,13 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: CircularSkipButton(
+                                  onPressed: _skipForNow,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
                               SizedBox(
                                 height: wide ? 148 : 124,
                                 child: ClipRRect(
@@ -1254,12 +1262,6 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                                   ),
                                 ),
                               ),
-                              Center(
-                                child: TextButton(
-                                  onPressed: _skipForNow,
-                                  child: Text(l10n.skipForNow),
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -1380,65 +1382,87 @@ class _ProfileTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 16, 4),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: l10n.back,
-            onPressed: onBack,
-            icon: Icon(
-              Icons.arrow_back,
-              color: palette.isDark ? palette.text : const Color(0xFF0F2744),
-            ),
-          ),
-          ClipOval(
-            child: Image.asset(
-              AppAssets.logo,
-              width: 36,
-              height: 36,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              l10n.appName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: palette.isDark ? palette.text : const Color(0xFF0F2744),
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-                letterSpacing: 0.4,
+    final titleColor = palette.isDark ? palette.text : const Color(0xFF0F2744);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 600;
+        final backSize = compact ? 32.0 : 40.0;
+        final logoSize = compact ? 28.0 : 36.0;
+        final controlSize = compact ? 36.0 : 48.0;
+        final gap = compact ? 4.0 : 8.0;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(compact ? 2 : 8, 6, compact ? 8 : 16, 4),
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: l10n.back,
+                onPressed: onBack,
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints.tightFor(
+                  width: backSize,
+                  height: backSize,
+                ),
+                icon: Icon(
+                  Icons.arrow_back,
+                  size: compact ? 22 : 24,
+                  color: titleColor,
+                ),
               ),
-            ),
+              ClipOval(
+                child: Image.asset(
+                  AppAssets.logo,
+                  width: logoSize,
+                  height: logoSize,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              SizedBox(width: compact ? 6 : 10),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    l10n.appName,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      color: titleColor,
+                      fontWeight: FontWeight.w800,
+                      fontSize: compact ? 15 : 16,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: gap),
+              ThemeToggle(diameter: controlSize),
+              SizedBox(width: gap),
+              LanguageSelector(compact: compact, maxWidth: 168),
+              SizedBox(width: gap),
+              CircleAvatar(
+                radius: compact ? 14 : 18,
+                backgroundColor:
+                    palette.isDark
+                        ? palette.surfaceSecondary
+                        : const Color(0xFFD7E6F5),
+                backgroundImage: photo == null ? null : MemoryImage(photo!),
+                child:
+                    photo == null
+                        ? Icon(
+                          Icons.person,
+                          color:
+                              palette.isDark
+                                  ? palette.textMuted
+                                  : const Color(0xFF0F2744),
+                          size: compact ? 16 : 18,
+                        )
+                        : null,
+              ),
+            ],
           ),
-          const ThemeToggle(),
-          const SizedBox(width: 8),
-          const LanguageSelector(),
-          const SizedBox(width: 10),
-          CircleAvatar(
-            radius: 18,
-            backgroundColor:
-                palette.isDark
-                    ? palette.surfaceSecondary
-                    : const Color(0xFFD7E6F5),
-            backgroundImage: photo == null ? null : MemoryImage(photo!),
-            child:
-                photo == null
-                    ? Icon(
-                      Icons.person,
-                      color:
-                          palette.isDark
-                              ? palette.textMuted
-                              : const Color(0xFF0F2744),
-                      size: 18,
-                    )
-                    : null,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

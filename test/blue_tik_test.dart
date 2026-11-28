@@ -272,7 +272,7 @@ void _expectOfferCopy() {
   expect(find.text('Get all 3 Blue Tik'), findsOneWidget);
   expect(find.text('₹1,999'), findsOneWidget);
   expect(find.text('Book Now'), findsNWidgets(4));
-  expect(find.text('Skip Now'), findsOneWidget);
+  expect(find.text('Skip'), findsOneWidget);
   expect(find.textContaining('not guaranteed'), findsOneWidget);
 }
 
@@ -289,7 +289,8 @@ void _expectChromeBelowCards(WidgetTester tester) {
   expect(back.dy, lessThan(title.dy));
   expect(back.dx, lessThanOrEqualTo(title.dx + 1));
   expect(bundle.dy, greaterThan(whatsapp.dy));
-  expect(skip.dy, greaterThan(bundle.dy));
+  expect(skip.dy, lessThan(title.dy));
+  expect(skip.dx, greaterThan(back.dx));
 }
 
 String _fieldText(WidgetTester tester, Key key) {

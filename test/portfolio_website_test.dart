@@ -28,7 +28,7 @@ void main() {
 
     await tester.pumpWidget(VoteBankerApp(controller: controller));
     await tester.pumpAndSettle();
-    await _tap(tester, 'Skip for now');
+    await _tap(tester, 'Skip');
 
     await tester.enterText(
       find.descendant(
@@ -85,7 +85,7 @@ void main() {
     expect(controller.draft.photoBytes, isNotNull);
     expect(controller.draft.party, 'Indian National Congress');
 
-    await _tap(tester, 'Skip for now');
+    await _tap(tester, 'Skip');
     await _tap(tester, 'Skip');
     expect(find.text('Social Media Setup'), findsOneWidget);
   });

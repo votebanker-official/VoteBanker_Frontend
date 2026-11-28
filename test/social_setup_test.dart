@@ -123,10 +123,7 @@ void main() {
     await tester.pumpWidget(_app(SocialSetupScreen(service: _FakeService())));
     await tester.pumpAndSettle();
 
-    final skip = find.widgetWithText(
-      OutlinedButton,
-      enTranslations['skipForNow']!,
-    );
+    final skip = find.text('Skip');
     final save = find.text(enTranslations['saveAndContinue']!);
     expect(tester.getTopLeft(skip).dy, lessThan(tester.getTopLeft(save).dy));
 

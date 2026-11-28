@@ -331,7 +331,7 @@ class _SpeechTopBar extends StatelessWidget {
                   children: [
                     ThemeToggle(),
                     SizedBox(width: 8),
-                    Flexible(child: LanguageSelector()),
+                    LanguageSelector(),
                   ],
                 ),
               ],

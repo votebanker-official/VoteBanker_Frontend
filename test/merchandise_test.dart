@@ -283,7 +283,7 @@ void main() {
     expect(find.text('Scarf'), findsNothing);
     expect(find.text('Design & Order'), findsOneWidget);
     expect(find.text('Order now'), findsOneWidget);
-    expect(find.text('Skip now'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
     expect(find.text('50 pieces — ₹199/piece'), findsOneWidget);
     expect(find.text('₹199 per piece'), findsOneWidget);
     expect(find.text('Total Price'), findsOneWidget);
@@ -323,11 +323,11 @@ void main() {
     await tester.pump();
     expect(find.text('Design & Order'), findsOneWidget);
     expect(find.text('Order now'), findsOneWidget);
-    expect(find.text('Skip now'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Skip now on campaign templates opens the ready page', (
+  testWidgets('Skip on campaign templates opens the ready page', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -348,7 +348,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Skip now'));
+    await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
 
     expect(find.text('ready-destination'), findsOneWidget);
@@ -435,12 +435,7 @@ void main() {
         find.byIcon(Icons.chevron_left).hitTestable(),
         index == 0 ? findsNothing : findsOneWidget,
       );
-      expect(
-        find.byIcon(Icons.chevron_right).hitTestable(),
-        index == campaignTemplateProducts.length - 1
-            ? findsNothing
-            : findsOneWidget,
-      );
+      expect(find.byIcon(Icons.chevron_right).hitTestable(), findsOneWidget);
       if (index < campaignTemplateProducts.length - 1) {
         await tester.tap(find.byIcon(Icons.chevron_right).hitTestable());
         await tester.pumpAndSettle();

@@ -13,6 +13,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/services/auth_browser.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/onboarding_progress_service.dart';
+import '../../../core/widgets/circular_skip_button.dart';
 import '../../../core/widgets/language_selector.dart';
 import '../../../core/widgets/theme_toggle.dart';
 import '../services/social_connection_service.dart';
@@ -337,6 +338,17 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: CircularSkipButton(
+                                onPressed:
+                                    () => AppRouter.open(
+                                      context,
+                                      AppRoutes.blueTik,
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
                             _SocialHero(
                               title: l10n.socialTitle,
                               subtitle: l10n.socialBody,
@@ -403,16 +415,6 @@ class _SocialSetupScreenState extends State<SocialSetupScreen>
                                   ],
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 14),
-                            _SkipCard(
-                              title: l10n.skipForNow,
-                              body: l10n.line('socialSkipBody'),
-                              action: l10n.skipForNow,
-                              compact: !wide,
-                              onSkip: () {
-                                AppRouter.open(context, AppRoutes.blueTik);
-                              },
                             ),
                             const SizedBox(height: 18),
                             Align(
@@ -884,112 +886,6 @@ class _SocialHeroArt extends StatelessWidget {
             child: _PlatformIcon(_SocialMark.youtube, size: icon * 0.9),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SkipCard extends StatelessWidget {
-  const _SkipCard({
-    required this.title,
-    required this.body,
-    required this.action,
-    required this.compact,
-    required this.onSkip,
-  });
-
-  final String title;
-  final String body;
-  final String action;
-  final bool compact;
-  final VoidCallback onSkip;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final titleColor = palette.isDark ? palette.text : const Color(0xFF102A56);
-    final muted = palette.isDark ? palette.textMuted : const Color(0xFF64748B);
-    final copy = Row(
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color:
-                palette.isDark
-                    ? palette.surfaceHighlight
-                    : const Color(0xFFEAF2FE),
-            shape: BoxShape.circle,
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(8),
-            child: Icon(
-              Icons.lightbulb_outline,
-              color: Color(0xFF2563EB),
-              size: 18,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: titleColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                body,
-                style: TextStyle(color: muted, fontSize: 13, height: 1.35),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-    final button = OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF2563EB),
-        side: BorderSide(
-          color: palette.isDark ? palette.border : const Color(0xFFD6E4F5),
-        ),
-        minimumSize: Size(compact ? 0 : 120, 42),
-        shape: const StadiumBorder(),
-      ),
-      onPressed: onSkip,
-      child: Text(action),
-    );
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: palette.isDark ? palette.surface : const Color(0xFFF3F8FF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: palette.isDark ? palette.border : const Color(0xFFE2EAF4),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child:
-            compact
-                ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    copy,
-                    const SizedBox(height: 10),
-                    Align(alignment: Alignment.centerRight, child: button),
-                  ],
-                )
-                : Row(
-                  children: [
-                    Expanded(child: copy),
-                    const SizedBox(width: 12),
-                    button,
-                  ],
-                ),
       ),
     );
   }

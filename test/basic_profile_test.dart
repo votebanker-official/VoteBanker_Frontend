@@ -188,7 +188,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Leader Profile'), findsOneWidget);
 
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
 
     expect(find.text('My Website'), findsOneWidget);
     expect(AuthService.instance.session?.userId, 'admin-user');
@@ -365,7 +365,7 @@ void main() {
     await tester.pumpWidget(VoteBankerApp(controller: controller));
     await tester.pumpAndSettle();
     // Preferred language is applied to MaterialApp on startup.
-    await _tapLabel(tester, hiTranslations['skipForNow']!);
+    await _tapLabel(tester, 'Skip');
 
     expect(_dropdown(tester, 'profileCountry').initialValue, 'India');
     _expectState(tester, 'Karnataka');
@@ -824,7 +824,7 @@ void main() {
     await _setSurface(tester, const Size(1280, 900));
     await tester.pumpWidget(VoteBankerApp(controller: controller));
     await tester.pumpAndSettle();
-    await _tapLabel(tester, 'Skip for now');
+    await _tapLabel(tester, 'Skip');
 
     _expectState(tester, 'Karnataka');
     _expectDistrict(tester, 'Dharwad');
@@ -967,7 +967,7 @@ Future<void> _openProfile(
   await _setSurface(tester, size);
   await tester.pumpWidget(VoteBankerApp(themeController: themeController));
   await tester.pumpAndSettle();
-  await _tapLabel(tester, 'Skip for now');
+  await _tapLabel(tester, 'Skip');
   expect(find.text('Leader Profile'), findsOneWidget);
 }
 
@@ -1127,7 +1127,7 @@ Future<void> _setSurface(WidgetTester tester, Size size) async {
 }
 
 Future<void> _chooseLanguage(WidgetTester tester, String nativeName) async {
-  await tester.tap(find.byIcon(Icons.language));
+  await tester.tap(find.byType(PopupMenuButton<String>));
   await tester.pumpAndSettle();
   final item = find.textContaining(nativeName);
   await tester.scrollUntilVisible(

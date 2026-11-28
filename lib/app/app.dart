@@ -7,6 +7,7 @@ import '../core/services/auth_browser.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/onboarding_progress_service.dart';
 import '../core/services/theme_controller.dart';
+import '../core/widgets/global_footer.dart';
 import '../features/merchandise/merchandise_intent.dart';
 import '../features/onboarding/blue_tik/blue_tik_models.dart';
 import '../features/onboarding/state/onboarding_controller.dart';
@@ -32,19 +33,44 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
       widget.themeController ?? ThemeController();
   late final bool _ownsThemeController = widget.themeController == null;
   final _navigatorKey = GlobalKey<NavigatorState>();
+  final _activeRouteName = ValueNotifier<String?>(null);
+  final _activeRouteShowsMobileNavigation = ValueNotifier<bool>(false);
+  late final _routeObserver = _AppRouteObserver(
+    _activeRouteName,
+    _activeRouteShowsMobileNavigation,
+  );
 
   String get _initialRoute {
-    final basePath = Uri.base.path;
-    if (basePath == AppRoutes.profile || basePath == AppRoutes.authCallback) {
-      return basePath;
-    }
-    final path =
+    final browserPath = browserLocation().path;
+    final platformPath =
         WidgetsBinding.instance.platformDispatcher.defaultRouteName
             .split('?')
             .first;
-    if (path == AppRoutes.profile || path == AppRoutes.authCallback)
-      return path;
-    return AppRoutes.login;
+    final requestedPath =
+        browserPath != AppRoutes.login
+            ? browserPath
+            : platformPath != AppRoutes.login
+            ? platformPath
+            : AppRoutes.login;
+    return AppRouter.initialRouteForPath(
+      requestedPath,
+      isSignedIn: AuthService.instance.isSignedIn,
+    );
+  }
+
+  void _openRoute(String route) {
+    final navigatorContext = _navigatorKey.currentState?.context;
+    if (navigatorContext == null) {
+      throw StateError('The app navigator is not available.');
+    }
+    AppRouter.open(
+      navigatorContext,
+      route,
+      arguments:
+          route == AppRoutes.website
+              ? AppRoutes.mobileNavigationArgument
+              : null,
+    );
   }
 
   @override
@@ -53,21 +79,33 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
     // Restore UI language from a pre-seeded or previously saved draft.
     _controller.syncLocaleFromDraft();
     if (AuthService.instance.openProfileAfterLogin ||
-        _initialRoute == AppRoutes.profile ||
-        AuthService.instance.isSignedIn) {
+        (_initialRoute == AppRoutes.login && AuthService.instance.isSignedIn)) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!AuthService.instance.isSignedIn) return;
+        final pendingRoute = AuthService.instance.takePostLoginRoute();
         final pendingMerch = await MerchandiseIntent.peek();
         final pendingBlue = await BlueTikIntent.peek();
+        final returningToProfile =
+            AuthService.instance.openProfileAfterLogin ||
+            _initialRoute == AppRoutes.profile;
+        final shouldResume =
+            pendingMerch != null ||
+            pendingBlue != null ||
+            returningToProfile ||
+            AuthService.instance.isSignedIn;
+        if (!shouldResume || !mounted) return;
         final resume =
             await OnboardingProgressService.instance.resolveResumeRoute();
         if (!mounted) return;
         final destination =
-            pendingMerch != null
+            pendingRoute ??
+            (pendingMerch != null
                 ? AppRoutes.campaignTemplates
                 : pendingBlue != null
                 ? AppRoutes.blueTik
-                : resume;
+                : returningToProfile
+                ? AppRoutes.profile
+                : resume);
         replaceBrowserPath(destination);
         final navigator = _navigatorKey.currentState;
         if (navigator == null) return;
@@ -90,6 +128,9 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
     if (_ownsThemeController) {
       _themeController.dispose();
     }
+    _routeObserver.dispose();
+    _activeRouteName.dispose();
+    _activeRouteShowsMobileNavigation.dispose();
     super.dispose();
   }
 
@@ -109,9 +150,31 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
                   title: 'VOTE BANKER',
                   debugShowCheckedModeBanner: false,
                   navigatorKey: _navigatorKey,
+                  navigatorObservers: [_routeObserver],
                   theme: AppTheme.light(),
                   darkTheme: AppTheme.dark(),
                   themeMode: themeMode,
+                  builder: (context, child) {
+                    return ValueListenableBuilder<String?>(
+                      valueListenable: _activeRouteName,
+                      builder:
+                          (context, routeName, _) =>
+                              ValueListenableBuilder<bool>(
+                                valueListenable:
+                                    _activeRouteShowsMobileNavigation,
+                                builder:
+                                    (context, mobileNavigationEnabled, _) =>
+                                        GlobalFooter.mainAppLayout(
+                                          context,
+                                          child ?? const SizedBox.shrink(),
+                                          routeName: routeName,
+                                          mobileNavigationEnabled:
+                                              mobileNavigationEnabled,
+                                          onNavigate: _openRoute,
+                                        ),
+                              ),
+                    );
+                  },
                   locale: locale,
                   supportedLocales: AppLocalizations.supportedLocales,
                   localizationsDelegates: const [
@@ -145,6 +208,64 @@ class _VoteBankerAppState extends State<VoteBankerApp> {
         ),
       ),
     );
+  }
+}
+
+class _AppRouteObserver extends NavigatorObserver {
+  _AppRouteObserver(
+    this.activeRouteName,
+    this.activeRouteShowsMobileNavigation,
+  );
+
+  final ValueNotifier<String?> activeRouteName;
+  final ValueNotifier<bool> activeRouteShowsMobileNavigation;
+  bool _disposed = false;
+
+  void dispose() {
+    _disposed = true;
+  }
+
+  void _update(Route<dynamic>? route) {
+    final name = route?.settings.name;
+    if (name == null) return;
+    final normalized = AppRouter.normalizeRouteName(name);
+    final showsMobileNavigation =
+        AppRoutes.showsMobileNavigation(normalized) &&
+        (normalized != AppRoutes.website ||
+            route!.settings.arguments == AppRoutes.mobileNavigationArgument);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_disposed) return;
+      activeRouteName.value = normalized;
+      activeRouteShowsMobileNavigation.value = showsMobileNavigation;
+    });
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+    _update(route);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPop(route, previousRoute);
+    _update(previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    _update(newRoute);
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didRemove(route, previousRoute);
+    final name = route.settings.name;
+    if (name != null &&
+        activeRouteName.value == AppRouter.normalizeRouteName(name)) {
+      _update(previousRoute);
+    }
   }
 }
 

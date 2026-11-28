@@ -8,6 +8,15 @@ import '../../features/onboarding/models/onboarding_draft.dart';
 import '../config/app_config.dart';
 import 'auth_service.dart';
 
+class ProfileServiceException implements Exception {
+  const ProfileServiceException(this.code);
+
+  final String code;
+
+  @override
+  String toString() => code;
+}
+
 /// Saves onboarding answers to the signed-in user's profile.
 class ProfileService {
   ProfileService._();
@@ -50,6 +59,46 @@ class ProfileService {
       return profile;
     } catch (_) {
       return null;
+    }
+  }
+
+  /// Loads a profile for authenticated views without hiding API failures.
+  Future<Map<String, dynamic>?> fetchProfileForPortfolio() async {
+    final session = AuthService.instance.session;
+    if (session == null || session.accessToken.isEmpty) {
+      throw const ProfileServiceException('unauthorized');
+    }
+    try {
+      final response = await http
+          .get(
+            Uri.parse('${AppConfig.apiBaseUrl}/api/profile'),
+            headers: {'Authorization': 'Bearer ${session.accessToken}'},
+          )
+          .timeout(const Duration(seconds: 20));
+      if (response.statusCode == 401) {
+        throw const ProfileServiceException('unauthorized');
+      }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ProfileServiceException('request_failed');
+      }
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw const ProfileServiceException('bad_response');
+      }
+      final profile = decoded['profile'];
+      if (profile == null) return null;
+      if (profile is! Map) {
+        throw const ProfileServiceException('bad_response');
+      }
+      return Map<String, dynamic>.from(profile);
+    } on ProfileServiceException {
+      rethrow;
+    } on TimeoutException {
+      throw const ProfileServiceException('timeout');
+    } on FormatException {
+      throw const ProfileServiceException('bad_response');
+    } catch (_) {
+      throw const ProfileServiceException('unreachable');
     }
   }
 
